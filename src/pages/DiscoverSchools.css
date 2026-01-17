@@ -129,12 +129,20 @@
 
 .fee-range-inputs {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     align-items: center;
 }
 
+.fee-range-inputs span {
+    flex-basis: 100%;
+    text-align: center;
+}
+
 .fee-range-inputs input {
     flex: 1;
+    min-width: 0;
+    max-width: 100%;
     padding: 10px;
     border: 2px solid #e2e8f0;
     border-radius: 8px;
