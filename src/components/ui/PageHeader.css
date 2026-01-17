@@ -1,0 +1,40 @@
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 5px;
+}
+
+.page-subtitle {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.primary-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #2A6EF2;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    box-shadow: 0 4px 6px rgba(42, 110, 242, 0.2);
+}
+
+.primary-action-btn:hover {
+    background-color: #1d4ed8;
+}

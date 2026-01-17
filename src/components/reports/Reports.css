@@ -1,0 +1,239 @@
+.reports-page {
+    padding: 20px;
+}
+
+.reports-toolbar {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 30px !important;
+    background-color: #ffffff !important;
+    padding: 15px 20px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
+}
+
+.date-filter {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: #64748b !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+}
+
+.export-actions {
+    display: flex !important;
+    gap: 10px !important;
+}
+
+.export-btn {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 10px 18px !important;
+    border-radius: 10px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    border: none !important;
+    background-color: #66a1be !important;
+    color: #ffffff !important;
+    transition: all 0.3s ease !important;
+}
+
+.export-btn:hover {
+    background-color: #4f8baa !important;
+    box-shadow: 0 4px 12px rgba(102, 161, 190, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+.export-btn.outline {
+    background-color: transparent !important;
+    border: 1.5px solid #e2e8f0 !important;
+    color: #64748b !important;
+}
+
+.export-btn.outline:hover {
+    background-color: #f8fafc !important;
+    color: #334155 !important;
+    border-color: #cbd5e1 !important;
+}
+
+.charts-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 20px !important;
+    margin-bottom: 30px !important;
+}
+
+.chart-card {
+    background-color: #ffffff !important;
+    padding: 20px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
+}
+
+.chart-card.full-width {
+    grid-column: span 2 !important;
+}
+
+.chart-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 20px !important;
+}
+
+.chart-header h3 {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    margin: 0 !important;
+}
+
+.filter-btn {
+    background: none !important;
+    border: none !important;
+    color: #94a3b8 !important;
+    cursor: pointer !important;
+}
+
+.chart-container {
+    position: relative !important;
+}
+
+.chart-container.flex-center {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* IMPROVED REPORT CARDS */
+.reports-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+    gap: 24px !important;
+}
+
+.report-item {
+    background-color: #ffffff !important;
+    padding: 24px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
+    border-left: 4px solid #66a1be !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    transition: all 0.3s ease !important;
+}
+
+.report-item:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-2px) !important;
+}
+
+.report-icon {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 10px !important;
+    background-color: #e6f3f7 !important;
+    color: #66a1be !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.report-icon-excel {
+    background-color: #dcfce7 !important;
+    color: #16a34a !important;
+}
+
+.report-content {
+    flex: 1 !important;
+}
+
+.report-content h4 {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    margin: 0 0 6px 0 !important;
+}
+
+.report-content p {
+    font-size: 13px !important;
+    color: #94a3b8 !important;
+    margin: 0 !important;
+}
+
+.download-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 11px 18px !important;
+    background-color: #66a1be !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    width: 100% !important;
+}
+
+.download-btn:hover {
+    background-color: #4f8baa !important;
+    box-shadow: 0 4px 12px rgba(102, 161, 190, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+.download-btn-excel {
+    background-color: #16a34a !important;
+}
+
+.download-btn-excel:hover {
+    background-color: #15803d !important;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3) !important;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 1024px) {
+    .charts-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .chart-card.full-width {
+        grid-column: span 1 !important;
+    }
+
+    .reports-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .reports-page {
+        padding: 12px !important;
+    }
+
+    .reports-toolbar {
+        flex-direction: column !important;
+        gap: 12px !important;
+        align-items: stretch !important;
+    }
+
+    .export-actions {
+        width: 100% !important;
+    }
+
+    .export-btn {
+        flex: 1 !important;
+    }
+
+    .reports-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

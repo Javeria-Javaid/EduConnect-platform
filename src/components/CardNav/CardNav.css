@@ -1,0 +1,465 @@
+/* --- General Container and Nav Bar --- */
+.card-nav-container {
+    position: fixed;
+    top: 1.5em;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 1200px;
+    z-index: 1000;
+    box-sizing: border-box;
+}
+
+.card-nav {
+    display: block;
+    height: 70px;
+    padding: 0;
+    /* baseColor prop sets the dark blue background (#1e293b) */
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+    will-change: height;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.card-nav-top {
+    position: absolute;
+    top: -3px;
+    left: 0;
+    right: 0;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.45rem 0.55rem 1.1rem;
+    z-index: 2;
+}
+
+/* --- Hamburger Menu (White for dark background) --- */
+.hamburger-menu {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    gap: 6px;
+    color: #ffffff;
+}
+
+.hamburger-menu:hover .hamburger-line {
+    opacity: 0.75;
+}
+
+.hamburger-line {
+    width: 30px;
+    height: 2px;
+    background-color: currentColor;
+    transition:
+        transform 0.25s ease,
+        opacity 0.2s ease,
+        margin 0.3s ease;
+    transform-origin: 50% 50%;
+}
+
+.hamburger-menu.open .hamburger-line:first-child {
+    transform: translateY(4px) rotate(45deg);
+}
+
+.hamburger-menu.open .hamburger-line:last-child {
+    transform: translateY(-4px) rotate(-45deg);
+}
+
+/* --- Logo and Brand Name (Restored original style with light gradient) --- */
+.logo-container {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    gap: 0.75rem;
+}
+
+.logo {
+    height: 32px;
+}
+
+.platform-name {
+    font-size: 1.45rem;
+    font-weight: 300;
+    /* Light gradient for high contrast on the dark background */
+    background: linear-gradient(135deg, #a5f3fc, #ffffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    white-space: nowrap;
+    letter-spacing: 2px;
+    font-family: 'Libre Baskerville', 'Times New Roman', serif;
+    text-transform: uppercase;
+}
+
+/* --- CTA Button --- */
+.card-nav-cta-button {
+    background-color: #66a1be;
+    color: white;
+    border: none;
+    border-radius: calc(0.75rem - 0.35rem);
+    padding: 0 1.5rem;
+    height: 80%;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.card-nav-cta-button:hover {
+    background-color: #4b8ba8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
+}
+
+/* --- Card Content Area (The Dropdown) --- */
+.card-nav-content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 70px;
+    bottom: 0;
+    padding: 0.75rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 1;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+.card-nav.open .card-nav-content {
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* --- Individual Dropdown Cards --- */
+.nav-card {
+    height: 100%;
+    flex: 1 1 0;
+    min-width: 180px;
+    max-width: 220px;
+    border-radius: calc(0.75rem - 0.2rem);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 14px;
+    gap: 8px;
+    user-select: none;
+    transition: all 0.3s ease;
+
+    /* Default dark link/icon color for visibility on the light card backgrounds */
+    --link-icon-color: #4b5563;
+
+    /* Defined colors for link hover effects */
+    --home-hover-color: #0369a1;
+    --about-hover-color: #854d0e;
+    --features-hover-color: #7e22ce;
+    --roles-hover-color: #166534;
+    --contact-hover-color: #be123c;
+}
+
+.nav-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.nav-card-label {
+    font-weight: 500;
+    font-size: 18px;
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+}
+
+.nav-card-links {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nav-card-link {
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 0;
+    color: var(--link-icon-color);
+}
+
+.nav-card-link-icon {
+    font-size: 11px;
+    color: var(--link-icon-color);
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+.nav-card-link:hover {
+    opacity: 1;
+    transform: translateX(3px);
+}
+
+/* Dynamic Hover Color Logic */
+.nav-card:nth-child(1) .nav-card-link:hover,
+.nav-card:nth-child(1) .nav-card-link:focus {
+    color: var(--home-hover-color);
+}
+
+.nav-card:nth-child(1) .nav-card-link:hover .nav-card-link-icon {
+    color: var(--home-hover-color);
+}
+
+.nav-card:nth-child(2) .nav-card-link:hover,
+.nav-card:nth-child(2) .nav-card-link:focus {
+    color: var(--about-hover-color);
+}
+
+.nav-card:nth-child(2) .nav-card-link:hover .nav-card-link-icon {
+    color: var(--about-hover-color);
+}
+
+.nav-card:nth-child(3) .nav-card-link:hover,
+.nav-card:nth-child(3) .nav-card-link:focus {
+    color: var(--features-hover-color);
+}
+
+.nav-card:nth-child(3) .nav-card-link:hover .nav-card-link-icon {
+    color: var(--features-hover-color);
+}
+
+.nav-card:nth-child(4) .nav-card-link:hover,
+.nav-card:nth-child(4) .nav-card-link:focus {
+    color: var(--roles-hover-color);
+}
+
+.nav-card:nth-child(4) .nav-card-link:hover .nav-card-link-icon {
+    color: var(--roles-hover-color);
+}
+
+.nav-card:nth-child(5) .nav-card-link:hover,
+.nav-card:nth-child(5) .nav-card-link:focus {
+    color: var(--contact-hover-color);
+}
+
+.nav-card:nth-child(5) .nav-card-link:hover .nav-card-link-icon {
+    color: var(--contact-hover-color);
+}
+
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 1024px) {
+    .nav-card {
+        min-width: 160px;
+        max-width: 180px;
+        padding: 10px 12px;
+    }
+
+    .nav-card-label {
+        font-size: 17px;
+    }
+
+    .nav-card-link {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .card-nav-top {
+        height: 65px;
+    }
+
+    .card-nav {
+        height: 65px;
+    }
+
+    /* CRUCIAL FIX: Allow menu to take full height needed */
+    .card-nav.open {
+        height: auto !important;
+        max-height: 900vh !important;
+        /* Effectively unlimited */
+        overflow-y: visible !important;
+        /* Let body scroll if needed, or use content scroll */
+    }
+
+    .card-nav.open .card-nav-content {
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto;
+        display: flex;
+        flex-direction: column;
+        /* Ensure column layout */
+        height: auto;
+    }
+
+    /* FORCE ITEMS VISIBLE overriding GSAP if needed */
+    .card-nav.open .nav-card {
+        opacity: 1 !important;
+        transform: none !important;
+        visibility: visible !important;
+    }
+
+    .logo-container {
+        position: static;
+        transform: none;
+        order: 1;
+        gap: 0.5rem;
+    }
+
+    /* Hide logo and name when menu is open */
+    .card-nav.open .logo-container {
+        display: none;
+    }
+
+    .platform-name {
+        font-size: 1.2rem;
+        letter-spacing: 1.5px;
+    }
+
+    .logo {
+        height: 28px;
+    }
+
+    .card-nav-cta-button {
+        display: none;
+    }
+
+    .card-nav-content {
+        position: relative;
+        /* FIX: Change from absolute to relative */
+        top: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        /* Increased gap for better separation */
+        padding: 1rem;
+        /* More breathing room on sides */
+        padding-bottom: 60px;
+        /* Extra padding for bottom safe area/scroll */
+        visibility: visible !important;
+    }
+
+    /* Hide Scrollbar for cleaner UI */
+    .card-nav.open::-webkit-scrollbar {
+        display: none;
+    }
+
+    .card-nav.open {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .nav-card {
+        height: auto;
+        min-height: 90px;
+        /* Increased touch target height */
+        flex: 0 0 auto;
+        /* Do not shrink! */
+        width: 100%;
+        /* Full width */
+        max-width: none;
+        padding: 18px 22px;
+        min-width: auto;
+        padding: 16px 20px;
+        /* More internal padding */
+        border-radius: 12px;
+        /* Softer corners */
+    }
+
+    .nav-card-links {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+        /* Better link spacing */
+        margin-top: 12px;
+    }
+
+    .nav-card-link {
+        font-size: 13px;
+        padding: 4px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .platform-name {
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+    }
+
+    .logo {
+        height: 26px;
+    }
+
+    .nav-card-top {
+        height: 60px;
+    }
+
+    .card-nav {
+        height: 60px;
+    }
+
+    .card-nav-content {
+        top: 60px;
+        padding: 0.5rem;
+        gap: 5px;
+    }
+
+    .nav-card {
+        min-height: 65px;
+        padding: 10px 12px;
+    }
+
+    .nav-card-label {
+        font-size: 16px;
+    }
+
+    .nav-card-links {
+        gap: 6px;
+    }
+
+    .nav-card-link {
+        font-size: 11px;
+        padding: 2px 4px;
+    }
+}
+
+/* --- Animation and Scrollbar --- */
+.card-nav,
+.card-nav-content,
+.nav-card,
+.nav-card-link {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-nav-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.card-nav-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+}
+
+.card-nav-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+}
+
+.card-nav-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}

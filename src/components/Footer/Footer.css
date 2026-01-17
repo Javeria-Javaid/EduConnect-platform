@@ -1,0 +1,187 @@
+/* --- FOOTER CONTAINER --- */
+.site-footer {
+    background-color: #1e293b;
+    /* Dark background to contrast with main content */
+    color: #ffffff;
+    padding-top: 60px;
+    padding-left: 20px;
+    padding-right: 20px;
+    font-size: 0.95rem;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    /* Four columns for desktop layout */
+    grid-template-columns: 2fr 1fr 1fr 1.5fr;
+    gap: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* --- COLUMN STYLES --- */
+.footer-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-heading {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #66a1be;
+    /* Primary color for headings */
+}
+
+/* --- BRAND INFO (Column 1) --- */
+.footer-logo .logo-text {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #ffffff;
+    display: block;
+    margin-bottom: 15px;
+}
+
+.brand-slogan {
+    color: #ccc;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    max-width: 300px;
+}
+
+.contact-info .contact-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    color: #ccc;
+}
+
+.contact-info .contact-item svg {
+    margin-right: 10px;
+    color: #66a1be;
+    min-width: 16px;
+}
+
+.contact-info .contact-item a,
+.contact-info .contact-item span {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.contact-info .contact-item a:hover {
+    color: #66a1be;
+}
+
+/* --- LINK COLUMNS (Columns 2, 3, 4) --- */
+.quick-links ul,
+.resources ul,
+.legal-social ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.quick-links li,
+.resources li,
+.legal-social li {
+    margin-bottom: 10px;
+}
+
+.quick-links a,
+.resources a,
+.legal-social a {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.quick-links a:hover,
+.resources a:hover,
+.legal-social a:hover {
+    color: #66a1be;
+}
+
+/* --- SOCIAL LINKS (Column 4) --- */
+.footer-social-links {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.footer-social-links a {
+    color: #ccc;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.footer-social-links a:hover {
+    color: #66a1be;
+}
+
+/* --- BOTTOM BAR --- */
+.footer-bottom-bar {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.copyright-text {
+    font-size: 0.85rem;
+    color: #999;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+@media (max-width: 1024px) {
+    .footer-container {
+        /* Switch to two-column layout */
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+    }
+
+    .brand-info {
+        grid-column: 1 / 3;
+        /* Brand info spans two columns */
+        align-items: center;
+        text-align: center;
+    }
+
+    .brand-slogan,
+    .contact-info {
+        max-width: 100%;
+    }
+
+    .contact-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .footer-container {
+        /* Stack all columns vertically on mobile */
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .footer-column {
+        align-items: center;
+        text-align: center;
+    }
+
+    .brand-info {
+        grid-column: 1;
+    }
+
+    .contact-info {
+        align-items: center;
+    }
+}

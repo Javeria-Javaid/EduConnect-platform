@@ -1,0 +1,402 @@
+/* VendorViews.css - Shared styles for vendor dashboard views */
+
+.vendor-view-container {
+    padding: 32px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+}
+
+.view-header {
+    margin-bottom: 28px;
+}
+
+.view-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 8px 0;
+}
+
+.view-subtitle {
+    color: #64748b;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.view-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.content-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    padding: 24px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.card-body {
+    flex: 1;
+}
+
+.profile-form, .settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.form-group input,
+.form-group select {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+}
+
+.verification-status {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.orders-table, .invoices-table {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.order-row, .invoice-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 10px;
+}
+
+.order-info, .invoice-info {
+    flex: 1;
+}
+
+.order-info h4, .invoice-info h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+}
+
+.order-info p, .invoice-info p {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0 0 4px 0;
+}
+
+.order-date, .invoice-date {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.order-amount, .invoice-amount {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #1e293b;
+    min-width: 100px;
+}
+
+.order-status, .invoice-status {
+    min-width: 100px;
+}
+
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.order-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-sm.btn-success {
+    background: #10b981;
+    color: white;
+}
+
+.btn-sm.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-sm.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.inventory-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.inventory-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 10px;
+}
+
+.inventory-info h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 8px 0;
+}
+
+.stock-info {
+    display: flex;
+    gap: 20px;
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+.messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.message-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 10px;
+    position: relative;
+}
+
+.message-item.unread {
+    background: #eff6ff;
+    border-color: #3b82f6;
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.message-content {
+    flex: 1;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.message-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.message-date {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.message-subject {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.unread-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3b82f6;
+}
+
+.chart-placeholder {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 2px dashed #cbd5e1;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.revenue-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.revenue-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 10px;
+}
+
+.revenue-value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.btn-download {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #eff6ff;
+    color: #3b82f6;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-download:hover {
+    background: #dbeafe;
+}
+
+.mt-4 {
+    margin-top: 16px;
+}
+
+.text-gray-400 {
+    color: #94a3b8;
+}
+
+.text-green-600 {
+    color: #10b981;
+}
+
+.text-yellow-600 {
+    color: #d97706;
+}
+
+@media (max-width: 768px) {
+    .vendor-view-container {
+        padding: 20px;
+    }
+
+    .order-row, .invoice-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+

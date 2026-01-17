@@ -1,0 +1,116 @@
+.teacher-management-page {
+    padding: 20px;
+}
+
+.teacher-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.teacher-avatar {
+    width: 36px;
+    height: 36px;
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.teacher-name-text {
+    display: block;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.teacher-qual-text {
+    display: block;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.subject-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #334155;
+    font-weight: 500;
+}
+
+.classes-list {
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* Profile View */
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.detail-card {
+    background-color: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.detail-card .label {
+    display: block;
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 5px;
+}
+
+.detail-card .value {
+    font-weight: 600;
+    color: #1e293b;
+    justify-content: center;
+}
+
+.classes-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.class-tag {
+    background-color: #eff6ff;
+    color: #2563eb;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.documents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.doc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #334155;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.doc-item:hover {
+    background-color: #f8fafc;
+}
+
+.teacher-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}

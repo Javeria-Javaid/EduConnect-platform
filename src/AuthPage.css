@@ -1,0 +1,523 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* =======================================
+   1. GLOBAL & BASE STYLES
+   ======================================= */
+
+.auth-page-wrapper.dark-theme * {
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease;
+}
+
+.auth-page-wrapper.dark-theme {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f1f5f9;
+    /* Light gray background */
+    color: #334155;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Background decoration (optional) */
+.auth-page-wrapper.dark-theme::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 50%;
+    height: 50%;
+    background: radial-gradient(circle, rgba(102, 161, 190, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+    z-index: 0;
+}
+
+/* Main Card Container */
+.auth-card-container {
+    position: relative;
+    display: flex;
+    width: 900px;
+    max-width: 100%;
+    min-height: 600px;
+    /* Slightly taller */
+    background-color: #ffffff;
+    border-radius: 20px;
+    /* More rounded */
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    /* Softer, deeper shadow */
+    z-index: 1;
+}
+
+/* =======================================
+   2. FORM SECTIONS (Login & Signup)
+   ======================================= */
+
+.form-section {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: all 0.6s ease-in-out;
+    width: 50%;
+    z-index: 2;
+    background-color: #ffffff;
+}
+
+.form-section.login-active {
+    left: 0;
+    opacity: 1;
+    z-index: 2;
+}
+
+.form-section.signup-active {
+    left: 0;
+    opacity: 0;
+    z-index: 1;
+}
+
+/* Fix for the sliding logic: When signup is active, login moves out and signup moves in */
+.auth-card-container.right-panel-active .form-section.login-active {
+    transform: translateX(100%);
+    opacity: 0;
+    z-index: 1;
+}
+
+.auth-card-container.right-panel-active .form-section.signup-active {
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+}
+
+.form-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 40px 30px;
+    /* Reduced side padding for wider fields */
+    height: 100%;
+    text-align: center;
+}
+
+/* Typography */
+h2 {
+    font-size: 28px;
+    /* Slightly smaller */
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #1e293b;
+}
+
+.form-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 20px;
+    /* Optimized margin */
+    line-height: 1.5;
+}
+
+/* Inputs */
+.name-fields {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.signup-form input,
+.login-form input,
+.role-select {
+    width: 100%;
+    padding: 12px 14px;
+    /* Optimized padding */
+    margin-bottom: 14px;
+    /* Optimized margin */
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background-color: #f8fafc;
+    color: #334155;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.signup-form input:focus,
+.login-form input:focus,
+.role-select:focus {
+    border-color: #66a1be;
+    /* Theme secondary color */
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(102, 161, 190, 0.1);
+}
+
+/* Social Buttons */
+.social-login-container {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    width: 100%;
+}
+
+.social-login-btn {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background-color: #ffffff;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.social-login-btn:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+/* Divider */
+.or-divider {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 16px 0;
+    /* Reduced margin */
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.or-divider::before,
+.or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: #e2e8f0;
+}
+
+.or-divider::before {
+    margin-right: 10px;
+}
+
+.or-divider::after {
+    margin-left: 10px;
+}
+
+/* Submit Buttons */
+.signup-submit-btn,
+.login-submit-btn {
+    width: 100%;
+    padding: 13px;
+    /* Reduced padding */
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #66a1be 0%, #5590ad 100%);
+    /* Theme secondary color gradient */
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+    /* Reduced margin */
+    box-shadow: 0 4px 12px rgba(102, 161, 190, 0.3);
+    transition: all 0.3s;
+}
+
+.signup-submit-btn:hover,
+.login-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(102, 161, 190, 0.4);
+}
+
+/* Links */
+.forgot-password-link {
+    width: 100%;
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.forgot-password-link a {
+    color: #66a1be;
+    /* Theme secondary color */
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.login-link-text,
+.signup-link-text {
+    margin-top: 18px;
+    /* Reduced margin */
+    margin-bottom: 10px;
+    /* Reduced margin */
+    font-size: 14px;
+    color: #64748b;
+}
+
+.login-link-text a,
+.signup-link-text a {
+    color: #66a1be;
+    /* Theme secondary color */
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 5px;
+}
+
+.login-link-text a:hover,
+.signup-link-text a:hover {
+    text-decoration: underline;
+}
+
+/* =======================================
+   3. OVERLAY & ANIMATION
+   ======================================= */
+
+.overlay-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: transform 0.6s ease-in-out;
+    z-index: 100;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+.overlay {
+    background: linear-gradient(135deg, #66a1be 0%, #5590ad 100%);
+    /* Theme secondary color gradient */
+    color: #FFFFFF;
+    position: relative;
+    left: -100%;
+    height: 100%;
+    width: 200%;
+    transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
+}
+
+.overlay-panel {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 40px;
+    text-align: center;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
+}
+
+.overlay-left {
+    transform: translateX(-20%);
+}
+
+.overlay-right {
+    right: 0;
+    transform: translateX(0);
+}
+
+/* Animation States */
+
+/* Move overlay to the left when showing signup */
+.overlay-container.overlay-active {
+    transform: translateX(-100%);
+    border-radius: 20px 0 0 20px;
+    /* Change radius to left side */
+}
+
+.overlay-container.overlay-active .overlay {
+    transform: translateX(50%);
+}
+
+.overlay-container.overlay-active .overlay-left {
+    transform: translateX(0);
+}
+
+.overlay-container.overlay-active .overlay-right {
+    transform: translateX(20%);
+}
+
+/* Panel Content */
+.panel-content h1 {
+    color: white;
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.panel-content p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.auth-left-cta {
+    background: white;
+    border: 2px solid white;
+    color: #66a1be;
+    padding: 14px 40px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.auth-left-cta:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.3);
+}
+
+/* Steps for Signup Panel */
+.auth-steps-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+    max-width: 300px;
+}
+
+.auth-step-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+}
+
+.auth-step-item.active {
+    opacity: 1;
+}
+
+.auth-step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.auth-step-item.active .auth-step-number {
+    background: white;
+    color: #66a1be;
+    /* Theme secondary color */
+}
+
+/* =======================================
+   4. BACK BUTTON
+   ======================================= */
+.back-to-home-btn {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 10;
+}
+
+.back-to-home-btn:hover {
+    transform: translateX(-3px);
+    color: #66a1be;
+    /* Theme secondary color */
+    box-shadow: 0 6px 16px rgba(102, 161, 190, 0.2);
+}
+
+/* =======================================
+   5. RESPONSIVE
+   ======================================= */
+@media (max-width: 768px) {
+    .auth-card-container {
+        flex-direction: column;
+        height: auto;
+        min-height: auto;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .overlay-container {
+        display: none;
+    }
+
+    .form-section {
+        position: relative;
+        width: 100%;
+        height: auto;
+        left: 0 !important;
+        opacity: 1 !important;
+        z-index: 1 !important;
+        transform: none !important;
+    }
+
+    .form-section.signup-active {
+        display: none;
+        /* Hide signup by default on mobile, toggle via JS state if needed */
+    }
+
+    /* Since we can't easily slide on mobile without overlay, we might just show one or the other.
+       The React state handles rendering, but CSS hides the inactive one. */
+
+    .form-section.login-active {
+        display: flex;
+    }
+
+    /* Actually, the React component renders both but hides one via CSS classes. 
+       On mobile, we need to ensure the active one is visible. */
+
+    .auth-card-container.right-panel-active .form-section.login-active {
+        display: none;
+    }
+
+    .auth-card-container.right-panel-active .form-section.signup-active {
+        display: flex;
+        opacity: 1;
+        z-index: 5;
+        animation: none;
+    }
+
+    .auth-page-wrapper.dark-theme {
+        padding: 10px;
+    }
+
+    .back-to-home-btn {
+        top: 10px;
+        left: 10px;
+    }
+}

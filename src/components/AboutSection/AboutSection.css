@@ -1,0 +1,280 @@
+/* About Section Container */
+.about-section {
+    padding: 140px 20px 100px 20px;
+    background-color: #f8fafc;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.about-container {
+    max-width: 1200px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+}
+
+/* --- LEFT COLUMN: SINGLE VISUAL --- */
+.about-visuals {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.visual-card {
+    background-color: #ffffff;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.12),
+        0 8px 24px rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    width: 100%;
+    max-width: 520px;
+    border-radius: 20px;
+}
+
+.visual-card-main {
+    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+    padding: 40px;
+    aspect-ratio: 1;
+}
+
+.about-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+}
+
+/* --- RIGHT COLUMN: STAT HEADLINE & CONTENT --- */
+.about-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* MASSIVE STAT HEADLINE */
+.about-stat-headline {
+    margin-bottom: 50px;
+}
+
+.stat-value-large {
+    font-size: 5.5rem;
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, #66a1be 0%, #4f8baa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -2px;
+    margin-bottom: 16px;
+}
+
+.stat-micro-label {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #64748b;
+    font-weight: 500;
+    max-width: 400px;
+}
+
+.about-subheading {
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 12px;
+}
+
+.about-heading {
+    font-size: 2.8rem;
+    font-weight: 800;
+    margin-bottom: 32px;
+    line-height: 1.15;
+    color: #0f172a;
+}
+
+/* VISUAL STORY FORMAT */
+.about-description-story {
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 520px;
+}
+
+.story-opening {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #1e293b;
+    margin: 0;
+}
+
+.story-explanation {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #475569;
+    margin: 0;
+}
+
+.story-closing {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #64748b;
+    font-style: italic;
+    margin: 0;
+}
+
+/* SPECIFIC CTA */
+.about-cta-button {
+    background: linear-gradient(135deg, #66a1be 0%, #4f8baa 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 32px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(102, 161, 190, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.about-cta-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.about-cta-button:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.about-cta-button:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 30px rgba(102, 161, 190, 0.4), 0 0 50px rgba(102, 161, 190, 0.2);
+}
+
+.about-cta-button:active {
+    transform: translateY(-1px) scale(0.98);
+}
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+@media (max-width: 1024px) {
+    .about-container {
+        grid-template-columns: 1fr;
+        gap: 60px;
+    }
+
+    .about-content {
+        align-items: center;
+        text-align: center;
+    }
+
+    .about-stat-headline,
+    .about-description-story {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .stat-value-large {
+        font-size: 4.5rem;
+    }
+
+    .about-visuals {
+        order: -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .about-section {
+        padding: 80px 20px 60px 20px;
+    }
+
+    .stat-value-large {
+        font-size: 3.5rem;
+        letter-spacing: -1px;
+    }
+
+    .stat-micro-label {
+        font-size: 0.9rem;
+    }
+
+    .about-heading {
+        font-size: 2.2rem;
+    }
+
+    .story-opening {
+        font-size: 1.2rem;
+    }
+
+    .story-explanation,
+    .story-closing {
+        font-size: 1rem;
+    }
+
+    .visual-card-main {
+        padding: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    .about-section {
+        padding: 60px 15px 50px 15px;
+    }
+
+    .stat-value-large {
+        font-size: 2.8rem;
+    }
+
+    .stat-micro-label {
+        font-size: 0.85rem;
+    }
+
+    .about-heading {
+        font-size: 1.8rem;
+    }
+
+    .about-subheading {
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+    }
+
+    .story-opening {
+        font-size: 1.1rem;
+    }
+
+    .story-explanation,
+    .story-closing {
+        font-size: 0.95rem;
+    }
+
+    .about-cta-button {
+        padding: 14px 28px;
+        font-size: 0.95rem;
+    }
+
+    .visual-card-main {
+        padding: 24px;
+    }
+}

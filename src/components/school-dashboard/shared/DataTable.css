@@ -1,0 +1,259 @@
+/* DataTable.css - Professional Table Styling */
+
+.data-table-wrapper {
+    width: 100%;
+}
+
+/* Table Container */
+.table-container {
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: white;
+}
+
+.data-table {
+    width: 100%;
+    font-size: 0.9rem;
+    text-align: left;
+    border-collapse: collapse;
+}
+
+/* Table Header */
+.table-header {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.table-header th {
+    padding: 14px 20px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.table-header th.sortable {
+    cursor: pointer;
+    transition: color 0.2s;
+    user-select: none;
+}
+
+.table-header th.sortable:hover {
+    color: #3b82f6;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sort-indicator {
+    color: #3b82f6;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+/* Table Body */
+.table-body {
+    background: white;
+}
+
+.table-row {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.table-row:hover {
+    background: #f8fafc;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.table-row:last-child {
+    border-bottom: none;
+}
+
+.table-cell {
+    padding: 16px 20px;
+    color: #1e293b;
+    vertical-align: middle;
+}
+
+.table-cell.checkbox-cell {
+    width: 48px;
+    padding: 16px 20px;
+}
+
+.table-cell.actions-cell {
+    text-align: right;
+}
+
+/* Checkbox Styling */
+.table-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #3b82f6;
+    border: 2px solid #cbd5e1;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.table-checkbox:hover {
+    border-color: #3b82f6;
+}
+
+.table-checkbox:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Action Buttons */
+.action-buttons-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.action-btn {
+    padding: 8px;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    color: #3b82f6;
+    background: #eff6ff;
+    transform: scale(1.1);
+}
+
+/* Empty State */
+.empty-state {
+    padding: 60px 24px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.95rem;
+}
+
+/* Pagination */
+.pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 0 4px;
+}
+
+.pagination-info {
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.pagination-info .highlight {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 6px;
+}
+
+.pagination-btn {
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination-page-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination-page-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.pagination-page-btn.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+
+    .table-header th,
+    .table-cell {
+        padding: 12px 14px;
+        font-size: 0.85rem;
+    }
+
+    .table-header th {
+        font-size: 0.7rem;
+    }
+
+    .pagination-container {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .pagination-controls {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .action-buttons-group {
+        gap: 4px;
+    }
+
+    .action-btn {
+        padding: 6px;
+    }
+
+    .pagination-page-btn {
+        min-width: 32px;
+        height: 32px;
+        font-size: 0.85rem;
+    }
+}

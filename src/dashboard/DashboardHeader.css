@@ -1,0 +1,224 @@
+.dashboard-header {
+    height: 70px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+    max-width: 500px;
+}
+
+.menu-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.menu-toggle-btn:hover {
+    background-color: #f1f5f9;
+    color: #334155;
+}
+
+/* HEADER SEARCH BAR - Matches DataTable search bar styling exactly */
+.dashboard-header .header-left .header-search-bar {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 420px !important;
+}
+
+.header-search-bar .search-icon {
+    position: absolute !important;
+    left: 16px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: #94a3b8 !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+}
+
+.header-search-bar input,
+.header-search-bar input.search-input,
+.header-search-bar input[type="text"] {
+    width: 100% !important;
+    padding: 11px 16px 11px 44px !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    outline: none !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #1e293b !important;
+    background-color: #f8fafc !important;
+    transition: all 0.3s ease !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+}
+
+.header-search-bar input::placeholder,
+.header-search-bar input.search-input::placeholder {
+    color: #94a3b8 !important;
+    font-weight: 400 !important;
+    opacity: 1 !important;
+}
+
+.header-search-bar input:focus,
+.header-search-bar input.search-input:focus {
+    border-color: #66a1be !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(102, 161, 190, 0.1) !important;
+    transform: translateY(-1px) !important;
+}
+
+.header-search-bar:focus-within .search-icon {
+    color: #66a1be !important;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    position: relative;
+    padding: 10px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+    background-color: #f1f5f9;
+    color: #334155;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background-color: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+}
+
+.profile-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 6px 12px 6px 8px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.profile-dropdown:hover {
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    gap: 2px;
+}
+
+.profile-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.2;
+    text-transform: capitalize;
+}
+
+.profile-role {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.profile-avatar {
+    height: 42px;
+    width: 42px;
+    background: linear-gradient(135deg, #66a1be 0%, #4f8baa 100%);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #e0f2f7;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 0 15px;
+        height: 65px;
+    }
+
+    .header-left {
+        max-width: none;
+    }
+
+    .profile-info {
+        display: none;
+    }
+
+    .search-bar {
+        max-width: 220px;
+        padding: 8px 12px;
+    }
+
+    .search-bar input {
+        font-size: 13px;
+    }
+
+    .profile-avatar {
+        height: 38px;
+        width: 38px;
+    }
+
+    .icon-btn {
+        padding: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-bar {
+        max-width: 160px;
+    }
+
+    .search-bar input::placeholder {
+        font-size: 12px;
+    }
+}

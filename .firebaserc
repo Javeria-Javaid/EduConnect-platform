@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "educonnect-pk",
+    "educonnect-pk": "educonnect-pk"
+  },
+  "targets": {},
+  "etags": {}
+}

@@ -1,0 +1,42 @@
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
+  min-width: 0;
+  /* Prevents flex child from overflowing */
+}
+
+/* Adjust main content margin based on sidebar state */
+/* Note: Since sidebar is sticky/fixed, we might not need margin if we use flex layout correctly. 
+   However, the previous implementation used flex. 
+   Let's stick to a flex row layout where sidebar is a flex item. 
+*/
+
+.dashboard-content {
+  padding: 30px;
+  flex: 1;
+  overflow-y: auto;
+  background-color: #ffffff !important;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 45;
+}
+
+@media (max-width: 768px) {
+  .dashboard-content {
+    padding: 20px;
+  }
+}
