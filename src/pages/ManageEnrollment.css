@@ -6,9 +6,9 @@
 }
 
 .enrollment-header {
-    background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
-    color: white;
-    padding: 40px 20px;
+    background: linear-gradient(135deg, #e9d5ff 0%, #ddd6fe 100%);
+    color: #4c1d95;
+    padding: 50px 20px;
     position: relative;
 }
 
@@ -19,13 +19,23 @@
 }
 
 .enrollment-header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 10px rgba(76, 29, 149, 0.1);
+    background: linear-gradient(135deg, #6b21a8 0%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-.enrollment-header p {
-    font-size: 1.1rem;
-    opacity: 0.9;
+.enrollment-header p.subtitle {
+    font-size: 1.15rem;
+    color: #6b21a8;
+    font-weight: 500;
+    opacity: 0.85;
+    letter-spacing: 0.5px;
 }
 
 .admission-toggle {
@@ -57,7 +67,7 @@
 }
 
 .toggle-switch.active {
-    background: #10b981;
+    background: #86efac;
 }
 
 .toggle-slider {
@@ -81,7 +91,7 @@
 }
 
 .status-text.open {
-    color: #10b981;
+    color: #059669;
 }
 
 .status-text.closed {
@@ -131,13 +141,14 @@
 }
 
 .nav-item:hover {
-    background: #f8fafc;
-    color: #a78bfa;
+    background: #f3e8ff;
+    color: #7c3aed;
 }
 
 .nav-item.active {
-    background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
-    color: white;
+    background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+    color: #6b21a8;
+    font-weight: 600;
 }
 
 /* Main Content */
@@ -161,36 +172,38 @@
     background: linear-gradient(135deg, var(--card-color-1) 0%, var(--card-color-2) 100%);
     border-radius: 16px;
     padding: 24px;
-    color: white;
+    color: #1f2937;
     display: flex;
     gap: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .stat-card.blue {
-    --card-color-1: #3b82f6;
-    --card-color-2: #2563eb;
+    --card-color-1: #bfdbfe;
+    --card-color-2: #93c5fd;
 }
 
 .stat-card.green {
-    --card-color-1: #10b981;
-    --card-color-2: #059669;
+    --card-color-1: #a7f3d0;
+    --card-color-2: #6ee7b7;
 }
 
 .stat-card.purple {
-    --card-color-1: #a78bfa;
-    --card-color-2: #8b5cf6;
+    --card-color-1: #e9d5ff;
+    --card-color-2: #d8b4fe;
 }
 
 .stat-card.orange {
-    --card-color-1: #f59e0b;
-    --card-color-2: #d97706;
+    --card-color-1: #fed7aa;
+    --card-color-2: #fdba74;
 }
 
 .stat-icon {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.08);
     padding: 12px;
     border-radius: 12px;
     height: fit-content;
+    color: #374151;
 }
 
 .stat-info {
@@ -199,19 +212,22 @@
 
 .stat-label {
     font-size: 0.9rem;
-    opacity: 0.9;
+    opacity: 0.8;
     margin-bottom: 8px;
+    color: #374151;
 }
 
 .stat-value {
     font-size: 2rem;
     font-weight: 700;
     margin-bottom: 8px;
+    color: #1f2937;
 }
 
 .stat-change {
     font-size: 0.85rem;
-    opacity: 0.9;
+    opacity: 0.8;
+    color: #059669;
 }
 
 /* Charts Section */
@@ -279,7 +295,7 @@
 .form-group textarea:focus,
 .form-group select:focus {
     outline: none;
-    border-color: #a78bfa;
+    border-color: #c4b5fd;
 }
 
 .form-grid {
@@ -298,8 +314,8 @@
 }
 
 .file-upload:hover {
-    border-color: #a78bfa;
-    background: #f8fafc;
+    border-color: #c4b5fd;
+    background: #faf5ff;
 }
 
 .file-upload svg {
@@ -345,8 +361,8 @@
 }
 
 .btn-save {
-    background: #a78bfa;
-    color: white;
+    background: #ddd6fe;
+    color: #5b21b6;
     border: none;
     padding: 8px 16px;
     border-radius: 6px;
@@ -355,7 +371,7 @@
 }
 
 .btn-save:hover {
-    background: #8b5cf6;
+    background: #c4b5fd;
 }
 
 /* Messages */
@@ -381,16 +397,16 @@
 }
 
 .message-item.unread {
-    background: #eef2ff;
-    border-left: 4px solid #a78bfa;
+    background: #faf5ff;
+    border-left: 4px solid #c4b5fd;
 }
 
 .message-avatar {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
-    color: white;
+    background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+    color: #5b21b6;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -426,7 +442,7 @@
 .unread-indicator {
     width: 10px;
     height: 10px;
-    background: #a78bfa;
+    background: #c4b5fd;
     border-radius: 50%;
     position: absolute;
     top: 24px;
@@ -494,12 +510,12 @@
 }
 
 .btn-primary {
-    background: #a78bfa;
-    color: white;
+    background: #ddd6fe;
+    color: #5b21b6;
 }
 
 .btn-primary:hover {
-    background: #8b5cf6;
+    background: #c4b5fd;
 }
 
 .btn-secondary {

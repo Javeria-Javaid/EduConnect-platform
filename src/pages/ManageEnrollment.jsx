@@ -35,8 +35,8 @@ const ManageEnrollment = () => {
                     ← Back to Home
                 </button>
                 <div className="header-content">
-                    <h1>School Enrollment Management</h1>
-                    <p>Streamline admissions, manage communication, and track performance</p>
+                    <h1>🎓 School Enrollment Management</h1>
+                    <p className="subtitle">Streamline admissions • Manage communication • Track performance</p>
                 </div>
                 <div className="admission-toggle">
                     <label className="toggle-label">
