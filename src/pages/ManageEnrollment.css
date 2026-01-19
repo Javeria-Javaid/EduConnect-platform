@@ -6,16 +6,16 @@ html {
 
 .manage-enrollment-page {
     min-height: 100vh;
-    background: rgb(220, 252, 231);
+    background: #f8fafc;
     overflow-x: hidden;
     position: relative;
 }
 
 /* Back Button */
 .back-button {
-    background: #059669;
-    color: white;
-    border: none;
+    background: rgb(239, 246, 255);
+    color: #1e40af;
+    border: 2px solid #3b82f6;
     padding: 10px 20px;
     border-radius: 8px;
     font-size: 0.9rem;
@@ -30,13 +30,14 @@ html {
 }
 
 .back-button:hover {
-    background: #047857;
+    background: #3b82f6;
+    color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .enrollment-header {
-    background: rgb(220, 252, 231);
+    background: rgb(239, 246, 255);
     padding: 24px 20px;
     position: relative;
     height: 200px;
@@ -309,8 +310,8 @@ html {
 }
 
 .form-section {
-    max-width: 100%;
-    width: 100%;
+    max-width: 80%;
+    width: 80%;
     box-sizing: border-box;
 }
 
@@ -353,8 +354,8 @@ html {
 
 .form-input:focus {
     outline: none;
-    border-color: #86efac;
-    box-shadow: 0 0 0 3px rgba(134, 239, 172, 0.1);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .file-upload {
@@ -375,12 +376,12 @@ html {
 }
 
 .file-upload:hover {
-    border-color: #86efac;
-    background: #f0fdf4;
+    border-color: #3b82f6;
+    background: rgb(239, 246, 255);
 }
 
 .file-upload svg {
-    color: #059669;
+    color: #3b82f6;
     margin-bottom: 12px;
     width: 32px;
     height: 32px;
@@ -443,14 +444,16 @@ html {
 }
 
 .btn-primary {
-    background: #059669;
-    color: white;
+    background: rgb(239, 246, 255);
+    color: #1e40af;
+    border: 2px solid #3b82f6;
 }
 
 .btn-primary:hover {
-    background: #047857;
+    background: #3b82f6;
+    color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .btn-secondary {

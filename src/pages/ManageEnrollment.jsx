@@ -173,21 +173,6 @@ const ManageEnrollment = () => {
                                         </LineChart>
                                     </ResponsiveContainer>
                                 </div>
-
-                                <div className="chart-card">
-                                    <h3>Monthly Comparison</h3>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <BarChart data={enrollmentData}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="month" />
-                                            <YAxis />
-                                            <Tooltip />
-                                            <Legend />
-                                            <Bar dataKey="admissions" fill="#66a1be" />
-                                            <Bar dataKey="inquiries" fill="#a78bfa" />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
                             </div>
                         </motion.div>
                     )}

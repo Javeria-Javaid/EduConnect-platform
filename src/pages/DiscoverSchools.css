@@ -7,8 +7,8 @@
 }
 
 .discover-header {
-    background: linear-gradient(135deg, #66a1be 0%, #5891ae 100%);
-    color: white;
+    background: rgb(239, 246, 255);
+    color: #1e40af;
     padding: 60px 20px 40px;
     text-align: center;
 }
@@ -101,7 +101,7 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: #66a1be;
+    background: #3b82f6;
     cursor: pointer;
 }
 
@@ -124,7 +124,7 @@
 
 .filter-group select:focus {
     outline: none;
-    border-color: #66a1be;
+    border-color: #3b82f6;
 }
 
 .fee-range-inputs {
@@ -180,7 +180,7 @@
 
 .map-placeholder {
     height: 350px;
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    background: rgb(239, 246, 255);
     position: relative;
     display: flex;
     align-items: center;
@@ -399,12 +399,14 @@
 }
 
 .btn-primary {
-    background: #66a1be;
-    color: white;
+    background: rgb(239, 246, 255);
+    color: #1e40af;
+    border: 2px solid #3b82f6;
 }
 
 .btn-primary:hover {
-    background: #5891ae;
+    background: #3b82f6;
+    color: white;
     transform: translateY(-2px);
 }
 
@@ -510,7 +512,7 @@
 }
 
 .step.active .step-number {
-    background: #66a1be;
+    background: #3b82f6;
     color: white;
 }
 
@@ -547,7 +549,7 @@
 .form-grid input:focus,
 .form-grid select:focus {
     outline: none;
-    border-color: #66a1be;
+    border-color: #3b82f6;
 }
 
 .upload-section {
@@ -565,8 +567,8 @@
 }
 
 .upload-box:hover {
-    border-color: #66a1be;
-    background: #f8fafc;
+    border-color: #3b82f6;
+    background: rgb(239, 246, 255);
 }
 
 .upload-box svg {
@@ -581,9 +583,9 @@
 }
 
 .upload-btn {
-    background: #66a1be;
-    color: white;
-    border: none;
+    background: rgb(239, 246, 255);
+    color: #1e40af;
+    border: 2px solid #3b82f6;
     padding: 10px 20px;
     border-radius: 8px;
     cursor: pointer;
@@ -591,7 +593,8 @@
 }
 
 .upload-btn:hover {
-    background: #5891ae;
+    background: #3b82f6;
+    color: white;
 }
 
 .review-section {
