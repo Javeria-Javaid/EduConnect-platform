@@ -1,8 +1,14 @@
 /* Career Opportunities Page Styles */
 
+html {
+    scroll-behavior: smooth;
+}
+
 .career-opportunities-page {
     min-height: 100vh;
     background: #f8fafc;
+    overflow-x: hidden;
+    position: relative;
 }
 
 .career-header {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Briefcase, DollarSign, Clock, GraduationCap, TrendingUp, Package, ShoppingCart, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,14 @@ const CareerOpportunities = () => {
     const [activeSection, setActiveSection] = useState('jobs'); // 'jobs' or 'vendors'
     const [selectedSubject, setSelectedSubject] = useState('all');
     const [salaryRange, setSalaryRange] = useState([20000, 100000]);
+
+    // Prevent auto-scroll on mount
+    useEffect(() => {
+        window.scrollTo(0, 0);
+        if ('scrollRestoration' in window.history) {
+            window.history.scrollRestoration = 'manual';
+        }
+    }, []);
 
     // Teacher Job Listings
     const jobListings = [

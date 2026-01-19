@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { School, Users, DollarSign, MessageSquare, TrendingUp, Settings, Upload, CheckCircle, Bell, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,15 @@ const ManageEnrollment = () => {
     const navigate = useNavigate();
     const [admissionsOpen, setAdmissionsOpen] = useState(true);
     const [activeTab, setActiveTab] = useState('dashboard');
+
+    // Prevent auto-scroll on mount
+    useEffect(() => {
+        window.scrollTo(0, 0);
+        // Prevent scroll restoration
+        if ('scrollRestoration' in window.history) {
+            window.history.scrollRestoration = 'manual';
+        }
+    }, []);
 
     // Mock data for analytics
     const enrollmentData = [
@@ -31,23 +40,25 @@ const ManageEnrollment = () => {
         <div className="manage-enrollment-page">
             {/* Header */}
             <div className="enrollment-header">
-                <button className="back-button" onClick={() => navigate('/')}>
-                    ← Back to Home
-                </button>
                 <div className="header-content">
-                    <h1>🎓 School Enrollment Management</h1>
-                    <p className="subtitle">Streamline admissions • Manage communication • Track performance</p>
-                </div>
-                <div className="admission-toggle">
-                    <label className="toggle-label">
-                        <span>Admissions Status</span>
-                        <div className={`toggle-switch ${admissionsOpen ? 'active' : ''}`} onClick={() => setAdmissionsOpen(!admissionsOpen)}>
-                            <div className="toggle-slider"></div>
-                        </div>
-                        <span className={`status-text ${admissionsOpen ? 'open' : 'closed'}`}>
-                            {admissionsOpen ? 'OPEN' : 'CLOSED'}
-                        </span>
-                    </label>
+                    <button className="back-button" onClick={() => navigate('/')}>
+                        ← Back to Home
+                    </button>
+                    <div className="title-section">
+                        <h1>🎓 School Enrollment Management</h1>
+                        <p className="subtitle">Streamline admissions • Manage communication • Track performance</p>
+                    </div>
+                    <div className="admission-toggle">
+                        <label className="toggle-label">
+                            <span>Admissions Status</span>
+                            <div className={`toggle-switch ${admissionsOpen ? 'active' : ''}`} onClick={() => setAdmissionsOpen(!admissionsOpen)}>
+                                <div className="toggle-slider"></div>
+                            </div>
+                            <span className={`status-text ${admissionsOpen ? 'open' : 'closed'}`}>
+                                {admissionsOpen ? 'OPEN' : 'CLOSED'}
+                            </span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -187,20 +198,30 @@ const ManageEnrollment = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                         >
-                            <h2>Update Prospectus</h2>
+                            <div className="form-header-simple">
+                                <h2>School Prospectus</h2>
+                                <p className="form-subtitle">Manage your school's information and documentation</p>
+                            </div>
+
                             <div className="form-section">
-                                <div className="form-group">
-                                    <label>School Name</label>
-                                    <input type="text" placeholder="Enter school name" defaultValue="Greenfield International School" />
+                                <div className="form-row">
+                                    <div className="form-group full-width">
+                                        <label>School Name</label>
+                                        <input type="text" placeholder="Enter school name" defaultValue="Greenfield International School" className="form-input" />
+                                    </div>
                                 </div>
-                                <div className="form-group">
-                                    <label>About School</label>
-                                    <textarea rows="5" placeholder="Enter school description" defaultValue="Leading educational institution..."></textarea>
+
+                                <div className="form-row">
+                                    <div className="form-group full-width">
+                                        <label>About School</label>
+                                        <textarea rows="5" placeholder="Enter school description" defaultValue="Leading educational institution..." className="form-input"></textarea>
+                                    </div>
                                 </div>
-                                <div className="form-grid">
+
+                                <div className="form-row two-columns">
                                     <div className="form-group">
                                         <label>Board Type</label>
-                                        <select>
+                                        <select className="form-input">
                                             <option>Cambridge</option>
                                             <option>CBSE</option>
                                             <option>ICSE</option>
@@ -208,18 +229,35 @@ const ManageEnrollment = () => {
                                     </div>
                                     <div className="form-group">
                                         <label>Total Students</label>
-                                        <input type="number" defaultValue="850" />
+                                        <input type="number" defaultValue="850" className="form-input" />
                                     </div>
                                 </div>
-                                <div className="form-group">
-                                    <label>Upload Prospectus File</label>
-                                    <div className="file-upload">
-                                        <Upload size={24} />
-                                        <p>Click to upload or drag and drop</p>
-                                        <span>PDF, DOCX (MAX. 5MB)</span>
+
+                                <div className="form-row">
+                                    <div className="form-group full-width">
+                                        <label>Admission Status</label>
+                                        <select className="form-input">
+                                            <option value="open">Open</option>
+                                            <option value="closed">Closed</option>
+                                        </select>
                                     </div>
                                 </div>
-                                <button className="btn-primary">Save Changes</button>
+
+                                <div className="form-row">
+                                    <div className="form-group full-width">
+                                        <label>Upload Prospectus File</label>
+                                        <div className="file-upload">
+                                            <Upload size={32} />
+                                            <p>Click to upload or drag and drop</p>
+                                            <span>PDF, DOCX (MAX. 5MB)</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="form-actions">
+                                    <button className="btn btn-secondary">Cancel</button>
+                                    <button className="btn btn-primary">Save Changes</button>
+                                </div>
                             </div>
                         </motion.div>
                     )}
