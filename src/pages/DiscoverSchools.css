@@ -7,8 +7,8 @@
 }
 
 .discover-header {
-    background: rgb(239, 246, 255);
-    color: #1e40af;
+    background: #1e293b;
+    color: white;
     padding: 60px 20px 40px;
     text-align: center;
 }
@@ -17,9 +17,9 @@
     position: absolute;
     top: 20px;
     left: 20px;
-    background: rgba(255, 255, 255, 0.2);
+    background: #66a1be !important;
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid #5891ae !important;
     padding: 10px 20px;
     border-radius: 8px;
     cursor: pointer;
@@ -27,7 +27,8 @@
 }
 
 .back-button:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: #5891ae;
+    border-color: #4a7a94 !important;
 }
 
 .discover-header h1 {
@@ -176,11 +177,13 @@
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-top: 80px;
 }
 
+/* Map Section - Updated */
 .map-placeholder {
     height: 350px;
-    background: rgb(239, 246, 255);
+    background: #b0daee !important;
     position: relative;
     display: flex;
     align-items: center;
@@ -194,13 +197,13 @@
 
 .map-overlay h3 {
     font-size: 1.8rem;
-    color: #0369a1;
+    color: white;
     margin-bottom: 8px;
 }
 
 .map-overlay p {
     font-size: 1.1rem;
-    color: #0c4a6e;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .map-pin {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Briefcase, DollarSign, Clock, GraduationCap, TrendingUp, Package, ShoppingCart, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Footer from '../components/Footer/Footer';
 import './CareerOpportunities.css';
 
 const CareerOpportunities = () => {
@@ -378,6 +379,8 @@ const CareerOpportunities = () => {
                     </div>
                 )}
             </div>
+
+            <Footer />
         </div>
     );
 };

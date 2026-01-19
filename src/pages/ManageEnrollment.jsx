@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { School, Users, DollarSign, MessageSquare, TrendingUp, Settings, Upload, CheckCircle, Bell, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import Footer from '../components/Footer/Footer';
 import './ManageEnrollment.css';
 
 const ManageEnrollment = () => {
@@ -44,8 +45,8 @@ const ManageEnrollment = () => {
                     <button className="back-button" onClick={() => navigate('/')}>
                         ← Back to Home
                     </button>
-                    <div className="title-section">
-                        <h1>🎓 School Enrollment Management</h1>
+                    <div className="title-section" style={{ position: 'relative', zIndex: 10 }}>
+                        <h1 style={{ color: '#ffffff', opacity: 1, textShadow: 'none', background: 'none', WebkitTextFillColor: '#ffffff' }}>School Enrollment Management</h1>
                         <p className="subtitle">Streamline admissions • Manage communication • Track performance</p>
                     </div>
                     <div className="admission-toggle">
@@ -346,6 +347,8 @@ const ManageEnrollment = () => {
                     )}
                 </main>
             </div>
+
+            <Footer />
         </div>
     );
 };

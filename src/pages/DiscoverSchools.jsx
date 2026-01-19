@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Filter, Download, Upload, CheckCircle, School, DollarSign, Users, Star, Bus, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Footer from '../components/Footer/Footer';
 import './DiscoverSchools.css';
 
 const DiscoverSchools = () => {
@@ -396,6 +397,8 @@ const DiscoverSchools = () => {
                     </motion.div>
                 </div>
             )}
+
+            <Footer />
         </div>
     );
 };
