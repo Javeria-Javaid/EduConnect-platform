@@ -184,53 +184,53 @@ const ManageEnrollment = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                         >
-                            <div className="form-header-simple">
+                            <div className="enrollment-form-header">
                                 <h2>School Prospectus</h2>
-                                <p className="form-subtitle">Manage your school's information and documentation</p>
+                                <p className="enrollment-form-subtitle">Manage your school's information and documentation</p>
                             </div>
 
-                            <div className="form-section">
-                                <div className="form-row">
-                                    <div className="form-group full-width">
+                            <div className="enrollment-form-section">
+                                <div className="enrollment-form-row">
+                                    <div className="enrollment-form-group full-width">
                                         <label>School Name</label>
-                                        <input type="text" placeholder="Enter school name" defaultValue="Greenfield International School" className="form-input" />
+                                        <input type="text" placeholder="Enter school name" defaultValue="Greenfield International School" className="enrollment-form-input" />
                                     </div>
                                 </div>
 
-                                <div className="form-row">
-                                    <div className="form-group full-width">
+                                <div className="enrollment-form-row">
+                                    <div className="enrollment-form-group full-width">
                                         <label>About School</label>
-                                        <textarea rows="5" placeholder="Enter school description" defaultValue="Leading educational institution..." className="form-input"></textarea>
+                                        <textarea rows="5" placeholder="Enter school description" defaultValue="Leading educational institution..." className="enrollment-form-input"></textarea>
                                     </div>
                                 </div>
 
-                                <div className="form-row two-columns">
-                                    <div className="form-group">
+                                <div className="enrollment-form-row two-columns">
+                                    <div className="enrollment-form-group">
                                         <label>Board Type</label>
-                                        <select className="form-input">
+                                        <select className="enrollment-form-input">
                                             <option>Cambridge</option>
                                             <option>CBSE</option>
                                             <option>ICSE</option>
                                         </select>
                                     </div>
-                                    <div className="form-group">
+                                    <div className="enrollment-form-group">
                                         <label>Total Students</label>
-                                        <input type="number" defaultValue="850" className="form-input" />
+                                        <input type="number" defaultValue="850" className="enrollment-form-input" />
                                     </div>
                                 </div>
 
-                                <div className="form-row">
-                                    <div className="form-group full-width">
+                                <div className="enrollment-form-row">
+                                    <div className="enrollment-form-group full-width">
                                         <label>Admission Status</label>
-                                        <select className="form-input">
+                                        <select className="enrollment-form-input">
                                             <option value="open">Open</option>
                                             <option value="closed">Closed</option>
                                         </select>
                                     </div>
                                 </div>
 
-                                <div className="form-row">
-                                    <div className="form-group full-width">
+                                <div className="enrollment-form-row">
+                                    <div className="enrollment-form-group full-width">
                                         <label>Upload Prospectus File</label>
                                         <div className="file-upload">
                                             <Upload size={32} />
@@ -240,7 +240,7 @@ const ManageEnrollment = () => {
                                     </div>
                                 </div>
 
-                                <div className="form-actions">
+                                <div className="enrollment-form-actions">
                                     <button className="btn btn-secondary">Cancel</button>
                                     <button className="btn btn-primary">Save Changes</button>
                                 </div>

@@ -6,6 +6,8 @@ html {
 
 .manage-enrollment-page {
     min-height: 100vh;
+    /* Ensure the page can grow naturally beyond viewport */
+    height: auto;
     background: #f8fafc;
     overflow-x: hidden;
     position: relative;
@@ -144,8 +146,12 @@ html {
     grid-template-columns: 280px 1fr;
     gap: 32px;
     width: 100%;
-    flex: 1;
+    /* flex: 1 0 auto ensures the container fills viewport but grows with content */
+    flex: 1 0 auto;
+    /* min-height: min-content is critical for grid containers inside flex items to express their true height */
+    min-height: min-content;
     box-sizing: border-box;
+    align-self: stretch;
     align-items: start;
 }
 
@@ -196,9 +202,7 @@ html {
 
 /* Main Content */
 .enrollment-main {
-    height: auto !important;
-    min-height: fit-content;
-    /* Ensures it grows with content */
+    /* Removed restrictive height overrides to allow natural grid-based growth */
     display: flex;
     /* Switch to flex for better vertical flow */
     flex-direction: column;
@@ -308,58 +312,58 @@ html {
 }
 
 /* Forms - New Modern Design */
-.form-header-simple {
+.enrollment-form-header {
     margin-bottom: 32px;
     padding-bottom: 20px;
     border-bottom: 2px solid #f1f5f9;
 }
 
-.form-header-simple h2 {
+.enrollment-form-header h2 {
     font-size: 1.75rem;
     color: #1e293b;
     margin: 0 0 8px 0;
     font-weight: 700;
 }
 
-.form-subtitle {
+.enrollment-form-subtitle {
     font-size: 0.95rem;
     color: #64748b;
     margin: 0;
 }
 
-.form-section {
+.enrollment-form-section {
     max-width: 80%;
     width: 80%;
     box-sizing: border-box;
 }
 
-.form-row {
+.enrollment-form-row {
     margin-bottom: 28px;
 }
 
-.form-row.two-columns {
+.enrollment-form-row.two-columns {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 24px;
 }
 
-.form-group {
+.enrollment-form-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.form-group.full-width {
+.enrollment-form-group.full-width {
     width: 100%;
 }
 
-.form-group label {
+.enrollment-form-group label {
     font-weight: 600;
     color: #334155;
     font-size: 0.95rem;
 }
 
-.form-input {
+.enrollment-form-input {
     width: 100%;
     padding: 12px 16px;
     border: 2px solid #e2e8f0;
@@ -370,7 +374,7 @@ html {
     font-family: inherit;
 }
 
-.form-input:focus {
+.enrollment-form-input:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -442,7 +446,7 @@ html {
     width: 100%;
 }
 
-.form-actions {
+.enrollment-form-actions {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
@@ -687,4 +691,10 @@ html {
         width: 100%;
         text-align: center;
     }
+}
+
+/* Ensure Footer behaves correctly in this flex context */
+.site-footer {
+    flex-shrink: 0;
+    width: 100%;
 }
