@@ -84,7 +84,7 @@ const DiscoverSchools = () => {
     };
 
     return (
-        <div className="discover-schools-page">
+        <div className="discover-schools-layout">
             {/* Header */}
             <div className="discover-header">
                 <button className="back-button" onClick={() => navigate('/')}>
@@ -218,7 +218,7 @@ const DiscoverSchools = () => {
                     {/* School Results */}
                     <div className="schools-results">
                         <h2>Search Results ({filteredSchools.length})</h2>
-                        <div className="schools-grid">
+                        <div className="discover-schools-grid">
                             {filteredSchools.map((school, idx) => (
                                 <motion.div
                                     key={school.id}
@@ -260,11 +260,11 @@ const DiscoverSchools = () => {
                                             {school.facilities.length > 3 && <span className="facility-tag">+{school.facilities.length - 3}</span>}
                                         </div>
                                         <div className="card-actions">
-                                            <button className="btn-secondary" onClick={() => setSelectedSchool(school)}>
+                                            <button className="discover-btn-secondary" onClick={() => setSelectedSchool(school)}>
                                                 <Download size={16} /> Download Prospectus
                                             </button>
                                             {school.status === 'open' && (
-                                                <button className="btn-primary" onClick={() => handleApplyNow(school)}>
+                                                <button className="discover-btn-primary" onClick={() => handleApplyNow(school)}>
                                                     Apply Now
                                                 </button>
                                             )}
@@ -279,14 +279,14 @@ const DiscoverSchools = () => {
 
             {/* Application Form Modal */}
             {showApplicationForm && selectedSchool && (
-                <div className="modal-overlay" onClick={() => setShowApplicationForm(false)}>
+                <div className="discover-modal-overlay" onClick={() => setShowApplicationForm(false)}>
                     <motion.div
-                        className="application-modal"
+                        className="discover-application-modal"
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="modal-header">
+                        <div className="discover-modal-header">
                             <h2>Apply to {selectedSchool.name}</h2>
                             <button className="close-btn" onClick={() => setShowApplicationForm(false)}>×</button>
                         </div>
@@ -307,11 +307,11 @@ const DiscoverSchools = () => {
                             </div>
                         </div>
 
-                        <div className="modal-content">
+                        <div className="discover-modal-content">
                             {currentStep === 1 && (
                                 <div className="form-step">
                                     <h3>Student Information</h3>
-                                    <div className="form-grid">
+                                    <div className="discover-form-grid">
                                         <input type="text" placeholder="Student Full Name" />
                                         <input type="date" placeholder="Date of Birth" />
                                         <input type="text" placeholder="Parent/Guardian Name" />
@@ -375,18 +375,18 @@ const DiscoverSchools = () => {
                             )}
                         </div>
 
-                        <div className="modal-actions">
+                        <div className="discover-modal-actions">
                             {currentStep > 1 && (
-                                <button className="btn-secondary" onClick={() => setCurrentStep(currentStep - 1)}>
+                                <button className="discover-btn-secondary" onClick={() => setCurrentStep(currentStep - 1)}>
                                     Previous
                                 </button>
                             )}
                             {currentStep < 3 ? (
-                                <button className="btn-primary" onClick={() => setCurrentStep(currentStep + 1)}>
+                                <button className="discover-btn-primary" onClick={() => setCurrentStep(currentStep + 1)}>
                                     Next Step
                                 </button>
                             ) : (
-                                <button className="btn-primary" onClick={() => {
+                                <button className="discover-btn-primary" onClick={() => {
                                     alert('Application submitted successfully!');
                                     setShowApplicationForm(false);
                                 }}>

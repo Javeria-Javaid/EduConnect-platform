@@ -24,11 +24,16 @@ body {
   line-height: 1.6;
   color: #333;
   background-color: var(--surface-color);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .App {
   position: relative;
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .page-section {

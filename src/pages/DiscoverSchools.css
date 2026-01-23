@@ -1,10 +1,9 @@
 /* Discover Schools Page Styles */
 
-.discover-schools-page {
+.discover-schools-layout {
     width: 100%;
     height: auto;
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    padding-bottom: 60px;
 }
 
 .discover-header {
@@ -263,7 +262,7 @@
     margin-bottom: 20px;
 }
 
-.schools-grid {
+.discover-schools-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 24px;
@@ -386,8 +385,8 @@
     gap: 12px;
 }
 
-.btn-primary,
-.btn-secondary {
+.discover-btn-primary,
+.discover-btn-secondary {
     flex: 1;
     display: flex;
     align-items: center;
@@ -402,29 +401,29 @@
     transition: all 0.3s;
 }
 
-.btn-primary {
+.discover-btn-primary {
     background: rgb(239, 246, 255);
     color: #1e40af;
     border: 2px solid #3b82f6;
 }
 
-.btn-primary:hover {
+.discover-btn-primary:hover {
     background: #3b82f6;
     color: white;
     transform: translateY(-2px);
 }
 
-.btn-secondary {
+.discover-btn-secondary {
     background: #f1f5f9;
     color: #475569;
 }
 
-.btn-secondary:hover {
+.discover-btn-secondary:hover {
     background: #e2e8f0;
 }
 
 /* Application Modal */
-.modal-overlay {
+.discover-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -432,23 +431,26 @@
     bottom: 0;
     background: rgba(0, 0, 0, 0.6);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    /* Fix flex-trap: align to top */
     justify-content: center;
     z-index: 1000;
-    padding: 20px;
+    padding: 40px 20px;
+    overflow-y: auto;
+    /* Correct modal scrolling contract */
 }
 
-.application-modal {
+.discover-application-modal {
     background: white;
     border-radius: 20px;
     max-width: 700px;
     width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
+    /* Removed max-height/overflow to allow natural growth */
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    margin-bottom: 40px;
 }
 
-.modal-header {
+.discover-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -456,7 +458,7 @@
     border-bottom: 2px solid #e2e8f0;
 }
 
-.modal-header h2 {
+.discover-modal-header h2 {
     font-size: 1.5rem;
     color: #1e293b;
 }
@@ -525,7 +527,7 @@
     color: #64748b;
 }
 
-.modal-content {
+.discover-modal-content {
     padding: 30px;
 }
 
@@ -535,7 +537,7 @@
     margin-bottom: 20px;
 }
 
-.form-grid {
+.discover-form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
@@ -550,8 +552,8 @@
     transition: border-color 0.3s;
 }
 
-.form-grid input:focus,
-.form-grid select:focus {
+.discover-form-grid input:focus,
+.discover-form-grid select:focus {
     outline: none;
     border-color: #3b82f6;
 }
@@ -632,15 +634,15 @@
     font-size: 0.95rem;
 }
 
-.modal-actions {
+.discover-modal-actions {
     display: flex;
     gap: 12px;
     padding: 20px 30px;
     border-top: 2px solid #e2e8f0;
 }
 
-.modal-actions .btn-primary,
-.modal-actions .btn-secondary {
+.discover-modal-actions .discover-btn-primary,
+.discover-modal-actions .discover-btn-secondary {
     flex: 1;
 }
 

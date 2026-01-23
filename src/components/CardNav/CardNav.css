@@ -356,12 +356,12 @@
 
     /* Hide Scrollbar for cleaner UI */
     .card-nav.open::-webkit-scrollbar {
-        display: none;
+        width: 4px;
     }
 
     .card-nav.open {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+        -ms-overflow-style: auto;
+        scrollbar-width: thin;
     }
 
     .nav-card {
