@@ -6,64 +6,6 @@ import { useAuth } from './context/AuthContext.jsx';
 
 // --- MOCK CREDENTIALS FOR DEVELOPMENT ---
 // COMPREHENSIVE TEST CREDENTIALS WITH ROLE-BASED DATA
-const TEST_CREDENTIALS = [
-    {
-        email: "superadmin@educonnect.com",
-        password: "Admin@123",
-        role: "admin",
-        name: "System Administrator",
-        dashboard: "/dashboard"
-    },
-    {
-        email: "school@educonnect.edu",
-        password: "School@456",
-        role: "school_admin",
-        name: "School Administrator",
-        schoolId: "SCH001",
-        schoolName: "Greenwood High School",
-        dashboard: "/school/dashboard"
-    },
-    {
-        email: "teacher@educonnect.edu",
-        password: "Teacher@789",
-        role: "teacher",
-        name: "Demo Teacher",
-        teacherId: "TCH001",
-        subjects: ["Mathematics", "Physics"],
-        dashboard: "/teacher/dashboard"
-    },
-    {
-        email: "parent@educonnect.com",
-        password: "Parent@101",
-        role: "parent",
-        name: "Parent User",
-        parentId: "PAR001",
-        studentIds: ["STU001", "STU002"],
-        students: ["Ahmed Ali", "Sara Ali"],
-        dashboard: "/parent/dashboard"
-    },
-    {
-        email: "vendor@educonnect.com",
-        password: "Vendor@112",
-        role: "vendor",
-        name: "Vendor Supplier",
-        vendorId: "VEN001",
-        companyName: "Quick Supply Co.",
-        services: ["Transport", "Catering", "Stationery"],
-        dashboard: "/vendor/dashboard"
-    }
-];
-
-// Legacy format for backward compatibility
-const CREDENTIALS = {
-    'superadmin@educonnect.com': { password: 'Admin@123', role: 'admin' },
-    'school@educonnect.edu': { password: 'School@456', role: 'school_admin' },
-    'teacher@educonnect.edu': { password: 'Teacher@789', role: 'teacher' },
-    'parent@educonnect.com': { password: 'Parent@101', role: 'parent' },
-    'vendor@educonnect.com': { password: 'Vendor@112', role: 'vendor' }
-};
-// ----------------------------------------
-
 const AuthPage = ({ defaultView = 'login' }) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -92,12 +34,11 @@ const AuthPage = ({ defaultView = 'login' }) => {
         setLoginError('');
         setIsSubmitting(true);
 
-        // Trim whitespace from inputs
         const trimmedEmail = email.trim();
         const trimmedPassword = password.trim();
 
         try {
-            const res = await fetch('/api/auth/login', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -108,24 +49,18 @@ const AuthPage = ({ defaultView = 'login' }) => {
             const data = await res.json();
 
             if (res.ok) {
-                // Check if the selected role matches the user's actual role
                 if (data.role !== role && data.role !== 'admin') { 
                     setLoginError(`Login successful but you are not a ${role}. You are a ${data.role}.`);
                     setIsSubmitting(false);
                     return; 
                 }
 
-                console.log("✅ Login Successful!", data);
-
-                // Pass full user data to auth context
                 login(data);
 
-                // Redirect based on role
                 const from = location.state?.from?.pathname;
                 if (from) {
                     navigate(from, { replace: true });
                 } else {
-                    // Determine dashboard path based on role
                     let dashboardPath = '/dashboard';
                     switch (data.role) {
                         case 'school_admin': dashboardPath = '/school/dashboard'; break;
@@ -138,8 +73,7 @@ const AuthPage = ({ defaultView = 'login' }) => {
                     navigate(dashboardPath, { replace: true });
                 }
             } else {
-                setLoginError(data.message || 'Invalid email or password. Please check your credentials.');
-                console.log("❌ Login Failed", data);
+                setLoginError(data.message || 'Invalid email or password.');
             }
         } catch (error) {
             console.error("Login error:", error);
@@ -167,7 +101,7 @@ const AuthPage = ({ defaultView = 'login' }) => {
             role,
         };
         try {
-            const res = await fetch('/api/auth/register', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -176,11 +110,8 @@ const AuthPage = ({ defaultView = 'login' }) => {
 
             if (res.ok) {
                 setSignupMessage('Account created successfully! Logging you in...');
-                
-                // Auto-login after signup
                 login(data);
 
-                // Redirect based on role
                 let dashboardPath = '/dashboard';
                 switch (data.role) {
                     case 'school_admin': dashboardPath = '/school/dashboard'; break;
@@ -210,8 +141,9 @@ const AuthPage = ({ defaultView = 'login' }) => {
     };
 
     const handleSocialLogin = (provider) => {
-        window.location.href = `/api/auth/${provider}?role=${role}`;
+        window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/${provider}?role=${role}`;
     };
+
 
     const renderLoginForm = () => (
         <div className="form-container login-form-container">

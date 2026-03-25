@@ -11,6 +11,9 @@ import schoolRoutes from './routes/schoolRoutes.js';
 import teacherRoutes from './routes/teacherRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
+import jobRoutes from './routes/jobRoutes.js';
+import admissionRoutes from './routes/admissionRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
 
 // Passport config
 import './config/passport.js';
@@ -24,8 +27,8 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
-app.use(cors({ origin: [CORS_ORIGIN], credentials: true })); // credentials: true for session if needed, though we use JWT primarily
+const CORS_ORIGIN = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:5173'];
+app.use(cors({ origin: CORS_ORIGIN, credentials: true })); // credentials: true for session if needed
 
 // Session middleware (required for Passport OAuth)
 app.use(
@@ -46,6 +49,9 @@ app.use('/api/schools', schoolRoutes);
 app.use('/api/teacher', teacherRoutes); // Note: singular 'teacher' to match frontend assumption or plural? Frontend used 'teacher' in my edit.
 app.use('/api/admin', adminRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/jobs', jobRoutes);
+app.use('/api/admissions', admissionRoutes);
+app.use('/api/support', supportRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

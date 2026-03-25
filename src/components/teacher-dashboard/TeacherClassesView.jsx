@@ -34,7 +34,7 @@ const TeacherClassesView = () => {
         formData.append('subject', selectedClass?.subject || 'General');
 
         try {
-            const response = await fetch('http://localhost:5000/api/teacher/upload-material', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/upload-material`, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'

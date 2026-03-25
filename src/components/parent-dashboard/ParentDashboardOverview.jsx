@@ -29,7 +29,7 @@ const ParentDashboardOverview = () => {
         try {
             const token = localStorage.getItem('token');
             const query = city ? `?city=${city}` : '';
-            const res = await fetch(`http://localhost:5000/api/schools${query}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools${query}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

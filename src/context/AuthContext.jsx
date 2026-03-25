@@ -11,15 +11,11 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          // Verify token and get user data
-          // Assuming you have an endpoint /api/auth/me or similar, 
-          // but for now we can just decode if we had a library or persist user data too.
-          // Better: fetch user profile
-          const res = await fetch('/api/auth/me', {
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
              headers: { Authorization: `Bearer ${token}` }
           });
           if (res.ok) {
-             const userData = await res.json();
+             const userData = await response.json();
              setUser(userData);
           } else {
              localStorage.removeItem('token');
@@ -46,8 +42,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
-    // Optional: redirect or reload
-    window.location.href = '/auth';
+    // Fixed: redirect to /login instead of /auth (which doesn't exist)
+    window.location.href = '/login';
   };
 
   const value = useMemo(

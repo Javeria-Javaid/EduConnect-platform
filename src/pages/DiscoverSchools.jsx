@@ -1,403 +1,158 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Filter, Download, Upload, CheckCircle, School, DollarSign, Users, Star, Bus, BookOpen } from 'lucide-react';
+import { MapPin, Filter, Download, Upload, CheckCircle, School, DollarSign, Users, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer/Footer';
+import { toast } from 'sonner';
 import './DiscoverSchools.css';
 
 const DiscoverSchools = () => {
     const navigate = useNavigate();
-    const [distance, setDistance] = useState(6);
-    const [selectedBoard, setSelectedBoard] = useState('all');
-    const [feeRange, setFeeRange] = useState([0, 50000]);
+    const [schools, setSchools] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [distance, setDistance] = useState(10);
     const [selectedSchool, setSelectedSchool] = useState(null);
     const [showApplicationForm, setShowApplicationForm] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
 
-    // Mock school data
-    const schools = [
-        {
-            id: 1,
-            name: "Greenfield International School",
-            status: "open",
-            board: "Cambridge",
-            fees: 25000,
-            distance: 3.2,
-            rating: 4.8,
-            students: 850,
-            facilities: ["Lab", "Library", "Sports Complex", "Smart Classes"],
-            transport: true,
-            image: "/api/placeholder/400/250"
-        },
-        {
-            id: 2,
-            name: "City Public School",
-            status: "closed",
-            board: "CBSE",
-            fees: 15000,
-            distance: 4.5,
-            rating: 4.5,
-            students: 1200,
-            facilities: ["Computer Lab", "Library", "Playground"],
-            transport: true,
-            image: "/api/placeholder/400/250"
-        },
-        {
-            id: 3,
-            name: "Sunrise Academy",
-            status: "open",
-            board: "ICSE",
-            fees: 30000,
-            distance: 2.8,
-            rating: 4.9,
-            students: 650,
-            facilities: ["Science Lab", "Music Room", "Art Studio", "Swimming Pool"],
-            transport: true,
-            image: "/api/placeholder/400/250"
-        },
-        {
-            id: 4,
-            name: "Modern High School",
-            status: "open",
-            board: "CBSE",
-            fees: 18000,
-            distance: 5.1,
-            rating: 4.6,
-            students: 980,
-            facilities: ["Computer Lab", "Library", "Sports Ground"],
-            transport: false,
-            image: "/api/placeholder/400/250"
+    const fetchSchools = async () => {
+        try {
+            setLoading(true);
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools`);
+            const data = await res.json();
+            if (res.ok) setSchools(data);
+        } catch (error) {
+            toast.error('Error fetching schools');
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
 
-    const filteredSchools = schools.filter(school => {
-        if (selectedBoard !== 'all' && school.board !== selectedBoard) return false;
-        if (school.distance > distance) return false;
-        if (school.fees < feeRange[0] || school.fees > feeRange[1]) return false;
-        return true;
-    });
+    useEffect(() => {
+        fetchSchools();
+        window.scrollTo(0, 0);
+    }, []);
 
-    const handleApplyNow = (school) => {
-        setSelectedSchool(school);
-        setShowApplicationForm(true);
-        setCurrentStep(1);
+    const handleApplySubmit = async (e) => {
+        e.preventDefault();
+        const form = e.target.closest('form') || document.querySelector('.discover-application-modal form');
+        const formData = {
+            applicantName: document.getElementById('studentName')?.value,
+            grade: document.getElementById('studentGrade')?.value,
+            parentName: document.getElementById('parentName')?.value,
+            parentEmail: document.getElementById('parentEmail')?.value,
+            documents: ['Online Application']
+        };
+
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admissions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            if (res.ok) {
+                toast.success('Application submitted successfully!');
+                setShowApplicationForm(false);
+            } else {
+                toast.error('Submission failed');
+            }
+        } catch (error) {
+            toast.error('Network error');
+        }
     };
 
     return (
         <div className="discover-schools-layout">
-            {/* Header */}
             <div className="discover-header">
-                <button className="back-button" onClick={() => navigate('/')}>
-                    ← Back to Home
-                </button>
+                <button className="back-button" onClick={() => navigate('/')}>← Back to Home</button>
                 <h1>Discover Schools Near You</h1>
                 <p>Find the perfect school for your child with our smart search</p>
             </div>
 
             <div className="discover-container">
-                {/* Filters Sidebar */}
-                <motion.aside
-                    className="filters-sidebar"
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                >
+                <aside className="filters-sidebar">
                     <div className="filter-section">
-                        <div className="filter-header">
-                            <Filter size={20} />
-                            <h3>Filters</h3>
-                        </div>
-
-                        {/* Distance Filter */}
+                        <div className="filter-header"><Filter size={20} /> <h3>Filters</h3></div>
                         <div className="filter-group">
                             <label>Distance: {distance} km</label>
-                            <input
-                                type="range"
-                                min="1"
-                                max="20"
-                                value={distance}
-                                onChange={(e) => setDistance(parseInt(e.target.value))}
-                                className="distance-slider"
-                            />
-                            <div className="slider-labels">
-                                <span>1 km</span>
-                                <span>20 km</span>
-                            </div>
-                        </div>
-
-                        {/* Board Type */}
-                        <div className="filter-group">
-                            <label>Board Type</label>
-                            <select value={selectedBoard} onChange={(e) => setSelectedBoard(e.target.value)}>
-                                <option value="all">All Boards</option>
-                                <option value="CBSE">CBSE</option>
-                                <option value="ICSE">ICSE</option>
-                                <option value="Cambridge">Cambridge</option>
-                                <option value="State Board">State Board</option>
-                            </select>
-                        </div>
-
-                        {/* Fee Range */}
-                        <div className="filter-group">
-                            <label>Fee Range: ₹{feeRange[0].toLocaleString()} - ₹{feeRange[1].toLocaleString()}</label>
-                            <div className="fee-range-inputs">
-                                <input
-                                    type="number"
-                                    value={feeRange[0]}
-                                    onChange={(e) => setFeeRange([parseInt(e.target.value), feeRange[1]])}
-                                    placeholder="Min"
-                                />
-                                <span>to</span>
-                                <input
-                                    type="number"
-                                    value={feeRange[1]}
-                                    onChange={(e) => setFeeRange([feeRange[0], parseInt(e.target.value)])}
-                                    placeholder="Max"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Facilities */}
-                        <div className="filter-group">
-                            <label>Facilities</label>
-                            <div className="facility-checks">
-                                <label><input type="checkbox" /> Science Lab</label>
-                                <label><input type="checkbox" /> Computer Lab</label>
-                                <label><input type="checkbox" /> Library</label>
-                                <label><input type="checkbox" /> Sports Complex</label>
-                                <label><input type="checkbox" /> Transport</label>
-                            </div>
+                            <input type="range" min="1" max="20" value={distance} onChange={(e) => setDistance(parseInt(e.target.value))} />
                         </div>
                     </div>
-                </motion.aside>
+                </aside>
 
-                {/* Main Content */}
                 <div className="discover-main">
-                    {/* Map Section */}
-                    <motion.div
-                        className="map-section"
-                        initial={{ y: -20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                    >
-                        <div className="map-placeholder">
-                            <div className="map-overlay">
-                                <h3>Interactive School Map</h3>
-                                <p>{filteredSchools.length} schools found within {distance}km</p>
-                            </div>
-                            {/* School Pins */}
-                            {filteredSchools.map((school, idx) => (
-                                <div
-                                    key={school.id}
-                                    className={`map-pin ${school.status}`}
-                                    style={{
-                                        left: `${20 + idx * 18}%`,
-                                        top: `${30 + (idx % 3) * 20}%`
-                                    }}
-                                    title={school.name}
-                                >
-                                    <MapPin
-                                        size={32}
-                                        className={school.status === 'open' ? 'pin-open' : 'pin-closed'}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                        <div className="map-legend">
-                            <div className="legend-item">
-                                <MapPin size={16} className="pin-open" />
-                                <span>Admissions Open</span>
-                            </div>
-                            <div className="legend-item">
-                                <MapPin size={16} className="pin-closed" />
-                                <span>Admissions Closed</span>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* School Results */}
-                    <div className="schools-results">
-                        <h2>Search Results ({filteredSchools.length})</h2>
-                        <div className="discover-schools-grid">
-                            {filteredSchools.map((school, idx) => (
-                                <motion.div
-                                    key={school.id}
-                                    className="school-card"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: idx * 0.1 }}
-                                >
-                                    <div className="school-image">
-                                        <img src={school.image} alt={school.name} />
-                                        <span className={`admission-badge ${school.status}`}>
-                                            {school.status === 'open' ? '✓ Admissions Open' : '✗ Admissions Closed'}
-                                        </span>
-                                    </div>
-                                    <div className="school-info">
-                                        <h3>{school.name}</h3>
-                                        <div className="school-meta">
-                                            <span className="board-tag">{school.board}</span>
-                                            <span className="distance-tag">📍 {school.distance} km</span>
+                    {loading ? (
+                        <div className="loading-state">Loading schools...</div>
+                    ) : (
+                        <div className="schools-results">
+                            <h2>Search Results ({schools.length})</h2>
+                            <div className="discover-schools-grid">
+                                {schools.map((school, idx) => (
+                                    <motion.div key={school._id || idx} className="school-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
+                                        <div className="school-image">
+                                            <img src="/api/placeholder/400/250" alt={school.name} />
+                                            <span className="admission-badge open">✓ Admissions Open</span>
                                         </div>
-                                        <div className="school-stats">
-                                            <div className="stat">
-                                                <Star size={16} className="star-filled" />
-                                                <span>{school.rating}</span>
+                                        <div className="school-info">
+                                            <h3>{school.name}</h3>
+                                            <div className="school-meta">
+                                                <span className="board-tag">{school.type}</span>
+                                                <span className="distance-tag">📍 {school.location}</span>
                                             </div>
-                                            <div className="stat">
-                                                <Users size={16} />
-                                                <span>{school.students} students</span>
+                                            <div className="school-stats">
+                                                <div className="stat"><Star size={16} className="star-filled" /> <span>4.5</span></div>
+                                                <div className="stat"><Users size={16} /> <span>{school.contactEmail}</span></div>
                                             </div>
-                                            <div className="stat">
-                                                <DollarSign size={16} />
-                                                <span>₹{school.fees.toLocaleString()}/year</span>
-                                            </div>
-                                        </div>
-                                        <div className="facilities-tags">
-                                            {school.facilities.slice(0, 3).map(fac => (
-                                                <span key={fac} className="facility-tag">{fac}</span>
-                                            ))}
-                                            {school.facilities.length > 3 && <span className="facility-tag">+{school.facilities.length - 3}</span>}
-                                        </div>
-                                        <div className="card-actions">
-                                            <button className="discover-btn-secondary" onClick={() => setSelectedSchool(school)}>
-                                                <Download size={16} /> Download Prospectus
-                                            </button>
-                                            {school.status === 'open' && (
-                                                <button className="discover-btn-primary" onClick={() => handleApplyNow(school)}>
+                                            <div className="card-actions">
+                                                <button className="discover-btn-primary" onClick={() => { setSelectedSchool(school); setShowApplicationForm(true); setCurrentStep(1); }}>
                                                     Apply Now
                                                 </button>
-                                            )}
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            ))}
+                                    </motion.div>
+                                ))}
+                                {schools.length === 0 && <p>No schools found in the registry.</p>}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 
-            {/* Application Form Modal */}
             {showApplicationForm && selectedSchool && (
                 <div className="discover-modal-overlay" onClick={() => setShowApplicationForm(false)}>
-                    <motion.div
-                        className="discover-application-modal"
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                    <motion.div className="discover-application-modal" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={(e) => e.stopPropagation()}>
                         <div className="discover-modal-header">
                             <h2>Apply to {selectedSchool.name}</h2>
                             <button className="close-btn" onClick={() => setShowApplicationForm(false)}>×</button>
                         </div>
-
-                        {/* Stepper */}
-                        <div className="stepper">
-                            <div className={`step ${currentStep >= 1 ? 'active' : ''}`}>
-                                <div className="step-number">1</div>
-                                <span>Personal Info</span>
-                            </div>
-                            <div className={`step ${currentStep >= 2 ? 'active' : ''}`}>
-                                <div className="step-number">2</div>
-                                <span>Documents</span>
-                            </div>
-                            <div className={`step ${currentStep >= 3 ? 'active' : ''}`}>
-                                <div className="step-number">3</div>
-                                <span>Review</span>
-                            </div>
-                        </div>
-
                         <div className="discover-modal-content">
-                            {currentStep === 1 && (
+                            {currentStep === 1 ? (
                                 <div className="form-step">
-                                    <h3>Student Information</h3>
+                                    <h3>Information</h3>
                                     <div className="discover-form-grid">
-                                        <input type="text" placeholder="Student Full Name" />
-                                        <input type="date" placeholder="Date of Birth" />
-                                        <input type="text" placeholder="Parent/Guardian Name" />
-                                        <input type="email" placeholder="Email Address" />
-                                        <input type="tel" placeholder="Phone Number" />
-                                        <select>
-                                            <option>Select Grade</option>
-                                            <option>Class 1</option>
-                                            <option>Class 2</option>
-                                            <option>Class 3</option>
-                                        </select>
+                                        <input type="text" id="studentName" placeholder="Student Full Name" required />
+                                        <input type="text" id="studentGrade" placeholder="Class/Grade" required />
+                                        <input type="text" id="parentName" placeholder="Parent Name" required />
+                                        <input type="email" id="parentEmail" placeholder="Parent Email" required />
                                     </div>
                                 </div>
-                            )}
-
-                            {currentStep === 2 && (
+                            ) : (
                                 <div className="form-step">
-                                    <h3>Upload Documents</h3>
-                                    <div className="upload-section">
-                                        <div className="upload-box">
-                                            <Upload size={32} />
-                                            <p>Birth Certificate</p>
-                                            <button className="upload-btn">Choose File</button>
-                                        </div>
-                                        <div className="upload-box">
-                                            <Upload size={32} />
-                                            <p>Previous Result Card</p>
-                                            <button className="upload-btn">Choose File</button>
-                                        </div>
-                                        <div className="upload-box">
-                                            <Upload size={32} />
-                                            <p>Address Proof</p>
-                                            <button className="upload-btn">Choose File</button>
-                                        </div>
-                                        <div className="upload-box">
-                                            <Upload size={32} />
-                                            <p>Passport Photo</p>
-                                            <button className="upload-btn">Choose File</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {currentStep === 3 && (
-                                <div className="form-step">
-                                    <h3>Review & Submit</h3>
-                                    <div className="review-section">
-                                        <div className="review-item">
-                                            <CheckCircle className="check-icon" />
-                                            <span>Personal information completed</span>
-                                        </div>
-                                        <div className="review-item">
-                                            <CheckCircle className="check-icon" />
-                                            <span>All documents uploaded</span>
-                                        </div>
-                                        <div className="info-box">
-                                            <p>You will receive an email and SMS notification with your application tracking ID.</p>
-                                        </div>
-                                    </div>
+                                    <h3>Ready to Submit</h3>
+                                    <p>Please confirm all details are correct for {selectedSchool.name}.</p>
                                 </div>
                             )}
                         </div>
-
                         <div className="discover-modal-actions">
-                            {currentStep > 1 && (
-                                <button className="discover-btn-secondary" onClick={() => setCurrentStep(currentStep - 1)}>
-                                    Previous
-                                </button>
-                            )}
-                            {currentStep < 3 ? (
-                                <button className="discover-btn-primary" onClick={() => setCurrentStep(currentStep + 1)}>
-                                    Next Step
-                                </button>
+                            {currentStep === 1 ? (
+                                <button className="discover-btn-primary" onClick={() => setCurrentStep(2)}>Next</button>
                             ) : (
-                                <button className="discover-btn-primary" onClick={() => {
-                                    alert('Application submitted successfully!');
-                                    setShowApplicationForm(false);
-                                }}>
-                                    Submit Application
-                                </button>
+                                <button className="discover-btn-primary" onClick={handleApplySubmit}>Submit Application</button>
                             )}
                         </div>
                     </motion.div>
                 </div>
             )}
-
             <Footer />
         </div>
     );

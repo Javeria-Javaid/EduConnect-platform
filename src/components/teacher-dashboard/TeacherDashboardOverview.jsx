@@ -28,7 +28,7 @@ const TeacherDashboardOverview = () => {
     const fetchApplications = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:5000/api/teacher/applications', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/applications`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -46,7 +46,7 @@ const TeacherDashboardOverview = () => {
         try {
             const token = localStorage.getItem('token');
             const query = city ? `?city=${city}` : '';
-            const res = await fetch(`http://localhost:5000/api/schools${query}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools${query}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -63,7 +63,7 @@ const TeacherDashboardOverview = () => {
     const applyForJob = async (schoolId) => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`http://localhost:5000/api/teacher/apply/${schoolId}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/apply/${schoolId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

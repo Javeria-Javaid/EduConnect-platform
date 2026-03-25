@@ -14,6 +14,7 @@ router.post('/apply/:schoolId', protect, authorize('teacher'), applyForJob);
 router.get('/applications', protect, authorize('teacher'), getMyApplications);
 
 // Material routes
+router.get('/materials/me', protect, authorize('teacher'), getMyMaterials);
 router.post('/upload-material', protect, authorize('teacher'), upload.single('file'), uploadMaterial);
 router.get('/download-material/:id', protect, authorize('teacher'), downloadMaterial);
 

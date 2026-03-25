@@ -143,6 +143,17 @@ export const uploadMaterial = async (req, res) => {
 };
 
 
+// Get all materials uploaded by the logged-in teacher
+export const getMyMaterials = async (req, res) => {
+  try {
+    const materials = await Material.find({ uploadedBy: req.user._id });
+    res.json(materials);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 // Download teaching material
 export const downloadMaterial = async (req, res) => {
   try {

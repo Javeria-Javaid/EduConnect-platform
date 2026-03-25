@@ -35,7 +35,7 @@ const VendorDashboardOverview = () => {
             const token = localStorage.getItem('token');
             if (!user?._id) return;
             
-            const res = await fetch(`http://localhost:5000/api/schools?vendor=${user._id}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools?vendor=${user._id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
