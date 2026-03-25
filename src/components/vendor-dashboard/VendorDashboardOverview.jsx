@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import './VendorDashboardOverview.css';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from 'sonner';
 
 const VendorDashboardOverview = () => {
     const { user } = useAuth();
@@ -57,7 +58,7 @@ const VendorDashboardOverview = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:5000/api/schools', {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -70,13 +71,13 @@ const VendorDashboardOverview = () => {
                 setShowAddForm(false);
                 setNewSchool({ name: '', address: '', city: '', description: '', contactEmail: '', contactPhone: '' });
                 fetchMySchools();
-                alert('School added successfully!');
+                toast.success('School added successfully!');
             } else {
                 const err = await res.json();
-                alert('Error: ' + err.message);
+                toast.error('Error: ' + err.message);
             }
         } catch (error) {
-            alert('Network error');
+            toast.error('Network error');
         }
     };
 

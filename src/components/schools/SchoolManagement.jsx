@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PageHeader from '../ui/PageHeader';
 import DataTable from '../ui/DataTable';
 import Modal from '../ui/Modal';
-import { School, MapPin, Users, ShieldCheck } from 'lucide-react';
+import { School, MapPin, Users, ShieldCheck, ShieldAlert, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import './SchoolManagement.css';
 
@@ -34,6 +34,24 @@ const SchoolManagement = () => {
         fetchSchools();
     }, []);
 
+    const handleVerify = async (school) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/${school._id}/verify`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success(`School ${data.isVerified ? 'verified' : 'unverified'} successfully`);
+                setSchools(prev => prev.map(s => s._id === school._id ? data : s));
+            } else {
+                toast.error('Verification toggle failed');
+            }
+        } catch (error) {
+            toast.error('Network error occurred');
+        }
+    };
+
     const columns = [
         {
             header: 'School Name',
@@ -44,16 +62,32 @@ const SchoolManagement = () => {
                         <School size={16} />
                     </div>
                     <div>
-                        <span className="school-name-text">{item.name}</span>
-                        <span className="school-location-text">{item.location}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span className="school-name-text">{item.name}</span>
+                            {item.isVerified && <ShieldCheck size={14} color="#3AC47D" />}
+                        </div>
+                        <span className="school-location-text">{item.city || item.location}</span>
                     </div>
                 </div>
             )
         },
         {
-            header: 'Type',
-            accessor: 'type',
-            render: (item) => <span className="type-badge">{item.type}</span>
+            header: 'Verification',
+            accessor: 'isVerified',
+            render: (item) => (
+                <div className="verification-cell">
+                    <span className={`verify-badge ${item.isVerified ? 'verified' : 'unverified'}`}>
+                        {item.isVerified ? 'Verified' : 'Unverified'}
+                    </span>
+                    <button 
+                        className="verify-toggle-btn" 
+                        onClick={() => handleVerify(item)}
+                        title={item.isVerified ? 'Unverify School' : 'Verify School'}
+                    >
+                        {item.isVerified ? <XCircle size={16} /> : <CheckCircle size={16} />}
+                    </button>
+                </div>
+            )
         },
         {
             header: 'Contact',
@@ -85,10 +119,10 @@ const SchoolManagement = () => {
         e.preventDefault();
         const formData = {
             name: e.target.name.value,
-            location: e.target.location.value,
-            type: e.target.type.value,
-            description: e.target.description.value,
+            address: e.target.address.value,
+            city: e.target.city.value,
             contactEmail: e.target.contactEmail.value,
+            description: e.target.description.value,
         };
 
         try {
@@ -131,7 +165,7 @@ const SchoolManagement = () => {
             />
 
             {loading ? (
-                <div>Loading schools...</div>
+                <div className="loading-state">Loading schools...</div>
             ) : (
                 <DataTable
                     columns={columns}
@@ -159,9 +193,10 @@ const SchoolManagement = () => {
                  {modalMode === 'view' && currentSchool ? (
                     <div className="school-details-view">
                          <h3>{currentSchool.name}</h3>
-                         <p><strong>Location:</strong> {currentSchool.location}</p>
-                         <p><strong>Type:</strong> {currentSchool.type}</p>
+                         <p><strong>Address:</strong> {currentSchool.address}</p>
+                         <p><strong>City:</strong> {currentSchool.city}</p>
                          <p><strong>Contact:</strong> {currentSchool.contactEmail}</p>
+                         <p><strong>Verified:</strong> {currentSchool.isVerified ? 'Yes' : 'No'}</p>
                          <p><strong>Description:</strong> {currentSchool.description || 'No description.'}</p>
                     </div>
                 ) : (
@@ -171,21 +206,16 @@ const SchoolManagement = () => {
                             <input type="text" name="name" defaultValue={currentSchool?.name} required />
                         </div>
                         <div className="form-group">
-                            <label>Location</label>
-                            <input type="text" name="location" defaultValue={currentSchool?.location} required />
+                            <label>Full Address</label>
+                            <input type="text" name="address" defaultValue={currentSchool?.address} required />
+                        </div>
+                        <div className="form-group">
+                            <label>City</label>
+                            <input type="text" name="city" defaultValue={currentSchool?.city} required />
                         </div>
                         <div className="form-group">
                             <label>Contact Email</label>
                             <input type="email" name="contactEmail" defaultValue={currentSchool?.contactEmail} required />
-                        </div>
-                        <div className="form-group">
-                            <label>School Type</label>
-                            <select name="type" defaultValue={currentSchool?.type || 'Private'}>
-                                <option value="Private">Private</option>
-                                <option value="Public">Public</option>
-                                <option value="International">International</option>
-                                <option value="Specialized">Specialized</option>
-                            </select>
                         </div>
                         <div className="form-group">
                             <label>Description</label>

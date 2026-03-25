@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -19,38 +19,78 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import './DashboardOverview.css';
 
 const DashboardOverview = () => {
-  // Mock Data
-  const stats = [
-    { label: 'Total Schools', value: '1,248', change: '+12%', icon: School, color: '#2A6EF2' },
-    { label: 'Active Students', value: '45.2k', change: '+8.5%', icon: Users, color: '#3AC47D' },
-    { label: 'Job Posts', value: '892', change: '+24%', icon: Briefcase, color: '#F59E0B' },
-    { label: 'Pending Approvals', value: '34', change: '-5%', icon: Clock, color: '#EF4444' },
-  ];
+  const [stats, setStats] = useState([]);
+  const [admissionsData, setAdmissionsData] = useState([]);
+  const [jobsData, setJobsData] = useState([]);
+  const [pendingAdmissions, setPendingAdmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const admissionsData = [
-    { name: 'Jan', value: 400 },
-    { name: 'Feb', value: 300 },
-    { name: 'Mar', value: 600 },
-    { name: 'Apr', value: 800 },
-    { name: 'May', value: 500 },
-    { name: 'Jun', value: 900 },
-    { name: 'Jul', value: 1200 },
-  ];
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem('token');
+      const headers = { 'Authorization': `Bearer ${token}` };
 
-  const jobsData = [
-    { name: 'Mon', applications: 24 },
-    { name: 'Tue', applications: 45 },
-    { name: 'Wed', applications: 32 },
-    { name: 'Thu', applications: 68 },
-    { name: 'Fri', applications: 54 },
-    { name: 'Sat', applications: 12 },
-    { name: 'Sun', applications: 8 },
-  ];
+      const [statsRes, analyticsRes] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_URL}/api/admin/stats`, { headers }),
+        fetch(`${import.meta.env.VITE_API_URL}/api/admin/analytics`, { headers })
+      ]);
+
+      if (!statsRes.ok || !analyticsRes.ok) throw new Error('Failed to fetch dashboard data');
+
+      const statsData = await statsRes.json();
+      const analyticsData = await analyticsRes.json();
+
+      setStats([
+        { label: 'Total Schools', value: statsData.totalSchools.toLocaleString(), icon: School, color: '#2A6EF2' },
+        { label: 'Active Students', value: statsData.activeStudents.toLocaleString(), icon: Users, color: '#3AC47D' },
+        { label: 'Job Posts', value: statsData.totalJobPosts.toLocaleString(), icon: Briefcase, color: '#F59E0B' },
+        { label: 'Pending Approvals', value: statsData.pendingApprovals.toString(), icon: Clock, color: '#EF4444' },
+      ]);
+
+      setAdmissionsData(analyticsData.admissionsTrend);
+      setJobsData(analyticsData.jobApplicationsTrend);
+      setPendingAdmissions(statsData.recentPendingAdmissions || []);
+
+    } catch (err) {
+      console.error(err);
+      setError('Network error: Could not load dashboard analytics.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="dashboard-loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '400px' }}>
+        <Loader2 className="animate-spin" size={48} color="#2A6EF2" />
+        <p style={{ marginTop: '16px', color: '#64748b' }}>Initializing platform analytics...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard-error" style={{ textAlign: 'center', padding: '40px' }}>
+        <AlertCircle size={48} color="#EF4444" style={{ margin: '0 auto' }} />
+        <p style={{ marginTop: '16px', color: '#ef4444' }}>{error}</p>
+        <button onClick={fetchData} className="retry-btn" style={{ marginTop: '16px', padding: '8px 16px', backgroundColor: '#2A6EF2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Retry Connection</button>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-overview">
@@ -74,8 +114,8 @@ const DashboardOverview = () => {
             <div className="stat-content">
               <h3 className="stat-value">{stat.value}</h3>
               <p className="stat-label">{stat.label}</p>
-              <span className={`stat-change ${stat.change.startsWith('+') ? 'positive' : 'negative'}`}>
-                {stat.change} from last month
+              <span className="stat-active-badge" style={{ fontSize: '12px', color: '#3AC47D', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <TrendingUp size={12} /> Live Data
               </span>
             </div>
           </div>
@@ -90,23 +130,27 @@ const DashboardOverview = () => {
             <button className="chart-action">View Report</button>
           </div>
           <div className="chart-container">
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={admissionsData}>
-                <defs>
-                  <linearGradient id="colorAdmissions" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2A6EF2" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#2A6EF2" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-                <Tooltip
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                />
-                <Area type="monotone" dataKey="value" stroke="#2A6EF2" strokeWidth={3} fillOpacity={1} fill="url(#colorAdmissions)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {admissionsData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={admissionsData}>
+                  <defs>
+                    <linearGradient id="colorAdmissions" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2A6EF2" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#2A6EF2" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  />
+                  <Area type="monotone" dataKey="value" stroke="#2A6EF2" strokeWidth={3} fillOpacity={1} fill="url(#colorAdmissions)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="no-data-msg" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>No admission data for selected period.</div>
+            )}
           </div>
         </div>
 
@@ -116,18 +160,22 @@ const DashboardOverview = () => {
             <button className="chart-action">View Details</button>
           </div>
           <div className="chart-container">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={jobsData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
-                <Tooltip
-                  cursor={{ fill: '#f1f5f9' }}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                />
-                <Bar dataKey="applications" fill="#3AC47D" radius={[4, 4, 0, 0]} barSize={30} />
-              </BarChart>
-            </ResponsiveContainer>
+            {jobsData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={jobsData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} />
+                  <Tooltip
+                    cursor={{ fill: '#f1f5f9' }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  />
+                  <Bar dataKey="applications" fill="#3AC47D" radius={[4, 4, 0, 0]} barSize={30} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="no-data-msg" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>No job application data found.</div>
+            )}
           </div>
         </div>
       </div>
@@ -140,20 +188,22 @@ const DashboardOverview = () => {
             <span className="badge warning">Action Required</span>
           </div>
           <div className="list-content">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="list-item">
+            {pendingAdmissions.length > 0 ? pendingAdmissions.map((item) => (
+              <div key={item._id} className="list-item">
                 <div className="item-icon warning">
                   <AlertCircle size={18} />
                 </div>
                 <div className="item-details">
-                  <h4>New School Registration</h4>
-                  <p>Greenwood High School requested verification</p>
+                  <h4>New Admission: {item.applicantName}</h4>
+                  <p>Grade: {item.grade} • Applied by {item.parentName}</p>
                 </div>
                 <div className="item-actions">
                   <button className="btn-sm primary">Review</button>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="no-data-msg-p" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>No pending approvals.</div>
+            )}
           </div>
         </div>
 
@@ -162,18 +212,16 @@ const DashboardOverview = () => {
             <h3>Recent Activities</h3>
           </div>
           <div className="list-content">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="list-item">
+              <div className="list-item">
                 <div className="item-icon success">
                   <CheckCircle size={18} />
                 </div>
                 <div className="item-details">
-                  <h4>Vendor Approved</h4>
-                  <p>Stationery Supplies Co. was approved by Admin</p>
+                  <h4>Platform Insight</h4>
+                  <p>All system components are reporting healthy status.</p>
                 </div>
-                <span className="time-ago">2h ago</span>
+                <span className="time-ago">Live</span>
               </div>
-            ))}
           </div>
         </div>
       </div>

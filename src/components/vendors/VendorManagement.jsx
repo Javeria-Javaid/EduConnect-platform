@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PageHeader from '../ui/PageHeader';
 import DataTable from '../ui/DataTable';
 import Modal from '../ui/Modal';
-import { Store, Phone, Mail, MapPin } from 'lucide-react';
+import { Store, Phone, Mail, MapPin, RefreshCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import './VendorManagement.css';
 
@@ -11,6 +11,7 @@ const VendorManagement = () => {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentVendor, setCurrentVendor] = useState(null);
+    const [modalMode, setModalMode] = useState('view');
 
     const fetchVendors = async () => {
         try {
@@ -80,13 +81,52 @@ const VendorManagement = () => {
         }
     };
 
+    const handleSave = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        data.role = 'vendor';
+
+        try {
+            const url = modalMode === 'edit'
+                ? `${import.meta.env.VITE_API_URL}/api/admin/users/${currentVendor._id}`
+                : `${import.meta.env.VITE_API_URL}/api/admin/users`;
+            
+            const res = await fetch(url, {
+                method: modalMode === 'edit' ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                toast.success(modalMode === 'edit' ? 'Vendor updated' : 'Vendor added');
+                setIsModalOpen(false);
+                fetchVendors();
+            } else {
+                toast.error('Failed to save vendor');
+            }
+        } catch (error) {
+            toast.error('Network error');
+        }
+    };
+
     return (
         <div className="vendor-management-page">
             <PageHeader
                 title="Service Providers"
                 subtitle="Manage educational vendors, booksellers, and uniform providers."
-                actionLabel="Refresh List"
-                onAction={fetchVendors}
+                actionLabel="Add Vendor"
+                onAction={() => {
+                    setCurrentVendor(null);
+                    setModalMode('add');
+                    setIsModalOpen(true);
+                }}
+                secondaryActionLabel="Refresh List"
+                onSecondaryAction={fetchVendors}
+                secondaryIcon={RefreshCcw}
             />
 
             {loading ? (

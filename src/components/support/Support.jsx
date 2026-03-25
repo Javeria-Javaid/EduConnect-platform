@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PageHeader from '../ui/PageHeader';
 import DataTable from '../ui/DataTable';
 import Modal from '../ui/Modal';
-import { Send, User, CheckCircle, Clock } from 'lucide-react';
+import { Send, User, CheckCircle, Clock, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import './Support.css';
 
@@ -31,6 +31,25 @@ const Support = () => {
     useEffect(() => {
         fetchTickets();
     }, []);
+
+    const handleResolve = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/support/${currentTicket._id}/resolve`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                toast.success('Ticket marked as resolved');
+                setCurrentTicket(data);
+                setTickets(prev => prev.map(t => t._id === data._id ? data : t));
+            } else {
+                toast.error('Failed to resolve ticket');
+            }
+        } catch (error) {
+            toast.error('Network error');
+        }
+    };
 
     const columns = [
         {
@@ -85,7 +104,7 @@ const Support = () => {
             <PageHeader title="Support & Tickets" subtitle="Manage help requests." />
 
             {loading ? (
-                <div>Loading...</div>
+                <div className="loading-state">Loading support tickets...</div>
             ) : (
                 <DataTable
                     columns={columns}
@@ -103,26 +122,43 @@ const Support = () => {
             >
                 {currentTicket && (
                     <div className="ticket-details-view">
+                        <div className="ticket-header-actions">
+                            <span className={`status-badge ${currentTicket.status === 'Resolved' ? 'active' : 'warning'}`}>
+                                Status: {currentTicket.status}
+                            </span>
+                            {currentTicket.status !== 'Resolved' && (
+                                <button className="resolve-btn-action" onClick={handleResolve}>
+                                    <CheckCircle2 size={16} /> Mark as Resolved
+                                </button>
+                            )}
+                        </div>
                         <div className="chat-interface">
                             <div className="chat-history">
                                 {currentTicket.messages.map((msg, idx) => (
                                     <div key={idx} className={`chat-message ${msg.sender}`}>
                                         <div className="message-bubble">
                                             <p>{msg.text}</p>
-                                            <span className="message-time">{new Date(msg.time).toLocaleTimeString()}</span>
+                                            <span className="message-time">{new Date(msg.time || msg.createdAt).toLocaleTimeString()}</span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                            <form className="chat-input-area" onSubmit={handleSendMessage}>
-                                <input
-                                    type="text"
-                                    placeholder="Type your reply..."
-                                    value={chatMessage}
-                                    onChange={(e) => setChatMessage(e.target.value)}
-                                />
-                                <button type="submit" className="send-btn"><Send size={18} /></button>
-                            </form>
+                            {currentTicket.status !== 'Resolved' ? (
+                                <form className="chat-input-area" onSubmit={handleSendMessage}>
+                                    <input
+                                        type="text"
+                                        placeholder="Type your reply..."
+                                        value={chatMessage}
+                                        onChange={(e) => setChatMessage(e.target.value)}
+                                    />
+                                    <button type="submit" className="send-btn"><Send size={18} /></button>
+                                </form>
+                            ) : (
+                                <div className="resolved-notice">
+                                    <CheckCircle size={20} />
+                                    <p>This ticket has been resolved and is now closed.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

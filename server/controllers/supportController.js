@@ -32,3 +32,19 @@ export const addMessage = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+export const resolveTicket = async (req, res) => {
+  try {
+    const ticket = await SupportTicket.findById(req.params.id);
+    if (ticket) {
+      ticket.status = 'Resolved';
+      ticket.resolvedAt = Date.now();
+      await ticket.save();
+      res.json(ticket);
+    } else {
+      res.status(404).json({ message: 'Ticket not found' });
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};

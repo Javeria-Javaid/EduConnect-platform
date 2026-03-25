@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PageHeader from '../ui/PageHeader';
 import DataTable from '../ui/DataTable';
 import Modal from '../ui/Modal';
-import { User, Phone, MapPin, Baby } from 'lucide-react';
+import { User, Phone, MapPin, Baby, Search, Filter, Save, X, RefreshCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import './UserManagement.css';
 
@@ -12,33 +12,47 @@ const UserManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [modalMode, setModalMode] = useState('view');
+  
+  // Search and Filter States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users?role=parent`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      const token = localStorage.getItem('token');
+      const url = new URL(`${import.meta.env.VITE_API_URL}/api/admin/users`);
+      
+      if (roleFilter !== 'all') url.searchParams.append('role', roleFilter);
+      if (searchQuery) url.searchParams.append('search', searchQuery);
+
+      const res = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
+      
       const data = await res.json();
       if (res.ok) {
         setUsers(data);
       } else {
-        toast.error('Failed to fetch parents');
+        toast.error('Failed to fetch users');
       }
     } catch (error) {
-      toast.error('Network error fetching parents');
+      toast.error('Network error fetching users');
     } finally {
       setLoading(false);
     }
-  };
+  }, [roleFilter, searchQuery]);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    const timer = setTimeout(() => {
+        fetchUsers();
+    }, 500); // Debounce search
+    return () => clearTimeout(timer);
+  }, [fetchUsers]);
 
   const columns = [
     {
-      header: 'Parent Name',
+      header: 'User Name',
       accessor: 'firstName',
       render: (item) => (
         <div className="user-name-cell">
@@ -55,7 +69,7 @@ const UserManagement = () => {
     {
       header: 'Role',
       accessor: 'role',
-      render: (item) => <span className="child-tag">{item.role}</span>
+      render: (item) => <span className={`role-badge ${item.role}`}>{item.role.replace('_', ' ')}</span>
     },
     {
         header: 'Registered',
@@ -73,7 +87,7 @@ const UserManagement = () => {
         });
         if (res.ok) {
           toast.success('User deleted');
-          fetchUsers();
+          setUsers(prev => prev.filter(u => u._id !== user._id));
         } else {
           toast.error('Delete failed');
         }
@@ -83,17 +97,82 @@ const UserManagement = () => {
     }
   };
 
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const updatedData = {
+        firstName: formData.get('firstName'),
+        lastName: formData.get('lastName'),
+        role: formData.get('role'),
+        phone: formData.get('phone'),
+        address: formData.get('address'),
+    };
+
+    try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users/${currentUser._id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(updatedData)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            toast.success('User updated successfully');
+            setUsers(prev => prev.map(u => u._id === currentUser._id ? data : u));
+            setIsModalOpen(false);
+        } else {
+            toast.error(data.message || 'Update failed');
+        }
+    } catch (error) {
+        toast.error('Network error occurred');
+    }
+  };
+
   return (
     <div className="user-management-page">
       <PageHeader
-        title="Parents & Students"
-        subtitle="Manage parent accounts and registrations."
-        actionLabel="Refresh List"
-        onAction={fetchUsers}
+        title="User Directory"
+        subtitle="Manage accounts across all roles (Parents, Teachers, Admins)."
+        actionLabel="Add User"
+        onAction={() => {
+            setCurrentUser(null);
+            setModalMode('add');
+            setIsModalOpen(true);
+        }}
+        secondaryActionLabel="Refresh List"
+        onSecondaryAction={fetchUsers}
+        secondaryIcon={RefreshCcw}
       />
 
-      {loading ? (
-          <div>Loading parents...</div>
+      {/* Real-time Filters */}
+      <div className="users-toolbar">
+        <div className="search-bar">
+            <Search size={18} />
+            <input 
+                type="text" 
+                placeholder="Search name or email..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+            />
+        </div>
+        <div className="filter-group">
+            <Filter size={18} />
+            <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                <option value="all">All Roles</option>
+                <option value="parent">Parents</option>
+                <option value="student">Students</option>
+                <option value="teacher">Teachers</option>
+                <option value="school_admin">School Admins</option>
+                <option value="vendor">Vendors</option>
+            </select>
+        </div>
+      </div>
+
+      {loading && users.length === 0 ? (
+          <div className="loading-state">Loading users...</div>
       ) : (
         <DataTable
             columns={columns}
@@ -109,31 +188,88 @@ const UserManagement = () => {
                 setModalMode('view');
                 setIsModalOpen(true);
             }}
-            searchPlaceholder="Search parents..."
+            searchPlaceholder="Filter current view..."
         />
       )}
 
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={modalMode === 'view' ? 'User Profile' : 'Edit User'}
+        title={modalMode === 'view' ? 'User Profile' : 'Edit User Profile'}
       >
         {currentUser && (
-          <div className="user-details-view">
-            <div className="profile-header">
-              <div className="profile-avatar-large">
-                <User size={32} />
+          modalMode === 'view' ? (
+            <div className="user-details-view">
+              <div className="profile-header">
+                <div className="profile-avatar-large">
+                  <User size={32} />
+                </div>
+                <div>
+                  <h3>{currentUser.firstName} {currentUser.lastName}</h3>
+                  <p className="email-hint">{currentUser.email}</p>
+                </div>
               </div>
-              <div>
-                <h3>{currentUser.firstName} {currentUser.lastName}</h3>
-                <p>{currentUser.email}</p>
+              <div className="detail-cards">
+                <div className="detail-card">
+                  <span className="label">Role</span>
+                  <span className="value">{currentUser.role}</span>
+                </div>
+                <div className="detail-card">
+                  <span className="label">Phone</span>
+                  <span className="value">{currentUser.phone || 'N/A'}</span>
+                </div>
+                <div className="detail-card">
+                  <span className="label">Joined</span>
+                  <span className="value">{new Date(currentUser.createdAt).toLocaleDateString()}</span>
+                </div>
               </div>
+              {currentUser.address && (
+                  <div className="address-section">
+                      <MapPin size={16} />
+                      <p>{currentUser.address}</p>
+                  </div>
+              )}
             </div>
-            <div className="detail-section">
-                <p><strong>Role:</strong> {currentUser.role}</p>
-                <p><strong>Joined:</strong> {new Date(currentUser.createdAt).toLocaleDateString()}</p>
-            </div>
-          </div>
+          ) : (
+            <form onSubmit={handleEditSubmit} className="edit-user-form">
+              <div className="form-row">
+                <div className="form-group">
+                  <label>First Name</label>
+                  <input name="firstName" defaultValue={currentUser.firstName} required />
+                </div>
+                <div className="form-group">
+                  <label>Last Name</label>
+                  <input name="lastName" defaultValue={currentUser.lastName} required />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Role</label>
+                <select name="role" defaultValue={currentUser.role}>
+                  <option value="parent">Parent</option>
+                  <option value="student">Student</option>
+                  <option value="teacher">Teacher</option>
+                  <option value="school_admin">School Admin</option>
+                  <option value="vendor">Vendor</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Phone Number</label>
+                <input name="phone" defaultValue={currentUser.phone} placeholder="+1234567890" />
+              </div>
+              <div className="form-group">
+                <label>Address</label>
+                <textarea name="address" defaultValue={currentUser.address} rows="2" />
+              </div>
+              <div className="form-actions">
+                <button type="button" className="cancel-btn" onClick={() => setIsModalOpen(false)}>
+                   <X size={16} /> Cancel
+                </button>
+                <button type="submit" className="save-btn">
+                   <Save size={16} /> Save Changes
+                </button>
+              </div>
+            </form>
+          )
         )}
       </Modal>
     </div>

@@ -6,6 +6,7 @@ import {
   createSchool,
   updateSchool,
   deleteSchool,
+  verifySchool,
 } from '../controllers/schoolController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { authorize } from '../middleware/roleMiddleware.js';
@@ -18,5 +19,7 @@ router.route('/:id')
   .get(getSchoolById)
   .put(protect, authorize('vendor', 'admin'), updateSchool)
   .delete(protect, authorize('vendor', 'admin'), deleteSchool);
+
+router.patch('/:id/verify', protect, authorize('admin'), verifySchool);
 
 export default router;

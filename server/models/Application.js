@@ -2,14 +2,17 @@ import mongoose from 'mongoose';
 
 const applicationSchema = new mongoose.Schema(
   {
-    teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    school: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+    jobRef: { type: mongoose.Schema.Types.ObjectId, ref: 'Job', required: true },
+    applicantRef: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    applicantName: { type: String, required: true },
+    applicantEmail: { type: String, required: true },
+    resumeUrl: { type: String },
     status: { 
       type: String, 
       enum: ['pending', 'reviewed', 'accepted', 'rejected'], 
       default: 'pending' 
     },
-    coverLetter: { type: String },
+    appliedAt: { type: Date, default: Date.now }
   },
   { timestamps: true }
 );

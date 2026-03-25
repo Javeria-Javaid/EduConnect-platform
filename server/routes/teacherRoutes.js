@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { updateProfile, getMyProfile, applyForJob, getMyApplications, uploadMaterial, downloadMaterial, sendMessage } from '../controllers/teacherController.js';
+import { updateProfile, getMyProfile, applyForJob, getMyApplications, uploadMaterial, getMyMaterials, downloadMaterial, sendMessage } from '../controllers/teacherController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { authorize } from '../middleware/roleMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';

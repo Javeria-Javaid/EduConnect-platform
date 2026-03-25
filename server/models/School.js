@@ -11,6 +11,7 @@ const schoolSchema = new mongoose.Schema(
     contactPhone: { type: String },
     website: { type: String },
     admissionOpen: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false },
     facilities: [{ type: String }],
     fees: { type: Number }, // Average yearly fee
   },

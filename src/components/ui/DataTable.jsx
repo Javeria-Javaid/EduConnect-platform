@@ -17,7 +17,7 @@ const DataTable = ({
     const [activeFilters, setActiveFilters] = useState({});
 
     // Filter and Search Logic
-    const filteredData = data.filter(item => {
+    const filteredData = (data || []).filter(item => {
         // Search
         const matchesSearch = Object.values(item).some(val =>
             String(val).toLowerCase().includes(searchTerm.toLowerCase())

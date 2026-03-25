@@ -109,3 +109,18 @@ export const deleteSchool = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const verifySchool = async (req, res) => {
+  try {
+    const school = await School.findById(req.params.id);
+    if (school) {
+      school.isVerified = !school.isVerified;
+      const updatedSchool = await school.save();
+      res.json(updatedSchool);
+    } else {
+      res.status(404).json({ message: 'School not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PageHeader from '../ui/PageHeader';
 import DataTable from '../ui/DataTable';
 import Modal from '../ui/Modal';
-import { User, Mail, GraduationCap } from 'lucide-react';
+import { User, Mail, GraduationCap, RefreshCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import './TeacherManagement.css';
 
@@ -85,8 +85,15 @@ const TeacherManagement = () => {
             <PageHeader
                 title="Educators"
                 subtitle="Manage and verify teacher accounts."
-                actionLabel="Refresh"
-                onAction={fetchTeachers}
+                actionLabel="Add Teacher"
+                onAction={() => {
+                    setCurrentTeacher(null);
+                    setModalMode('add');
+                    setIsModalOpen(true);
+                }}
+                secondaryActionLabel="Refresh"
+                onSecondaryAction={fetchTeachers}
+                secondaryIcon={RefreshCcw}
             />
 
             {loading ? (

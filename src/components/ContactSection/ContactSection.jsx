@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 // 💡 Corrected imports to include Lucide social icons
 import { Mail, Phone, MapPin, Send, Linkedin, Twitter } from 'lucide-react';
+import { toast } from 'sonner';
 import './ContactSection.css';
 
 const ContactSection = () => {
@@ -31,16 +32,16 @@ const ContactSection = () => {
             const data = await res.json();
             if (res.ok) {
                 setStatus('success');
-                alert("Thank you for your message! We will get back to you shortly.");
+                toast.success("Thank you for your message! We will get back to you shortly.");
                 setFormData({ name: '', email: '', subject: '', message: '' });
             } else {
                 setStatus('error');
-                alert(data.message || "Something went wrong. Please try again.");
+                toast.error(data.message || "Something went wrong. Please try again.");
             }
         } catch (error) {
             console.error(error);
             setStatus('error');
-            alert("Network error. Please try again.");
+            toast.error("Network error. Please try again.");
         } finally {
             setStatus('');
         }

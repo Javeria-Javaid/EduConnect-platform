@@ -9,9 +9,12 @@ import './JobPosts.css';
 const JobPosts = () => {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [applicants, setApplicants] = useState([]);
+    const [loadingApplicants, setLoadingApplicants] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState('view');
     const [currentJob, setCurrentJob] = useState(null);
-    const [modalMode, setModalMode] = useState('add');
+    const [filters, setFilters] = useState([]);
 
     const fetchJobs = async () => {
         try {
@@ -30,6 +33,25 @@ const JobPosts = () => {
             toast.error('Network error fetching jobs');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchApplicants = async (jobId) => {
+        try {
+            setLoadingApplicants(true);
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/jobs/${jobId}/applicants`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setApplicants(data);
+            } else {
+                toast.error('Failed to fetch applicants');
+            }
+        } catch (error) {
+            toast.error('Network error');
+        } finally {
+            setLoadingApplicants(false);
         }
     };
 
@@ -55,21 +77,21 @@ const JobPosts = () => {
         },
         {
             header: 'Applicants',
-            accessor: 'applicants',
+            accessor: 'applicantsCount',
             render: (item) => (
-                <div className="applicants-cell">
-                    <Users size={14} className="text-gray-400" />
-                    <span>{item.applicants || 0} Candidates</span>
+                <div className="applicants-cell clickable" onClick={() => handleViewApplicants(item)}>
+                    <Users size={14} className="text-blue-500" />
+                    <span style={{ color: '#2A6EF2', fontWeight: 'bold' }}>{item.applicantsCount || 0} Candidates</span>
                 </div>
             )
         },
         {
             header: 'Posted Date',
-            accessor: 'posted',
+            accessor: 'createdAt',
             render: (item) => (
                 <div className="date-cell">
                     <Calendar size={14} className="text-gray-400" />
-                    <span>{new Date(item.posted).toLocaleDateString()}</span>
+                    <span>{new Date(item.createdAt).toLocaleDateString()}</span>
                 </div>
             )
         },
@@ -84,17 +106,12 @@ const JobPosts = () => {
         }
     ];
 
-    const filters = [
-        {
-            key: 'status',
-            label: 'All Statuses',
-            options: [
-                { value: 'Active', label: 'Active' },
-                { value: 'Closed', label: 'Closed' },
-                { value: 'Draft', label: 'Draft' }
-            ]
-        }
-    ];
+    const handleViewApplicants = (job) => {
+        setCurrentJob(job);
+        setModalMode('applicants');
+        setIsModalOpen(true);
+        fetchApplicants(job._id);
+    };
 
     const handleAdd = () => {
         setCurrentJob(null);
@@ -180,11 +197,11 @@ const JobPosts = () => {
                     <div className="job-analytics">
                         <div className="analytics-card">
                             <h4 className="analytics-label">Total Active Jobs</h4>
-                            <span className="analytics-value analytics-blue">{jobs.filter(j => j.status === 'Active').length}</span>
+                            <span className="analytics-value analytics-blue">{jobs?.filter(j => j.status === 'Active').length || 0}</span>
                         </div>
                         <div className="analytics-card">
                             <h4 className="analytics-label">Total Applicants</h4>
-                            <span className="analytics-value analytics-green">{jobs.reduce((acc, curr) => acc + (curr.applicants || 0), 0)}</span>
+                            <span className="analytics-value analytics-green">{jobs?.reduce((acc, curr) => acc + (curr.applicantsCount || 0), 0) || 0}</span>
                         </div>
                     </div>
 
@@ -207,15 +224,75 @@ const JobPosts = () => {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={modalMode === 'add' ? 'Post New Job' : modalMode === 'edit' ? 'Edit Job Post' : 'Job Details'}
+                title={
+                    modalMode === 'add' ? 'Post New Job' : 
+                    modalMode === 'edit' ? 'Edit Job Post' : 
+                    modalMode === 'applicants' ? `Applicants for ${currentJob?.title}` : 
+                    'Job Details'
+                }
             >
-                {modalMode === 'view' && currentJob ? (
+                {modalMode === 'applicants' ? (
+                    <div className="applicants-list-view">
+                        {loadingApplicants ? (
+                            <div className="p-4 text-center">Loading candidates...</div>
+                        ) : applicants.length > 0 ? (
+                            <div className="applicants-table-wrapper">
+                                <table className="applicants-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Candidate</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {applicants.map(app => (
+                                            <tr key={app._id}>
+                                                <td>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                                                            <User size={14} />
+                                                        </div>
+                                                        <span>{app.applicantName || (app.applicantRef ? `${app.applicantRef.firstName} ${app.applicantRef.lastName}` : 'Anonymous')}</span>
+                                                    </div>
+                                                </td>
+                                                <td>{app.applicantEmail || app.applicantRef?.email}</td>
+                                                <td>{app.applicantRef?.phone || 'N/A'}</td>
+                                                <td>
+                                                    <span className={`app-status-badge ${app.status}`}>
+                                                        {app.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="no-applicants-msg">
+                                <Users size={48} />
+                                <p>No applications received yet for this position.</p>
+                            </div>
+                        )}
+                    </div>
+                ) : modalMode === 'view' && currentJob ? (
                     <div className="job-details-view">
-                         <h3>{currentJob.title}</h3>
-                         <p><strong>Department:</strong> {currentJob.department}</p>
-                         <p><strong>Type:</strong> {currentJob.type}</p>
-                         <p><strong>Status:</strong> {currentJob.status}</p>
-                         <p><strong>Description:</strong> {currentJob.description || 'No description provided.'}</p>
+                         <div className="job-header-info">
+                            <h3>{currentJob.title}</h3>
+                            <span className={`status-badge ${currentJob.status.toLowerCase()}`}>{currentJob.status}</span>
+                         </div>
+                         <div className="detail-meta">
+                            <span><strong>Department:</strong> {currentJob.department}</span>
+                            <span><strong>Type:</strong> {currentJob.type}</span>
+                         </div>
+                         <div className="description-box">
+                            <h4>Description</h4>
+                            <p>{currentJob.description || 'No description provided.'}</p>
+                         </div>
+                         <div className="stats-footer">
+                            <Users size={16} /> <span>{currentJob.applicantsCount || 0} candidates have applied</span>
+                         </div>
                     </div>
                 ) : (
                     <form onSubmit={handleSave} className="job-form">
