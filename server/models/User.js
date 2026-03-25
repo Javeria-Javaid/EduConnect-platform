@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true, index: true },
     passwordHash: { type: String }, // Optional: OAuth users won't have a password
-    role: { type: String, required: true, enum: ['admin', 'school_admin', 'teacher', 'parent', 'vendor'] },
+    role: { type: String, required: true, enum: ['admin', 'school_admin', 'teacher', 'parent', 'vendor', 'student'] },
     school: { type: mongoose.Schema.Types.ObjectId, ref: 'School' },
     // OAuth provider fields
     provider: { type: String, enum: ['local', 'google', 'github'], default: 'local' },

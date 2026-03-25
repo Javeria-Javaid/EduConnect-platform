@@ -1,18 +1,18 @@
 /* DataTable Container - Updated Styling */
 .data-table-container {
-    background-color: #ffffff !important;
-    border-radius: 12px !important;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
-    padding: 24px !important;
+    background-color: var(--surface-color) !important;
+    border-radius: var(--border-radius-large) !important;
+    box-shadow: var(--shadow-sm) !important;
+    padding: var(--spacing-lg) !important;
 }
 
 .table-toolbar {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    margin-bottom: 24px !important;
+    margin-bottom: var(--spacing-lg) !important;
     flex-wrap: wrap !important;
-    gap: 16px !important;
+    gap: var(--spacing-md) !important;
 }
 
 /* SEARCH BAR - Matching Dashboard Header Style */
@@ -27,37 +27,37 @@
     left: 14px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    color: #94a3b8 !important;
+    color: var(--text-muted) !important;
     pointer-events: none !important;
     transition: color 0.2s ease !important;
 }
 
 .search-wrapper:focus-within .search-icon {
-    color: #66a1be !important;
+    color: var(--primary-color) !important;
 }
 
 .search-input {
     width: 100% !important;
     padding: 11px 16px 11px 44px !important;
-    border: 1.5px solid #e2e8f0 !important;
+    border: 1.5px solid var(--border-color) !important;
     border-radius: 10px !important;
     outline: none !important;
     font-size: 14px !important;
     font-weight: 500 !important;
-    color: #1e293b !important;
-    background-color: #f8fafc !important;
+    color: var(--text-primary) !important;
+    background-color: var(--sidebar-bg) !important;
     transition: all 0.3s ease !important;
 }
 
 .search-input::placeholder {
-    color: #94a3b8 !important;
+    color: var(--text-muted) !important;
     font-weight: 400 !important;
 }
 
 .search-input:focus {
-    border-color: #66a1be !important;
-    background-color: #ffffff !important;
-    box-shadow: 0 0 0 3px rgba(102, 161, 190, 0.1) !important;
+    border-color: var(--primary-color) !important;
+    background-color: var(--surface-color) !important;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1) !important;
     transform: translateY(-1px) !important;
 }
 
@@ -70,13 +70,13 @@
 
 .filter-select {
     padding: 11px 36px 11px 16px !important;
-    border: 1.5px solid #e2e8f0 !important;
+    border: 1.5px solid var(--border-color) !important;
     border-radius: 10px !important;
     outline: none !important;
     font-size: 14px !important;
     font-weight: 500 !important;
-    color: #475569 !important;
-    background-color: #f8fafc !important;
+    color: var(--text-secondary) !important;
+    background-color: var(--sidebar-bg) !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
     appearance: none !important;
@@ -88,13 +88,13 @@
 
 .filter-select:hover {
     border-color: #cbd5e1 !important;
-    background-color: #ffffff !important;
+    background-color: var(--surface-color) !important;
 }
 
 .filter-select:focus {
-    border-color: #66a1be !important;
-    background-color: #ffffff !important;
-    box-shadow: 0 0 0 3px rgba(102, 161, 190, 0.1) !important;
+    border-color: var(--primary-color) !important;
+    background-color: var(--surface-color) !important;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1) !important;
 }
 
 /* TABLE STYLES */
@@ -110,19 +110,19 @@
 .data-table th {
     text-align: left;
     padding: 16px;
-    background-color: #f8fafc;
-    color: #64748b;
+    background-color: var(--sidebar-bg);
+    color: var(--text-secondary);
     font-weight: 600;
     font-size: 13px;
     letter-spacing: 0.3px;
     text-transform: uppercase;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 2px solid var(--border-color);
 }
 
 .data-table td {
     padding: 16px;
     border-bottom: 1px solid #f1f5f9;
-    color: #334155;
+    color: var(--text-primary);
     font-size: 14px;
 }
 
@@ -131,7 +131,7 @@
 }
 
 .data-table tbody tr:hover {
-    background-color: #f8fafc;
+    background-color: var(--sidebar-bg);
 }
 
 .data-table tr:last-child td {
@@ -158,16 +158,16 @@
 }
 
 .action-btn.view {
-    color: #66a1be;
+    color: var(--primary-color);
 }
 
 .action-btn.view:hover {
-    background-color: #e0f2f7;
-    color: #4f8baa;
+    background-color: var(--primary-light);
+    color: var(--primary-hover);
 }
 
 .action-btn.edit {
-    color: #F59E0B;
+    color: var(--warning-color);
 }
 
 .action-btn.edit:hover {
@@ -176,18 +176,18 @@
 }
 
 .action-btn.delete {
-    color: #EF4444;
+    color: var(--danger-color);
 }
 
 .action-btn.delete:hover {
     background-color: #fef2f2;
-    color: #dc2626;
+    color: var(--danger-hover);
 }
 
 .no-data {
     text-align: center;
     padding: 48px !important;
-    color: #94a3b8;
+    color: var(--text-muted);
     font-size: 14px;
 }
 
@@ -203,7 +203,7 @@
 
 .pagination-info {
     font-size: 13px;
-    color: #64748b;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
@@ -218,11 +218,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1.5px solid #e2e8f0;
-    background-color: #ffffff;
+    border: 1.5px solid var(--border-color);
+    background-color: var(--surface-color);
     border-radius: 8px;
     cursor: pointer;
-    color: #64748b;
+    color: var(--text-secondary);
     font-size: 13px;
     font-weight: 600;
     transition: all 0.2s ease;
@@ -230,22 +230,22 @@
 }
 
 .page-btn:hover:not(:disabled) {
-    background-color: #f8fafc;
-    color: #334155;
+    background-color: var(--sidebar-bg);
+    color: var(--text-primary);
     border-color: #cbd5e1;
 }
 
 .page-btn.active {
-    background: linear-gradient(135deg, #66a1be 0%, #4f8baa 100%);
-    color: #ffffff;
-    border-color: #66a1be;
-    box-shadow: 0 2px 8px rgba(102, 161, 190, 0.25);
+    background: var(--primary-color);
+    color: var(--surface-color);
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
 }
 
 .page-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
-    background-color: #f8fafc;
+    background-color: var(--sidebar-bg);
 }
 
 /* RESPONSIVE ADJUSTMENTS */

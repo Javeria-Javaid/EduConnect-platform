@@ -11,6 +11,7 @@ const TeacherManagement = () => {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentTeacher, setCurrentTeacher] = useState(null);
+    const [modalMode, setModalMode] = useState('view');
 
     const fetchTeachers = async () => {
         try {
@@ -80,6 +81,38 @@ const TeacherManagement = () => {
         }
     };
 
+    const handleSave = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        data.role = 'teacher';
+
+        try {
+            const url = modalMode === 'edit'
+                ? `${import.meta.env.VITE_API_URL}/api/admin/users/${currentTeacher._id}`
+                : `${import.meta.env.VITE_API_URL}/api/admin/users`;
+            
+            const res = await fetch(url, {
+                method: modalMode === 'edit' ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                toast.success(modalMode === 'edit' ? 'Teacher updated' : 'Teacher added');
+                setIsModalOpen(false);
+                fetchTeachers();
+            } else {
+                toast.error('Failed to save teacher');
+            }
+        } catch (error) {
+            toast.error('Network error');
+        }
+    };
+
     return (
         <div className="teacher-management-page">
             <PageHeader
@@ -102,9 +135,15 @@ const TeacherManagement = () => {
                 <DataTable
                     columns={columns}
                     data={teachers}
+                    onEdit={(teacher) => {
+                        setCurrentTeacher(teacher);
+                        setModalMode('edit');
+                        setIsModalOpen(true);
+                    }}
                     onDelete={handleDelete}
                     onView={(teacher) => {
                         setCurrentTeacher(teacher);
+                        setModalMode('view');
                         setIsModalOpen(true);
                     }}
                     searchPlaceholder="Search teachers..."
@@ -114,14 +153,39 @@ const TeacherManagement = () => {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title="Teacher Profile"
+                title={modalMode === 'add' ? 'Add Teacher' : modalMode === 'edit' ? 'Edit Teacher' : 'Teacher Profile'}
             >
-                {currentTeacher && (
+                {modalMode === 'view' && currentTeacher ? (
                     <div className="user-details-view">
                         <h3>{currentTeacher.firstName} {currentTeacher.lastName}</h3>
                         <p>{currentTeacher.email}</p>
                         <p><strong>Status:</strong> Verified</p>
                     </div>
+                ) : (
+                    <form onSubmit={handleSave} className="teacher-form">
+                        <div className="form-group">
+                            <label>First Name</label>
+                            <input type="text" name="firstName" defaultValue={currentTeacher?.firstName} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Last Name</label>
+                            <input type="text" name="lastName" defaultValue={currentTeacher?.lastName} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email" defaultValue={currentTeacher?.email} required />
+                        </div>
+                        {modalMode === 'add' && (
+                            <div className="form-group">
+                                <label>Password</label>
+                                <input type="password" name="password" required />
+                            </div>
+                        )}
+                        <div className="form-actions">
+                            <button type="button" className="cancel-btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                            <button type="submit" className="save-btn">{modalMode === 'edit' ? 'Save Changes' : 'Add Teacher'}</button>
+                        </div>
+                    </form>
                 )}
             </Modal>
         </div>

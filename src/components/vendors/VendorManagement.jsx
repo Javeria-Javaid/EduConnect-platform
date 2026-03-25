@@ -147,14 +147,39 @@ const VendorManagement = () => {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title="Vendor Profile"
+                title={modalMode === 'add' ? 'Add Vendor' : modalMode === 'edit' ? 'Edit Vendor' : 'Vendor Profile'}
             >
-                {currentVendor && (
+                {modalMode === 'view' && currentVendor ? (
                     <div className="user-details-view">
                         <h3>{currentVendor.firstName} {currentVendor.lastName}</h3>
                         <p>{currentVendor.email}</p>
                         <p><strong>Status:</strong> Active Vendor</p>
                     </div>
+                ) : (
+                    <form onSubmit={handleSave} className="vendor-form">
+                        <div className="form-group">
+                            <label>First Name</label>
+                            <input type="text" name="firstName" defaultValue={currentVendor?.firstName} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Last Name</label>
+                            <input type="text" name="lastName" defaultValue={currentVendor?.lastName} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email" defaultValue={currentVendor?.email} required />
+                        </div>
+                        {modalMode === 'add' && (
+                            <div className="form-group">
+                                <label>Password</label>
+                                <input type="password" name="password" required />
+                            </div>
+                        )}
+                        <div className="form-actions">
+                            <button type="button" className="cancel-btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                            <button type="submit" className="save-btn">{modalMode === 'edit' ? 'Save Changes' : 'Add Vendor'}</button>
+                        </div>
+                    </form>
                 )}
             </Modal>
         </div>

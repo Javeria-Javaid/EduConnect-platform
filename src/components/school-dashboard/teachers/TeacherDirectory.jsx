@@ -1,31 +1,103 @@
-import React, { useState, useMemo } from 'react';
-import { Eye, Edit, MessageCircle, Calendar, Plus, Download } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Eye, Edit, MessageCircle, Calendar, Plus, Download, Trash2 } from 'lucide-react';
 import SearchBar from '../shared/SearchBar';
 import DataTable from '../shared/DataTable';
 import FilterPanel from '../shared/FilterPanel';
 import AddTeacherModal from './AddTeacherModal';
-import { mockTeachers, teacherFilters } from './mockData';
+import { teacherFilters } from './mockData';
+import { toast } from 'sonner';
 import './TeacherDirectory.css';
 
 const TeacherDirectory = () => {
+    const [teachers, setTeachers] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeFilters, setActiveFilters] = useState({});
     const [selectedTeachers, setSelectedTeachers] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [editingTeacher, setEditingTeacher] = useState(null);
 
-    const handleAddTeacher = (teacherData) => {
-        console.log('New teacher:', teacherData);
-        // In real implementation, this would add to database
+    const fetchTeachers = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/teachers`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setTeachers(data);
+            } else {
+                toast.error(data.message || 'Failed to fetch teachers');
+            }
+        } catch (error) {
+            toast.error('Network error fetching teachers');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTeachers();
+    }, []);
+
+    const handleAddTeacher = async (teacherData) => {
+        try {
+            const token = localStorage.getItem('token');
+            const url = editingTeacher 
+                ? `${import.meta.env.VITE_API_URL}/api/schools/teachers/${editingTeacher._id}`
+                : `${import.meta.env.VITE_API_URL}/api/schools/teachers`;
+            const method = editingTeacher ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(teacherData)
+            });
+
+            if (res.ok) {
+                toast.success(editingTeacher ? 'Teacher updated' : 'Teacher added');
+                setIsAddModalOpen(false);
+                setEditingTeacher(null);
+                fetchTeachers();
+            } else {
+                const err = await res.json();
+                toast.error(err.message || 'Action failed');
+            }
+        } catch (error) {
+            toast.error('Network error');
+        }
+    };
+
+    const handleDeleteTeacher = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this teacher?')) return;
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/teachers/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                toast.success('Teacher deleted');
+                fetchTeachers();
+            } else {
+                toast.error('Failed to delete teacher');
+            }
+        } catch (error) {
+            toast.error('Network error');
+        }
     };
 
     // Filter and search logic
     const filteredTeachers = useMemo(() => {
-        return mockTeachers.filter(teacher => {
+        return teachers.filter(teacher => {
             // Search filter
             const matchesSearch = !searchTerm ||
                 teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 teacher.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                teacher.phone.includes(searchTerm) ||
                 teacher.subjects.some(subject => subject.toLowerCase().includes(searchTerm.toLowerCase()));
 
             // Subject filter
@@ -40,14 +112,10 @@ const TeacherDirectory = () => {
             const matchesStatus = !activeFilters.status ||
                 teacher.status === activeFilters.status;
 
-            // Attendance filter
-            const matchesAttendance = !activeFilters.attendance ||
-                teacher.attendance >= activeFilters.attendance;
-
             return matchesSearch && matchesSubjects && matchesEmploymentType &&
-                matchesStatus && matchesAttendance;
+                matchesStatus;
         });
-    }, [searchTerm, activeFilters]);
+    }, [teachers, searchTerm, activeFilters]);
 
     // Table columns configuration
     const columns = [

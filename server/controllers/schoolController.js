@@ -1,4 +1,35 @@
 import School from '../models/School.js';
+import User from '../models/User.js';
+
+export const getSchoolStats = async (req, res) => {
+  try {
+    const schoolId = req.user.school;
+
+    if (!schoolId && req.user.role !== 'admin') {
+      return res.status(400).json({ message: 'User is not assigned to a school' });
+    }
+
+    const targetSchoolId = req.user.role === 'admin' ? (req.query.schoolId || schoolId) : schoolId;
+
+    if (!targetSchoolId) {
+        return res.status(400).json({ message: 'School ID is required for admins' });
+    }
+
+    const [totalStudents, totalTeachers] = await Promise.all([
+        User.countDocuments({ school: targetSchoolId, role: 'student' }),
+        User.countDocuments({ school: targetSchoolId, role: 'teacher' })
+    ]);
+    
+    res.json({
+      totalStudents,
+      totalTeachers,
+      activeClasses: 12, // Placeholder
+      attendance: '95%' // Placeholder
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 
 export const getSchools = async (req, res) => {

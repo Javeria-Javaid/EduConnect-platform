@@ -35,6 +35,9 @@ const SchoolManagement = () => {
     }, []);
 
     const handleVerify = async (school) => {
+        const action = school.isVerified ? 'unverify' : 'verify';
+        if (!window.confirm(`Are you sure you want to ${action} this school?`)) return;
+
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/${school._id}/verify`, {
                 method: 'PATCH',
@@ -75,16 +78,24 @@ const SchoolManagement = () => {
             header: 'Verification',
             accessor: 'isVerified',
             render: (item) => (
-                <div className="verification-cell">
+                <div className="verification-cell" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <span className={`verify-badge ${item.isVerified ? 'verified' : 'unverified'}`}>
                         {item.isVerified ? 'Verified' : 'Unverified'}
                     </span>
                     <button 
-                        className="verify-toggle-btn" 
+                        className={`btn secondary ${item.isVerified ? 'unverify-btn' : 'verify-btn'}`} 
                         onClick={() => handleVerify(item)}
-                        title={item.isVerified ? 'Unverify School' : 'Verify School'}
+                        style={{
+                            padding: '4px 8px',
+                            fontSize: '12px',
+                            border: `1px solid ${item.isVerified ? '#94A3B8' : '#10B981'}`,
+                            color: item.isVerified ? '#64748b' : '#10B981',
+                            background: 'transparent',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                        }}
                     >
-                        {item.isVerified ? <XCircle size={16} /> : <CheckCircle size={16} />}
+                        {item.isVerified ? 'Unverify' : 'Verify'}
                     </button>
                 </div>
             )
@@ -95,6 +106,18 @@ const SchoolManagement = () => {
             render: (item) => <span>{item.contactEmail}</span>
         }
     ];
+
+    const filterOptions = [
+        {
+            label: 'All Verification Status',
+            key: 'isVerified',
+            options: [
+                { label: 'Verified', value: true },
+                { label: 'Unverified', value: false }
+            ]
+        }
+    ];
+
 
     const handleDelete = async (school) => {
         if (window.confirm(`Delete ${school.name}?`)) {
@@ -182,6 +205,7 @@ const SchoolManagement = () => {
                         setIsModalOpen(true);
                     }}
                     searchPlaceholder="Search institutions..."
+                    filters={filterOptions}
                 />
             )}
 

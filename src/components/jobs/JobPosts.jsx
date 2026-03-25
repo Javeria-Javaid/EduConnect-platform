@@ -81,7 +81,7 @@ const JobPosts = () => {
             render: (item) => (
                 <div className="applicants-cell clickable" onClick={() => handleViewApplicants(item)}>
                     <Users size={14} className="text-blue-500" />
-                    <span style={{ color: '#2A6EF2', fontWeight: 'bold' }}>{item.applicantsCount || 0} Candidates</span>
+                    <span style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>{item.applicantsCount || 0} Candidates</span>
                 </div>
             )
         },

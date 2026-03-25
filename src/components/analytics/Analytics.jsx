@@ -188,7 +188,7 @@ export default function Analytics() {
       }
     } catch (error) {
       console.error(`Export failed for format: ${format}`, error);
-      alert(`Failed to export ${format.toUpperCase()}. Please try again.`);
+      toast.error(`Failed to export ${format.toUpperCase()}. Please try again.`);
     }
   };
 

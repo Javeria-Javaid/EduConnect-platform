@@ -12,7 +12,7 @@
     width: 36px;
     height: 36px;
     background-color: #eff6ff;
-    color: #2A6EF2;
+    color: var(--primary-color);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -101,7 +101,7 @@
 
 .form-group input:focus,
 .form-group select:focus {
-    border-color: #2A6EF2;
+    border-color: var(--primary-color);
 }
 
 .form-actions {
@@ -122,7 +122,7 @@
 
 .save-btn {
     padding: 10px 20px;
-    background-color: #2A6EF2;
+    background-color: var(--primary-color);
     color: #ffffff;
     border: none;
     border-radius: 8px;

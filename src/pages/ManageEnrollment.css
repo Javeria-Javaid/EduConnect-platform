@@ -173,7 +173,7 @@ html {
     gap: 8px;
 }
 
-.nav-item {
+.enrollment-sidebar .nav-item {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -189,12 +189,12 @@ html {
     text-align: left;
 }
 
-.nav-item:hover {
+.enrollment-sidebar .nav-item:hover {
     background: #f3e8ff;
     color: #7c3aed;
 }
 
-.nav-item.active {
+.enrollment-sidebar .nav-item.active {
     background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
     color: #6b21a8;
     font-weight: 600;

@@ -1,26 +1,99 @@
-import React, { useState, useMemo } from 'react';
-import { Eye, Edit, MessageCircle, Printer, Plus, Download, Search } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Eye, Edit, MessageCircle, Printer, Plus, Download, Search, Trash2 } from 'lucide-react';
 import SearchBar from '../shared/SearchBar';
 import DataTable from '../shared/DataTable';
 import FilterPanel from '../shared/FilterPanel';
 import AddStudentModal from './AddStudentModal';
-import { mockStudents, studentFilters } from './mockData';
+import { studentFilters } from './mockData';
+import { toast } from 'sonner';
 import './StudentDirectory.css';
 
 const StudentDirectory = () => {
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeFilters, setActiveFilters] = useState({});
     const [selectedStudents, setSelectedStudents] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [editingStudent, setEditingStudent] = useState(null);
 
-    const handleAddStudent = (studentData) => {
-        console.log('New student:', studentData);
-        // In real implementation, this would add to database
+    const fetchStudents = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/students`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setStudents(data);
+            } else {
+                toast.error(data.message || 'Failed to fetch students');
+            }
+        } catch (error) {
+            toast.error('Network error fetching students');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchStudents();
+    }, []);
+
+    const handleAddStudent = async (studentData) => {
+        try {
+            const token = localStorage.getItem('token');
+            const url = editingStudent 
+                ? `${import.meta.env.VITE_API_URL}/api/schools/students/${editingStudent._id}`
+                : `${import.meta.env.VITE_API_URL}/api/schools/students`;
+            const method = editingStudent ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(studentData)
+            });
+
+            if (res.ok) {
+                toast.success(editingStudent ? 'Student updated' : 'Student added');
+                setIsAddModalOpen(false);
+                setEditingStudent(null);
+                fetchStudents();
+            } else {
+                const err = await res.json();
+                toast.error(err.message || 'Action failed');
+            }
+        } catch (error) {
+            toast.error('Network error');
+        }
+    };
+
+    const handleDeleteStudent = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this student?')) return;
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/students/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                toast.success('Student deleted');
+                fetchStudents();
+            } else {
+                toast.error('Failed to delete student');
+            }
+        } catch (error) {
+            toast.error('Network error');
+        }
     };
 
     // Filter and search logic
     const filteredStudents = useMemo(() => {
-        return mockStudents.filter(student => {
+        return students.filter(student => {
             // Search filter
             const matchesSearch = !searchTerm ||
                 student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -43,14 +116,10 @@ const StudentDirectory = () => {
             const matchesFeeStatus = !activeFilters.feeStatus ||
                 activeFilters.feeStatus.includes(student.feeStatus);
 
-            // Attendance filter
-            const matchesAttendance = !activeFilters.attendance ||
-                student.attendance >= activeFilters.attendance;
-
             return matchesSearch && matchesClass && matchesSection &&
-                matchesGender && matchesFeeStatus && matchesAttendance;
+                matchesGender && matchesFeeStatus;
         });
-    }, [searchTerm, activeFilters]);
+    }, [students, searchTerm, activeFilters]);
 
     // Table columns configuration
     const columns = [
@@ -148,22 +217,30 @@ const StudentDirectory = () => {
         {
             label: 'View Profile',
             icon: <Eye size={14} />,
-            onClick: (student) => console.log('View', student)
+            onClick: (s) => console.log('View', s)
         },
         {
             label: 'Edit Details',
             icon: <Edit size={14} />,
-            onClick: (student) => console.log('Edit', student)
+            onClick: (s) => {
+                setEditingStudent(s);
+                setIsAddModalOpen(true);
+            }
+        },
+        {
+            label: 'Delete',
+            icon: <Trash2 size={14} />,
+            onClick: (s) => handleDeleteStudent(s._id)
         },
         {
             label: 'Send Message',
             icon: <MessageCircle size={14} />,
-            onClick: (student) => console.log('Message', student)
+            onClick: (s) => console.log('Message', s)
         },
         {
             label: 'Print ID Card',
             icon: <Printer size={14} />,
-            onClick: (student) => console.log('Print', student)
+            onClick: (s) => console.log('Print', s)
         }
     ];
 
@@ -183,7 +260,10 @@ const StudentDirectory = () => {
                         Export
                     </button>
                     <button
-                        onClick={() => setIsAddModalOpen(true)}
+                        onClick={() => {
+                            setEditingStudent(null);
+                            setIsAddModalOpen(true);
+                        }}
                         className="btn-primary"
                     >
                         <Plus size={18} />
@@ -219,7 +299,12 @@ const StudentDirectory = () => {
                                 <button className="btn-action-sm">Send Message</button>
                                 <button className="btn-action-sm">Update Class</button>
                                 <button className="btn-action-sm">Print IDs</button>
-                                <button className="btn-danger-sm">Delete</button>
+                                <button className="btn-danger-sm" onClick={() => {
+                                    if(window.confirm(`Delete ${selectedStudents.length} students?`)) {
+                                        // Bulk delete logic would go here
+                                        toast.info('Bulk delete pending implementation');
+                                    }
+                                }}>Delete</button>
                             </div>
                         </div>
                     </div>
@@ -227,22 +312,30 @@ const StudentDirectory = () => {
 
                 {/* Data Table */}
                 <div style={{ padding: '20px' }}>
-                    <DataTable
-                        columns={columns}
-                        data={filteredStudents}
-                        selectable={true}
-                        onSelectionChange={setSelectedStudents}
-                        onQuickAction={getQuickActions}
-                        pageSize={10}
-                    />
+                    {loading ? (
+                        <div className="loading-state">Loading students...</div>
+                    ) : (
+                        <DataTable
+                            columns={columns}
+                            data={filteredStudents}
+                            selectable={true}
+                            onSelectionChange={setSelectedStudents}
+                            onQuickAction={getQuickActions}
+                            pageSize={10}
+                        />
+                    )}
                 </div>
             </div>
 
             {/* Add Student Modal */}
             <AddStudentModal
                 isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
+                onClose={() => {
+                    setIsAddModalOpen(false);
+                    setEditingStudent(null);
+                }}
                 onSubmit={handleAddStudent}
+                editingStudent={editingStudent}
             />
         </div>
     );

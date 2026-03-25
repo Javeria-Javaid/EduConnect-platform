@@ -51,7 +51,7 @@ const DashboardOverview = () => {
       const analyticsData = await analyticsRes.json();
 
       setStats([
-        { label: 'Total Schools', value: statsData.totalSchools.toLocaleString(), icon: School, color: '#2A6EF2' },
+        { label: 'Total Schools', value: statsData.totalSchools.toLocaleString(), icon: School, color: 'var(--primary-color)' },
         { label: 'Active Students', value: statsData.activeStudents.toLocaleString(), icon: Users, color: '#3AC47D' },
         { label: 'Job Posts', value: statsData.totalJobPosts.toLocaleString(), icon: Briefcase, color: '#F59E0B' },
         { label: 'Pending Approvals', value: statsData.pendingApprovals.toString(), icon: Clock, color: '#EF4444' },
@@ -76,7 +76,7 @@ const DashboardOverview = () => {
   if (loading) {
     return (
       <div className="dashboard-loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '400px' }}>
-        <Loader2 className="animate-spin" size={48} color="#2A6EF2" />
+        <Loader2 className="animate-spin" size={48} color="var(--primary-color)" />
         <p style={{ marginTop: '16px', color: '#64748b' }}>Initializing platform analytics...</p>
       </div>
     );
@@ -87,7 +87,7 @@ const DashboardOverview = () => {
       <div className="dashboard-error" style={{ textAlign: 'center', padding: '40px' }}>
         <AlertCircle size={48} color="#EF4444" style={{ margin: '0 auto' }} />
         <p style={{ marginTop: '16px', color: '#ef4444' }}>{error}</p>
-        <button onClick={fetchData} className="retry-btn" style={{ marginTop: '16px', padding: '8px 16px', backgroundColor: '#2A6EF2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Retry Connection</button>
+        <button onClick={fetchData} className="retry-btn" style={{ marginTop: '16px', padding: '8px 16px', backgroundColor: 'var(--primary-color)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Retry Connection</button>
       </div>
     );
   }
@@ -135,8 +135,8 @@ const DashboardOverview = () => {
                 <AreaChart data={admissionsData}>
                   <defs>
                     <linearGradient id="colorAdmissions" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2A6EF2" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#2A6EF2" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#7C3AED" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -145,7 +145,7 @@ const DashboardOverview = () => {
                   <Tooltip
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
-                  <Area type="monotone" dataKey="value" stroke="#2A6EF2" strokeWidth={3} fillOpacity={1} fill="url(#colorAdmissions)" />
+                  <Area type="monotone" dataKey="value" stroke="#7C3AED" strokeWidth={3} fillOpacity={1} fill="url(#colorAdmissions)" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (

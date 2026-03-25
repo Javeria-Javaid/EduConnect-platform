@@ -44,7 +44,7 @@
 }
 
 .settings-nav-item.active {
-    background-color: #2A6EF2 !important;
+    background-color: var(--primary-color) !important;
     color: #ffffff !important;
     font-weight: 600 !important;
     box-shadow: 0 2px 8px rgba(42, 110, 242, 0.2) !important;

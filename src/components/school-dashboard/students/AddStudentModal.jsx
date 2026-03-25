@@ -1,27 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import '../shared/SimpleModal.css';
 
-const AddStudentModal = ({ isOpen, onClose, onSubmit }) => {
+const AddStudentModal = ({ isOpen, onClose, onSubmit, editingStudent }) => {
     const [formData, setFormData] = useState({
-        name: '',
-        dob: '',
+        firstName: '',
+        lastName: '',
+        email: '',
         gender: '',
         admissionNumber: '',
         parentName: '',
         parentPhone: '',
-        parentEmail: '',
         class: '',
         section: '',
         rollNumber: '',
-        feePackage: ''
     });
+
+    useEffect(() => {
+        if (editingStudent) {
+            const names = editingStudent.name.split(' ');
+            setFormData({
+                firstName: names[0] || '',
+                lastName: names.slice(1).join(' ') || '',
+                email: editingStudent.email || '',
+                gender: editingStudent.gender || '',
+                admissionNumber: editingStudent.admissionNumber || '',
+                parentName: editingStudent.parentName || '',
+                parentPhone: editingStudent.parentPhone || '',
+                class: editingStudent.class || '',
+                section: editingStudent.section || '',
+                rollNumber: editingStudent.rollNumber || '',
+            });
+        } else {
+            setFormData({
+                firstName: '',
+                lastName: '',
+                email: '',
+                gender: '',
+                admissionNumber: '',
+                parentName: '',
+                parentPhone: '',
+                class: '',
+                section: '',
+                rollNumber: '',
+            });
+        }
+    }, [editingStudent, isOpen]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
         onSubmit(formData);
-        onClose();
-        setFormData({});
     };
 
     if (!isOpen) return null;
@@ -30,7 +58,7 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit }) => {
         <div className="simple-modal-overlay" onClick={onClose}>
             <div className="simple-modal-container" onClick={(e) => e.stopPropagation()}>
                 <div className="simple-modal-header">
-                    <h2 className="simple-modal-title">Add New Student</h2>
+                    <h2 className="simple-modal-title">{editingStudent ? 'Edit Student' : 'Add New Student'}</h2>
                     <button className="simple-modal-close" onClick={onClose}>
                         <X size={24} />
                     </button>
@@ -39,23 +67,35 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit }) => {
                 <form onSubmit={handleSubmit} className="simple-modal-body">
                     <div className="simple-form-grid">
                         <div className="simple-form-group">
-                            <label>Full Name *</label>
+                            <label>First Name *</label>
                             <input
                                 type="text"
                                 required
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="Enter student name"
+                                value={formData.firstName}
+                                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                placeholder="First name"
                             />
                         </div>
 
                         <div className="simple-form-group">
-                            <label>Date of Birth *</label>
+                            <label>Last Name *</label>
                             <input
-                                type="date"
+                                type="text"
                                 required
-                                value={formData.dob}
-                                onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                                value={formData.lastName}
+                                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                placeholder="Last name"
+                            />
+                        </div>
+
+                        <div className="simple-form-group">
+                            <label>Email *</label>
+                            <input
+                                type="email"
+                                required
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                placeholder="student@example.com"
                             />
                         </div>
 
@@ -69,6 +109,7 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit }) => {
                                 <option value="">Select Gender</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
+                                <option value="Other">Other</option>
                             </select>
                         </div>
 
@@ -106,16 +147,6 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit }) => {
                         </div>
 
                         <div className="simple-form-group">
-                            <label>Parent Email</label>
-                            <input
-                                type="email"
-                                value={formData.parentEmail}
-                                onChange={(e) => setFormData({ ...formData, parentEmail: e.target.value })}
-                                placeholder="parent@example.com"
-                            />
-                        </div>
-
-                        <div className="simple-form-group">
                             <label>Class *</label>
                             <select
                                 required
@@ -124,7 +155,7 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit }) => {
                             >
                                 <option value="">Select Class</option>
                                 {[...Array(12)].map((_, i) => (
-                                    <option key={i} value={i + 1}>Class {i + 1}</option>
+                                    <option key={i} value={i + 1}>{i + 1}</option>
                                 ))}
                             </select>
                         </div>
@@ -138,32 +169,20 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit }) => {
                             >
                                 <option value="">Select Section</option>
                                 {['A', 'B', 'C', 'D'].map(section => (
-                                    <option key={section} value={section}>Section {section}</option>
+                                    <option key={section} value={section}>{section}</option>
                                 ))}
                             </select>
                         </div>
 
                         <div className="simple-form-group">
-                            <label>Roll Number</label>
+                            <label>Roll Number *</label>
                             <input
                                 type="text"
+                                required
                                 value={formData.rollNumber}
                                 onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })}
                                 placeholder="Roll number"
                             />
-                        </div>
-
-                        <div className="simple-form-group">
-                            <label>Fee Package *</label>
-                            <select
-                                required
-                                value={formData.feePackage}
-                                onChange={(e) => setFormData({ ...formData, feePackage: e.target.value })}
-                            >
-                                <option value="">Select Package</option>
-                                <option value="Standard">Standard - Rs. 15,000/month</option>
-                                <option value="Premium">Premium - Rs. 25,000/month</option>
-                            </select>
                         </div>
                     </div>
 
@@ -172,7 +191,7 @@ const AddStudentModal = ({ isOpen, onClose, onSubmit }) => {
                             Cancel
                         </button>
                         <button type="submit" className="simple-btn-primary">
-                            Add Student
+                            {editingStudent ? 'Update Student' : 'Add Student'}
                         </button>
                     </div>
                 </form>

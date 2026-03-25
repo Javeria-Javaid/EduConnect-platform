@@ -266,7 +266,7 @@
 }
 
 .form-textarea:focus {
-    border-color: #2A6EF2;
+    border-color: var(--primary-color);
 }
 
 /* RICH TEXT TOOLBAR */

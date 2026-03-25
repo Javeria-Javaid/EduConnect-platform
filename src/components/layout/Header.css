@@ -72,7 +72,7 @@
 
 .header-search-input:focus {
   outline: none;
-  border-color: #2A6EF2;
+  border-color: var(--primary-color);
   background: white;
   box-shadow: 0 0 0 3px rgba(42, 110, 242, 0.1);
 }
@@ -214,7 +214,7 @@
 
 .notification-view-all {
   font-size: 0.875rem;
-  color: #2A6EF2;
+  color: var(--primary-color);
   background: none;
   border: none;
   cursor: pointer;
@@ -231,7 +231,7 @@
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #2A6EF2, #3AC47D);
+  background: linear-gradient(135deg, var(--primary-color), #3AC47D);
   display: flex;
   align-items: center;
   justify-content: center;

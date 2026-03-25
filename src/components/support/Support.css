@@ -286,7 +286,7 @@
 }
 
 .chat-message.admin .message-bubble {
-    background-color: #2A6EF2;
+    background-color: var(--primary-color);
     color: #ffffff;
     border-bottom-right-radius: 2px;
 }
@@ -318,11 +318,11 @@
 }
 
 .chat-input-area input:focus {
-    border-color: #2A6EF2;
+    border-color: var(--primary-color);
 }
 
 .send-btn {
-    background-color: #2A6EF2;
+    background-color: var(--primary-color);
     color: white;
     border: none;
     width: 40px;

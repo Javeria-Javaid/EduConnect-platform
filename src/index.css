@@ -2,11 +2,12 @@
 
 /* Global Styles and Design System */
 :root {
-  --primary-color: #7C3AED;
-  --primary-hover: #6D28D9;
-  --primary-light: #EDE9FE; /* Soft lavender for active states */
-  --secondary-color: #64748b; /* Used for inactive icons */
-  --accent-color: #10B981; /* Green for success/verified */
+  --primary-color: #66a1be;
+  --primary-hover: #5590ad;
+  --primary-light: #e0f2f7; /* Light blue/cyan for active states */
+  --primary-gradient: linear-gradient(135deg, #66a1be 0%, #5590ad 100%);
+  --secondary-color: #64748b; 
+  --accent-color: #10B981; 
   
   --danger-color: #EF4444;
   --danger-hover: #DC2626;
@@ -88,30 +89,41 @@ body {
 
 /* Primary Button Styles (Used by Hero and CTA) */
 .btn.primary {
-  /* Used the base color from CardNav button: #66a1be, and kept the original color from App's other buttons: #2563eb */
-  background: var(--secondary-color);
-  border-color: var(--secondary-color);
+  background: var(--primary-gradient);
+  border-color: var(--primary-color);
   color: white;
 }
 
 .btn.primary:hover {
-  background: #5590ad;
-  border-color: #5590ad;
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 161, 190, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 /* Secondary Button Styles */
 .btn.secondary {
   background: transparent;
-  color: white;
-  border: 2px solid white;
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
 }
 
 .btn.secondary:hover {
-  background: white;
-  color: #66a1be;
-  /* Changed hover color to match primary */
+  background: var(--sidebar-bg);
+  color: var(--primary-hover);
+  border-color: var(--primary-color);
+}
+
+/* Danger Button Styles */
+.btn.danger {
+  background: var(--danger-color);
+  color: white;
+  border: 2px solid var(--danger-color);
+}
+
+.btn.danger:hover {
+  background: var(--danger-hover);
+  border-color: var(--danger-hover);
 }
 
 .btn.large {

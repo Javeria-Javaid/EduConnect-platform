@@ -15,7 +15,7 @@ const SchoolDashboardOverview = () => {
     const fetchStats = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/stats`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/stats`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
             const data = await res.json();
