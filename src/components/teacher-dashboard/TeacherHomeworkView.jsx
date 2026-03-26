@@ -1,11 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, FileText, CheckCircle, Clock, AlertCircle, Calendar, Upload } from 'lucide-react';
-import { homeworkAssignments, teacherClasses } from './mockData';
+import { useAuth } from '../../context/AuthContext';
+import { toast } from 'sonner';
 import './TeacherDashboardOverview.css';
 
 const TeacherHomeworkView = () => {
+    const { user } = useAuth();
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [selectedHomework, setSelectedHomework] = useState(null);
+    const [homeworkList, setHomeworkList] = useState([]);
+    const [teacherClasses, setTeacherClasses] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const [formData, setFormData] = useState({
+        title: '', classId: '', description: '', dueDate: '', maxMarks: 100
+    });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const classesRes = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/classes`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const hwRes = await fetch(`${import.meta.env.VITE_API_URL}/api/homework`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (classesRes.ok && hwRes.ok) {
+                    const classesData = await classesRes.json();
+                    const assignedClasses = [];
+                    classesData.forEach(c => {
+                        c.sections.forEach(s => {
+                            if (s.classTeacher && s.classTeacher._id === user._id) {
+                                assignedClasses.push({
+                                    id: `${c.name}-${s.name}`,
+                                    grade: c.name,
+                                    section: s.name,
+                                    subject: c.name + ' - ' + s.name
+                                });
+                            }
+                        });
+                    });
+                    setTeacherClasses(assignedClasses);
+                    setHomeworkList(await hwRes.json());
+                }
+            } catch (error) { toast.error('Failed to load data'); }
+            finally { setLoading(false); }
+        };
+        fetchData();
+    }, [user]);
+
+    const handleCreateHomework = async (e) => {
+        e.preventDefault();
+        try {
+            const token = localStorage.getItem('token');
+            const classObj = teacherClasses.find(c => c.id === formData.classId);
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/homework`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({
+                    title: formData.title,
+                    description: formData.description,
+                    class: classObj.grade,
+                    section: classObj.section,
+                    subject: classObj.subject,
+                    dueDate: formData.dueDate,
+                    maxMarks: formData.maxMarks
+                })
+            });
+            if (res.ok) {
+                const newHw = await res.json();
+                setHomeworkList([newHw, ...homeworkList]);
+                setShowCreateForm(false);
+                toast.success('Homework created successfully');
+            } else {
+                toast.error('Failed to create homework');
+            }
+        } catch (error) { toast.error('Networking error'); }
+    };
 
     return (
         <div className="teacher-dashboard-overview">
@@ -27,7 +100,7 @@ const TeacherHomeworkView = () => {
                     </div>
                     <div className="kpi-content">
                         <h3 className="kpi-title">Total Assignments</h3>
-                        <div className="kpi-value">{homeworkAssignments.length}</div>
+                        <div className="kpi-value">{homeworkList.length}</div>
                         <div className="kpi-change">Active</div>
                     </div>
                 </div>
@@ -70,33 +143,33 @@ const TeacherHomeworkView = () => {
                         <button className="btn-secondary" onClick={() => setShowCreateForm(false)}>Cancel</button>
                     </div>
                     <div className="card-body">
-                        <form style={{ display: 'grid', gap: '16px' }}>
+                        <form style={{ display: 'grid', gap: '16px' }} onSubmit={handleCreateHomework}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Title</label>
-                                <input type="text" placeholder="Assignment title" style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }} />
+                                <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Assignment title" style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }} />
                             </div>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Class</label>
-                                <select style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
-                                    <option>Select Class</option>
+                                <select required value={formData.classId} onChange={e => setFormData({...formData, classId: e.target.value})} style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
+                                    <option value="">{teacherClasses.length === 0 ? "No classes assigned to you" : "Select Class"}</option>
                                     {teacherClasses.map(c => (
-                                        <option key={c.id} value={c.id}>{c.subject} - {c.grade}</option>
+                                        <option key={c.id} value={c.id}>{c.subject}</option>
                                     ))}
                                 </select>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Due Date</label>
-                                    <input type="date" style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }} />
+                                    <input type="date" required value={formData.dueDate} onChange={e => setFormData({...formData, dueDate: e.target.value})} style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }} />
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Max Marks</label>
-                                    <input type="number" placeholder="100" style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }} />
+                                    <input type="number" required value={formData.maxMarks} onChange={e => setFormData({...formData, maxMarks: e.target.value})} placeholder="100" style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }} />
                                 </div>
                             </div>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Description</label>
-                                <textarea rows="4" placeholder="Assignment details and instructions" style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}></textarea>
+                                <textarea rows="4" required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Assignment details and instructions" style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}></textarea>
                             </div>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Attach Files</label>
@@ -106,7 +179,7 @@ const TeacherHomeworkView = () => {
                                     <p style={{ fontSize: '12px', color: '#9ca3af' }}>PDF, DOC, or images (max 10MB)</p>
                                 </div>
                             </div>
-                            <button type="button" className="btn-primary" onClick={() => { alert('Homework created!'); setShowCreateForm(false); }}>
+                            <button type="submit" className="btn-primary">
                                 Create Assignment
                             </button>
                         </form>
@@ -121,19 +194,19 @@ const TeacherHomeworkView = () => {
                 </div>
                 <div className="card-body">
                     <div style={{ display: 'grid', gap: '16px' }}>
-                        {homeworkAssignments.map((hw) => (
-                            <div key={hw.id} style={{
+                        {loading ? <p>Loading homework...</p> : homeworkList.length === 0 ? <p>No assignments created yet.</p> : homeworkList.map((hw) => (
+                            <div key={hw._id} style={{
                                 padding: '20px',
                                 border: '1px solid #e5e7eb',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s'
                             }}
-                                onClick={() => setSelectedHomework(selectedHomework?.id === hw.id ? null : hw)}>
+                                onClick={() => setSelectedHomework(selectedHomework?._id === hw._id ? null : hw)}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
                                     <div>
                                         <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>{hw.title}</h3>
-                                        <p style={{ fontSize: '14px', color: '#6b7280' }}>{hw.class} • {hw.subject}</p>
+                                        <p style={{ fontSize: '14px', color: '#6b7280' }}>{hw.class} {hw.section} • {hw.subject}</p>
                                     </div>
                                     <span style={{
                                         padding: '4px 12px',
@@ -153,20 +226,16 @@ const TeacherHomeworkView = () => {
                                         <p style={{ fontWeight: '500' }}>{new Date(hw.dueDate).toLocaleDateString()}</p>
                                     </div>
                                     <div>
+                                        <span style={{ color: '#6b7280' }}>Max Marks:</span>
+                                        <p style={{ fontWeight: '500' }}>{hw.maxMarks}</p>
+                                    </div>
+                                    <div>
                                         <span style={{ color: '#6b7280' }}>Submitted:</span>
-                                        <p style={{ fontWeight: '500', color: '#10b981' }}>{hw.submitted}/{hw.totalStudents}</p>
-                                    </div>
-                                    <div>
-                                        <span style={{ color: '#6b7280' }}>Graded:</span>
-                                        <p style={{ fontWeight: '500', color: '#3b82f6' }}>{hw.graded}/{hw.submitted}</p>
-                                    </div>
-                                    <div>
-                                        <span style={{ color: '#6b7280' }}>Pending:</span>
-                                        <p style={{ fontWeight: '500', color: '#f59e0b' }}>{hw.pending}</p>
+                                        <p style={{ fontWeight: '500', color: '#10b981' }}>{hw.submissions?.length || 0}</p>
                                     </div>
                                 </div>
 
-                                {selectedHomework?.id === hw.id && (
+                                {selectedHomework?._id === hw._id && (
                                     <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
                                         <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '12px' }}>{hw.description}</p>
                                         <div style={{ display: 'flex', gap: '8px' }}>

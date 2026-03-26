@@ -1,17 +1,68 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { BookOpen, Users, Calendar, MapPin, Upload, MessageSquare, BarChart3, FileText } from 'lucide-react';
-import { teacherClasses, students } from './mockData';
+import { useAuth } from '../../context/AuthContext';
+import { toast } from 'sonner';
 import './TeacherDashboardOverview.css';
 
 const TeacherClassesView = () => {
+    const { user } = useAuth();
     const [selectedClass, setSelectedClass] = useState(null);
+    const [teacherClasses, setTeacherClasses] = useState([]);
+    const [allStudents, setAllStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
+
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState('');
     const fileInputRef = useRef(null);
 
-    const getClassStudents = (classId) => {
-        const classInfo = teacherClasses.find(c => c.id === classId);
-        return students.filter(s => s.class === classInfo.grade);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Fetch classes
+                const classRes = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/classes`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                // Fetch students
+                const studentsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/students`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (classRes.ok && studentsRes.ok) {
+                    const classesData = await classRes.json();
+                    const studentsData = await studentsRes.json();
+                    
+                    // Filter classes assigned to this teacher
+                    const assignedClasses = [];
+                    classesData.forEach(c => {
+                        c.sections.forEach(s => {
+                            if (s.classTeacher && s.classTeacher._id === user._id) {
+                                assignedClasses.push({
+                                    id: `${c._id}-${s._id}`,
+                                    grade: c.name,
+                                    section: s.name,
+                                    subject: c.name + ' - ' + s.name,
+                                    room: s.room || 'TBD',
+                                    schedule: 'Mon-Fri',
+                                    students: studentsData.filter(stu => stu.class === c.name && stu.section === s.name).length,
+                                });
+                            }
+                        });
+                    });
+                    setTeacherClasses(assignedClasses);
+                    setAllStudents(studentsData);
+                }
+            } catch (error) { toast.error('Failed to load class data'); }
+            finally { setLoading(false); }
+        };
+        fetchData();
+    }, [user]);
+
+    const getClassStudents = () => {
+        if (!selectedClass) return [];
+        return allStudents.filter(s => s.class === selectedClass.grade && s.section === selectedClass.section);
     };
 
     const handleFileChange = async (e) => {
@@ -70,7 +121,7 @@ const TeacherClassesView = () => {
             {!selectedClass ? (
                 // Classes Grid View
                 <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-                    {teacherClasses.map((classItem) => (
+                    {loading ? <p>Loading classes...</p> : teacherClasses.length === 0 ? <p>No classes assigned to you.</p> : teacherClasses.map((classItem) => (
                         <div key={classItem.id} className="dashboard-card" style={{ cursor: 'pointer' }} onClick={() => setSelectedClass(classItem)}>
                             <div className="card-header">
                                 <h3 className="card-title">{classItem.subject}</h3>
@@ -165,22 +216,22 @@ const TeacherClassesView = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {getClassStudents(selectedClass.id).map((student) => (
-                                            <tr key={student.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                                                <td style={{ padding: '12px' }}>{student.rollNo}</td>
-                                                <td style={{ padding: '12px', fontWeight: '500' }}>{student.name}</td>
+                                        {getClassStudents().length === 0 ? <tr><td colSpan="5" style={{ padding: '12px', textAlign: 'center' }}>No students found in this class.</td></tr> : getClassStudents().map((student) => (
+                                            <tr key={student._id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                                <td style={{ padding: '12px' }}>{student.rollNo || 'N/A'}</td>
+                                                <td style={{ padding: '12px', fontWeight: '500' }}>{student.firstName} {student.lastName}</td>
                                                 <td style={{ padding: '12px' }}>
                                                     <span style={{
                                                         padding: '4px 8px',
                                                         borderRadius: '4px',
                                                         fontSize: '12px',
-                                                        backgroundColor: student.attendance >= 90 ? '#d1fae5' : '#fef3c7',
-                                                        color: student.attendance >= 90 ? '#065f46' : '#92400e'
+                                                        backgroundColor: '#d1fae5',
+                                                        color: '#065f46'
                                                     }}>
-                                                        {student.attendance}%
+                                                        N/A
                                                     </span>
                                                 </td>
-                                                <td style={{ padding: '12px' }}>{student.avgScore}</td>
+                                                <td style={{ padding: '12px' }}>N/A</td>
                                                 <td style={{ padding: '12px' }}>
                                                     <button className="btn-secondary" style={{ fontSize: '12px', padding: '4px 8px' }}>
                                                         View Profile

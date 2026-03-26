@@ -45,7 +45,7 @@ const ManageTimetableModal = ({ isOpen, onClose, onSave, editingTimetable }) => 
     const fetchTeachers = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users?role=teacher`, { headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) setTeachers(await res.json());
         } catch (error) { console.error(error); }
     };
@@ -130,7 +130,7 @@ const ManageTimetableModal = ({ isOpen, onClose, onSave, editingTimetable }) => 
                             <input required className="simple-input" placeholder="Subject" value={p.subject} onChange={e => handleChangePeriod(index, 'subject', e.target.value)} />
                             <select className="simple-input" value={p.teacher} onChange={e => handleChangePeriod(index, 'teacher', e.target.value)}>
                                 <option value="">Select Teacher</option>
-                                {teachers.map(t => <option key={t._id} value={t.userId}>{t.name}</option>)}
+                                {teachers.map(t => <option key={t._id} value={t._id}>{t.firstName} {t.lastName}</option>)}
                             </select>
                             <input required type="time" className="simple-input" style={{ width: '120px' }} value={p.startTime} onChange={e => handleChangePeriod(index, 'startTime', e.target.value)} />
                             <input required type="time" className="simple-input" style={{ width: '120px' }} value={p.endTime} onChange={e => handleChangePeriod(index, 'endTime', e.target.value)} />

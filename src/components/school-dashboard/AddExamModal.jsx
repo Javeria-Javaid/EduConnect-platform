@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import '../shared/SimpleModal.css';
+import './shared/SimpleModal.css';
 
 const AddExamModal = ({ isOpen, onClose, onSubmit, editingExam }) => {
     const [formData, setFormData] = useState({

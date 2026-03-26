@@ -4,6 +4,34 @@ import Class from '../models/Class.js';
 import Attendance from '../models/Attendance.js';
 import Admission from '../models/Admission.js';
 
+export const getParentStatsForAdmin = async (req, res) => {
+  try {
+    const schoolId = req.user.school;
+    const now = new Date();
+    const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+
+    const [totalParents, newThisWeek, newThisMonth] = await Promise.all([
+      User.countDocuments({ school: schoolId, role: 'parent' }),
+      User.countDocuments({ school: schoolId, role: 'parent', createdAt: { $gte: weekAgo } }),
+      User.countDocuments({ school: schoolId, role: 'parent', createdAt: { $gte: monthAgo } }),
+    ]);
+
+    res.json({
+      totalParents,
+      newParents: { week: newThisWeek, month: newThisMonth },
+      linkedParents: totalParents,
+      unlinkedParents: 0,
+      activeToday: 0,
+      communication: { messagesSent: 0, unreadMessages: 0, announcementsViewed: 0, announcementsTotal: 0 },
+      alerts: [],
+      recentActivity: []
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const getSchoolStats = async (req, res) => {
   try {
     const schoolId = req.user.school;

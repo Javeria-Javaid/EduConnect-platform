@@ -1,15 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageSquare, Send, Bell, Users, Search } from 'lucide-react';
-import { messages, announcements } from './mockData';
+import { announcements } from './mockData';
+import { useAuth } from '../../context/AuthContext';
+import { toast } from 'sonner';
 import './TeacherDashboardOverview.css';
 
 const TeacherCommunicationView = () => {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('messages');
     const [messageText, setMessageText] = useState('');
     const [recipient, setRecipient] = useState('');
     const [subject, setSubject] = useState('');
     const [sending, setSending] = useState(false);
     const [sendError, setSendError] = useState('');
+    const [messagesList, setMessagesList] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchMessages = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/messages`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    setMessagesList(await res.json());
+                }
+            } catch (error) { toast.error('Failed to load messages'); }
+            finally { setLoading(false); }
+        };
+        fetchMessages();
+    }, []);
 
     const handleSendMessage = async () => {
         if (!recipient || !subject || !messageText) {
@@ -38,7 +60,9 @@ const TeacherCommunicationView = () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert('Message sent successfully!');
+                const newMsg = await response.json();
+                toast.success('Message sent successfully!');
+                setMessagesList([{...newMsg.message, from: 'Me', date: new Date().toLocaleDateString()}, ...messagesList]);
                 setRecipient('');
                 setSubject('');
                 setMessageText('');
@@ -106,22 +130,22 @@ const TeacherCommunicationView = () => {
                             </div>
                         </div>
                         <div className="card-body" style={{ padding: 0 }}>
-                            {messages.map((msg) => (
+                            {loading ? <p style={{ padding: '16px' }}>Loading messages...</p> : messagesList.length === 0 ? <p style={{ padding: '16px' }}>No messages found.</p> : messagesList.map((msg) => (
                                 <div
-                                    key={msg.id}
+                                    key={msg._id}
                                     style={{
                                         padding: '16px',
                                         borderBottom: '1px solid #f3f4f6',
                                         cursor: 'pointer',
-                                        backgroundColor: msg.unread ? '#eff6ff' : 'white'
+                                        backgroundColor: 'white'
                                     }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                        <h4 style={{ fontWeight: '600', fontSize: '14px' }}>{msg.from}</h4>
-                                        <span style={{ fontSize: '12px', color: '#6b7280' }}>{msg.date}</span>
+                                        <h4 style={{ fontWeight: '600', fontSize: '14px' }}>{msg.sender === user._id ? 'Me' : msg.sender || msg.from || 'System'}</h4>
+                                        <span style={{ fontSize: '12px', color: '#6b7280' }}>{new Date(msg.createdAt).toLocaleDateString()}</span>
                                     </div>
                                     <p style={{ fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>{msg.subject}</p>
-                                    <p style={{ fontSize: '13px', color: '#6b7280' }}>{msg.preview}</p>
+                                    <p style={{ fontSize: '13px', color: '#6b7280' }}>{msg.body || msg.preview}</p>
                                 </div>
                             ))}
                         </div>

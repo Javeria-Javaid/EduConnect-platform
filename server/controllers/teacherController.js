@@ -147,3 +147,14 @@ export const sendMessage = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getMyMessages = async (req, res) => {
+  try {
+    const messages = await Message.find({ $or: [{ sender: req.user._id }, { recipient: req.user._id }] })
+      .sort({ createdAt: -1 })
+      .limit(50);
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

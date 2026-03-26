@@ -1,13 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DollarSign, FileText, Download, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import './VendorViews.css';
 
 const VendorBillingView = () => {
-    const invoices = [
-        { id: 1, invoice: 'INV-001', school: 'Greenwood High', amount: '$1,200', date: 'Dec 1, 2025', status: 'paid' },
-        { id: 2, invoice: 'INV-002', school: 'Riverside Academy', amount: '$850', date: 'Nov 28, 2025', status: 'paid' },
-        { id: 3, invoice: 'INV-003', school: 'Sunshine Elementary', amount: '$450', date: 'Dec 5, 2025', status: 'pending' },
-    ];
+    const [invoices, setInvoices] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchInvoices = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/vendor/orders`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setInvoices(data);
+                }
+            } catch (error) { toast.error('Failed to load invoices'); }
+            finally { setLoading(false); }
+        };
+        fetchInvoices();
+    }, []);
 
     return (
         <div className="vendor-view-container">
@@ -23,29 +38,31 @@ const VendorBillingView = () => {
                         <FileText size={20} className="text-gray-400" />
                     </div>
                     <div className="card-body">
-                        <div className="invoices-table">
-                            {invoices.map((invoice) => (
-                                <div key={invoice.id} className="invoice-row">
-                                    <div className="invoice-info">
-                                        <h4>{invoice.invoice}</h4>
-                                        <p>{invoice.school}</p>
-                                        <span className="invoice-date">{invoice.date}</span>
+                        {loading ? <p>Loading billing info...</p> : invoices.length === 0 ? <p>No billing records found.</p> : (
+                            <div className="invoices-table">
+                                {invoices.map((invoice) => (
+                                    <div key={invoice._id} className="invoice-row">
+                                        <div className="invoice-info">
+                                            <h4>{invoice._id.toString().substring(0,8).toUpperCase()}</h4>
+                                            <p>{invoice.school?.schoolName || 'Unknown School'}</p>
+                                            <span className="invoice-date">{new Date(invoice.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                        <div className="invoice-amount">${invoice.totalAmount}</div>
+                                        <div className="invoice-status">
+                                            {invoice.status === 'completed' || invoice.status === 'delivered' ? (
+                                                <span className="badge badge-success">Paid</span>
+                                            ) : (
+                                                <span className="badge badge-warning">Pending</span>
+                                            )}
+                                        </div>
+                                        <button className="btn-download">
+                                            <Download size={16} />
+                                            Download
+                                        </button>
                                     </div>
-                                    <div className="invoice-amount">{invoice.amount}</div>
-                                    <div className="invoice-status">
-                                        {invoice.status === 'paid' ? (
-                                            <span className="badge badge-success">Paid</span>
-                                        ) : (
-                                            <span className="badge badge-warning">Pending</span>
-                                        )}
-                                    </div>
-                                    <button className="btn-download">
-                                        <Download size={16} />
-                                        Download
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

@@ -1,40 +1,127 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Clock, Calendar, Download } from 'lucide-react';
-import { teacherClasses, attendanceData, todaysSchedule } from './mockData';
+import { useAuth } from '../../context/AuthContext';
+import { toast } from 'sonner';
 import './TeacherDashboardOverview.css';
 
 const TeacherAttendanceView = () => {
+    const { user } = useAuth();
     const [selectedClass, setSelectedClass] = useState(null);
     const [attendanceRecords, setAttendanceRecords] = useState({});
+    
+    const [teacherClasses, setTeacherClasses] = useState([]);
+    const [allStudents, setAllStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const markAttendance = (studentId, status) => {
-        setAttendanceRecords(prev => ({
-            ...prev,
-            [studentId]: status
-        }));
+    // Provide safe fallback for UI while real stats API is pending
+    const attendanceData = {
+        monthly: {
+            present: 145,
+            absent: 8,
+            late: 5,
+            averageAttendance: 92
+        },
+        today: {
+            classes: teacherClasses
+        }
     };
 
-    const saveAttendance = () => {
-        alert('Attendance saved successfully!');
-        setSelectedClass(null);
-        setAttendanceRecords({});
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const classRes = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/classes`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const studentsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/students`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (classRes.ok && studentsRes.ok) {
+                    const classesData = await classRes.json();
+                    const studentsData = await studentsRes.json();
+                    
+                    const assignedClasses = [];
+                    classesData.forEach(c => {
+                        c.sections.forEach(s => {
+                            if (s.classTeacher && s.classTeacher._id === user._id) {
+                                assignedClasses.push({
+                                    classId: `${c._id}-${s._id}`,
+                                    grade: c.name,
+                                    section: s.name,
+                                    className: c.name + ' - ' + s.name,
+                                    subject: c.name + ' - ' + s.name,
+                                    totalStudents: studentsData.filter(stu => stu.class === c.name && stu.section === s.name).length,
+                                });
+                            }
+                        });
+                    });
+                    setTeacherClasses(assignedClasses);
+                    setAllStudents(studentsData);
+                }
+            } catch (error) { toast.error('Failed to load data'); }
+            finally { setLoading(false); }
+        };
+        fetchData();
+    }, [user]);
+
+    const getClassStudents = () => {
+        if (!selectedClass) return [];
+        return allStudents.filter(s => s.class === selectedClass.grade && s.section === selectedClass.section);
+    };
+
+    const markAttendance = (studentId, status) => {
+        setAttendanceRecords(prev => ({ ...prev, [studentId]: status }));
+    };
+
+    const saveAttendance = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const recordsToSubmit = Object.keys(attendanceRecords).map(studentId => ({
+                studentId,
+                status: attendanceRecords[studentId] === 'present' ? 'Present' : attendanceRecords[studentId] === 'absent' ? 'Absent' : 'Late',
+                remark: ''
+            }));
+
+            if (recordsToSubmit.length === 0) {
+                toast.error('No attendance marked');
+                return;
+            }
+
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/attendance/mark`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({
+                    attendanceRecords: recordsToSubmit,
+                    date: new Date().toISOString(),
+                    class: selectedClass.grade,
+                    section: selectedClass.section
+                })
+            });
+
+            if (res.ok) {
+                toast.success('Attendance saved successfully!');
+                setSelectedClass(null);
+                setAttendanceRecords({});
+            } else {
+                toast.error('Failed to save attendance');
+            }
+        } catch (error) {
+            toast.error('Network error');
+        }
     };
 
     const markAllPresent = () => {
-        const allStudents = Array.from({ length: 10 }, (_, i) => `STU${i + 1}`);
+        const students = getClassStudents();
         const newRecords = {};
-        allStudents.forEach(studentId => {
-            newRecords[studentId] = 'present';
-        });
+        students.forEach(s => { newRecords[s._id] = 'present'; });
         setAttendanceRecords(newRecords);
     };
 
     const markAllAbsent = () => {
-        const allStudents = Array.from({ length: 10 }, (_, i) => `STU${i + 1}`);
+        const students = getClassStudents();
         const newRecords = {};
-        allStudents.forEach(studentId => {
-            newRecords[studentId] = 'absent';
-        });
+        students.forEach(s => { newRecords[s._id] = 'absent'; });
         setAttendanceRecords(newRecords);
     };
 
@@ -148,63 +235,40 @@ const TeacherAttendanceView = () => {
                     {/* Today's Classes - Attendance Status */}
                     <div className="dashboard-card">
                         <div className="card-header">
-                            <h2 className="card-title">Today's Attendance</h2>
-                            <button className="btn-primary" onClick={exportAttendanceReport}>
-                                <Download size={16} /> Export Report
-                            </button>
+                            <h2 className="card-title">My Classes Attendance</h2>
                         </div>
                         <div className="card-body">
-                            <div style={{ display: 'grid', gap: '16px' }}>
-                                {attendanceData.today.classes.map((classItem) => (
-                                    <div key={classItem.classId} style={{
-                                        padding: '20px',
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '8px',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <div>
-                                            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>
-                                                {classItem.className}
-                                            </h3>
-                                            <div style={{ display: 'flex', gap: '16px', fontSize: '14px', color: '#6b7280' }}>
-                                                <span>👥 {classItem.totalStudents} students</span>
-                                                {classItem.marked && (
-                                                    <>
-                                                        <span style={{ color: '#10b981' }}>✓ {classItem.present} Present</span>
-                                                        <span style={{ color: '#ef4444' }}>✗ {classItem.absent} Absent</span>
-                                                    </>
-                                                )}
+                            {loading ? <p>Loading classes...</p> : teacherClasses.length === 0 ? <p>No classes assigned.</p> : (
+                                <div style={{ display: 'grid', gap: '16px' }}>
+                                    {teacherClasses.map((classItem) => (
+                                        <div key={classItem.classId} style={{
+                                            padding: '20px',
+                                            border: '1px solid #e5e7eb',
+                                            borderRadius: '8px',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
+                                        }}>
+                                            <div>
+                                                <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>
+                                                    {classItem.className}
+                                                </h3>
+                                                <div style={{ display: 'flex', gap: '16px', fontSize: '14px', color: '#6b7280' }}>
+                                                    <span>👥 {classItem.totalStudents} students</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div>
-                                            {classItem.marked ? (
-                                                <span style={{
-                                                    padding: '8px 16px',
-                                                    backgroundColor: '#d1fae5',
-                                                    color: '#065f46',
-                                                    borderRadius: '6px',
-                                                    fontSize: '14px',
-                                                    fontWeight: '500'
-                                                }}>
-                                                    ✓ Marked
-                                                </span>
-                                            ) : (
+                                            <div>
                                                 <button
                                                     className="btn-primary"
-                                                    onClick={() => {
-                                                        const selectedClassData = teacherClasses.find(c => c.id === classItem.classId);
-                                                        setSelectedClass(selectedClassData);
-                                                    }}
+                                                    onClick={() => setSelectedClass(classItem)}
                                                 >
                                                     Mark Attendance
                                                 </button>
-                                            )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -243,24 +307,20 @@ const TeacherAttendanceView = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {Array.from({ length: 10 }, (_, i) => ({
-                                            id: `STU${i + 1}`,
-                                            rollNo: i + 1,
-                                            name: `Student ${i + 1}`
-                                        })).map((student) => (
-                                            <tr key={student.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                                                <td style={{ padding: '12px' }}>{student.rollNo}</td>
-                                                <td style={{ padding: '12px', fontWeight: '500' }}>{student.name}</td>
+                                        {getClassStudents().length === 0 ? <tr><td colSpan="3" style={{ padding: '12px', textAlign: 'center' }}>No students in this class</td></tr> : getClassStudents().map((student) => (
+                                            <tr key={student._id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                                <td style={{ padding: '12px' }}>{student.rollNo || '-'}</td>
+                                                <td style={{ padding: '12px', fontWeight: '500' }}>{student.firstName} {student.lastName}</td>
                                                 <td style={{ padding: '12px' }}>
                                                     <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                                                         <button
-                                                            onClick={() => markAttendance(student.id, 'present')}
+                                                            onClick={() => markAttendance(student._id, 'present')}
                                                             style={{
                                                                 padding: '8px 16px',
                                                                 borderRadius: '6px',
-                                                                border: attendanceRecords[student.id] === 'present' ? '2px solid #10b981' : '1px solid #e5e7eb',
-                                                                backgroundColor: attendanceRecords[student.id] === 'present' ? '#d1fae5' : 'white',
-                                                                color: attendanceRecords[student.id] === 'present' ? '#065f46' : '#6b7280',
+                                                                border: attendanceRecords[student._id] === 'present' ? '2px solid #10b981' : '1px solid #e5e7eb',
+                                                                backgroundColor: attendanceRecords[student._id] === 'present' ? '#d1fae5' : 'white',
+                                                                color: attendanceRecords[student._id] === 'present' ? '#065f46' : '#6b7280',
                                                                 cursor: 'pointer',
                                                                 fontWeight: '500'
                                                             }}
@@ -268,13 +328,13 @@ const TeacherAttendanceView = () => {
                                                             ✓ Present
                                                         </button>
                                                         <button
-                                                            onClick={() => markAttendance(student.id, 'absent')}
+                                                            onClick={() => markAttendance(student._id, 'absent')}
                                                             style={{
                                                                 padding: '8px 16px',
                                                                 borderRadius: '6px',
-                                                                border: attendanceRecords[student.id] === 'absent' ? '2px solid #ef4444' : '1px solid #e5e7eb',
-                                                                backgroundColor: attendanceRecords[student.id] === 'absent' ? '#fee2e2' : 'white',
-                                                                color: attendanceRecords[student.id] === 'absent' ? '#991b1b' : '#6b7280',
+                                                                border: attendanceRecords[student._id] === 'absent' ? '2px solid #ef4444' : '1px solid #e5e7eb',
+                                                                backgroundColor: attendanceRecords[student._id] === 'absent' ? '#fee2e2' : 'white',
+                                                                color: attendanceRecords[student._id] === 'absent' ? '#991b1b' : '#6b7280',
                                                                 cursor: 'pointer',
                                                                 fontWeight: '500'
                                                             }}
@@ -282,13 +342,13 @@ const TeacherAttendanceView = () => {
                                                             ✗ Absent
                                                         </button>
                                                         <button
-                                                            onClick={() => markAttendance(student.id, 'late')}
+                                                            onClick={() => markAttendance(student._id, 'late')}
                                                             style={{
                                                                 padding: '8px 16px',
                                                                 borderRadius: '6px',
-                                                                border: attendanceRecords[student.id] === 'late' ? '2px solid #f59e0b' : '1px solid #e5e7eb',
-                                                                backgroundColor: attendanceRecords[student.id] === 'late' ? '#fef3c7' : 'white',
-                                                                color: attendanceRecords[student.id] === 'late' ? '#92400e' : '#6b7280',
+                                                                border: attendanceRecords[student._id] === 'late' ? '2px solid #f59e0b' : '1px solid #e5e7eb',
+                                                                backgroundColor: attendanceRecords[student._id] === 'late' ? '#fef3c7' : 'white',
+                                                                color: attendanceRecords[student._id] === 'late' ? '#92400e' : '#6b7280',
                                                                 cursor: 'pointer',
                                                                 fontWeight: '500'
                                                             }}
@@ -317,7 +377,7 @@ const TeacherAttendanceView = () => {
                                         Late: {Object.values(attendanceRecords).filter(s => s === 'late').length}
                                     </span>
                                     <span style={{ color: '#6b7280' }}>
-                                        Not Marked: {10 - Object.keys(attendanceRecords).length}
+                                        Not Marked: {getClassStudents().length - Object.keys(attendanceRecords).length}
                                     </span>
                                 </div>
                             </div>

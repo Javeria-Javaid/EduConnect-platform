@@ -8,6 +8,7 @@ import {
   deleteSchool,
   verifySchool,
   getSchoolStats,
+  getParentStatsForAdmin,
 } from '../controllers/schoolController.js';
 import { getStudents, createStudent, updateStudent, deleteStudent } from '../controllers/studentController.js';
 import { getTeachers, createTeacher, updateTeacher, deleteTeacher } from '../controllers/teacherAdminController.js';
@@ -17,13 +18,14 @@ import { protect } from '../middleware/authMiddleware.js';
 import { authorize } from '../middleware/roleMiddleware.js';
 
 router.get('/stats', protect, authorize('admin', 'school_admin'), getSchoolStats);
+router.get('/parent-stats', protect, authorize('admin', 'school_admin'), getParentStatsForAdmin);
 
 // Attendance Management
 router.get('/attendance/stats', protect, authorize('school_admin', 'admin', 'teacher'), getAttendanceStats);
 router.post('/attendance/mark', protect, authorize('school_admin', 'admin', 'teacher'), markAttendance);
 
 // Student Management
-router.get('/students', protect, authorize('school_admin', 'admin'), getStudents);
+router.get('/students', protect, authorize('school_admin', 'admin', 'teacher'), getStudents);
 router.post('/students', protect, authorize('school_admin', 'admin'), createStudent);
 router.put('/students/:id', protect, authorize('school_admin', 'admin'), updateStudent);
 router.delete('/students/:id', protect, authorize('school_admin', 'admin'), deleteStudent);
@@ -35,7 +37,7 @@ router.put('/teachers/:id', protect, authorize('school_admin', 'admin'), updateT
 router.delete('/teachers/:id', protect, authorize('school_admin', 'admin'), deleteTeacher);
 
 // Class Management
-router.get('/classes', protect, authorize('school_admin', 'admin'), getClasses);
+router.get('/classes', protect, authorize('school_admin', 'admin', 'teacher'), getClasses);
 router.get('/classes/stats', protect, authorize('school_admin', 'admin'), getClassesStats);
 router.post('/classes', protect, authorize('school_admin', 'admin'), createClass);
 router.put('/classes/:id', protect, authorize('school_admin', 'admin'), updateClass);

@@ -11,6 +11,7 @@ import schoolRoutes from './routes/schoolRoutes.js';
 import teacherRoutes from './routes/teacherRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
+import homeworkRoutes from './routes/homeworkRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
 import admissionRoutes from './routes/admissionRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
@@ -55,6 +56,7 @@ app.use('/api/schools', schoolRoutes);
 app.use('/api/teacher', teacherRoutes); // Note: singular 'teacher' to match frontend assumption or plural? Frontend used 'teacher' in my edit.
 app.use('/api/admin', adminRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/homework', homeworkRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/admissions', admissionRoutes);
 app.use('/api/support', supportRoutes);
