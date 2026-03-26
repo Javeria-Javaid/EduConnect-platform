@@ -18,33 +18,14 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
   const location = useLocation();
   const { isAuthenticated, role } = useAuth();
 
-  // Debug: Log current auth state
-  console.log('🔍 ProtectedRoute:', {
-    path: location.pathname,
-    isAuthenticated,
-    role,
-    allowedRoles
-  });
-
-  // Redirect to login if not authenticated, preserving intended destination
   if (!isAuthenticated) {
-    console.log('🚫 Redirecting to login - not authenticated');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check role-based access if roles are specified
   if (allowedRoles.length > 0 && (!role || !allowedRoles.includes(role))) {
-    console.log('❌ Access Denied - Role mismatch:', {
-      userRole: role,
-      allowedRoles,
-      path: location.pathname
-    });
     return <Navigate to="/unauthorized" replace />;
   }
 
-  console.log('✅ Access Granted');
-
-  // User is authenticated and has required role, render child routes
   return <Outlet />;
 };
 

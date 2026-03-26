@@ -1,16 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, CheckCircle, XCircle, Clock, AlertTriangle, TrendingUp, Calendar } from 'lucide-react';
-import { attendanceStats, classAttendance, missingSubmissions, irregularStudents } from './reports/mockData';
+import { toast } from 'sonner';
 import './SchoolAttendanceView.css';
 
 const SchoolAttendanceView = () => {
-    const { todayAttendance, totalPresent, totalAbsent, totalLeave, missingSubmissions: missing, irregularStudents: irregular } = attendanceStats;
+    const [stats, setStats] = useState({
+        todayAttendance: 0,
+        totalPresent: 0,
+        totalAbsent: 0,
+        totalLeave: 0,
+        missingSubmissions: 0,
+        irregularStudents: 0,
+        classAttendance: [],
+        missing: 0,
+        irregular: 0,
+        pendingActions: []
+    });
+    const [loading, setLoading] = useState(true);
+
+    const fetchStats = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/attendance/stats`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setStats(data);
+            }
+        } catch (error) {
+            toast.error('Error fetching attendance stats');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchStats();
+    }, []);
 
     const kpiCards = [
-        { title: "Today's Attendance", value: `${todayAttendance}%`, icon: <Users size={24} />, color: "#3AC47D", trend: `${totalPresent} present`, bgColor: "#dcfce7" },
-        { title: "Present", value: totalPresent, icon: <CheckCircle size={24} />, color: "#2A6EF2", trend: "students", bgColor: "#dbeafe" },
-        { title: "Absent", value: totalAbsent, icon: <XCircle size={24} />, color: "#EF4444", trend: "students", bgColor: "#fee2e2" },
-        { title: "On Leave", value: totalLeave, icon: <Calendar size={24} />, color: "#F59E0B", trend: "approved", bgColor: "#fef3c7" }
+        { title: "Today's Attendance", value: `${stats.todayAttendance}%`, icon: <Users size={24} />, color: "#3AC47D", trend: `${stats.totalPresent} present`, bgColor: "#dcfce7" },
+        { title: "Present", value: stats.totalPresent, icon: <CheckCircle size={24} />, color: "#2A6EF2", trend: "students", bgColor: "#dbeafe" },
+        { title: "Absent", value: stats.totalAbsent, icon: <XCircle size={24} />, color: "#EF4444", trend: "students", bgColor: "#fee2e2" },
+        { title: "On Leave", value: stats.totalLeave, icon: <Calendar size={24} />, color: "#F59E0B", trend: "approved", bgColor: "#fef3c7" }
     ];
 
     return (
@@ -53,7 +87,9 @@ const SchoolAttendanceView = () => {
                         <button className="view-all-btn">View All</button>
                     </div>
                     <div className="class-list">
-                        {classAttendance.map((cls, index) => (
+                        {stats.classAttendance.length === 0 ? (
+                            <div style={{ padding: '20px', color: '#64748b' }}>No class data available.</div>
+                        ) : stats.classAttendance.map((cls, index) => (
                             <div key={index} className="class-item">
                                 <div className="class-item-left">
                                     <div
@@ -99,7 +135,7 @@ const SchoolAttendanceView = () => {
                                 </div>
                                 <div className="alert-content">
                                     <h3>Missing Submissions</h3>
-                                    <p>{missing} teachers haven't submitted today's attendance.</p>
+                                    <p>{stats.missing} teachers haven't submitted today's attendance.</p>
                                     <button className="alert-action-btn danger">Remind All</button>
                                 </div>
                             </div>
@@ -109,7 +145,7 @@ const SchoolAttendanceView = () => {
                                 </div>
                                 <div className="alert-content">
                                     <h3>Irregular Attendance</h3>
-                                    <p>{irregular} students marked as irregular this week.</p>
+                                    <p>{stats.irregular} students marked as irregular this week.</p>
                                     <button className="alert-action-btn warning">View List</button>
                                 </div>
                             </div>
@@ -123,7 +159,9 @@ const SchoolAttendanceView = () => {
                             Pending Actions
                         </h2>
                         <div className="pending-list" style={{ marginTop: '16px' }}>
-                            {missingSubmissions.map((sub, index) => (
+                            {stats.pendingActions.length === 0 ? (
+                                <div style={{ padding: '10px 15px', color: '#64748b', fontSize: '0.9rem' }}>No pending actions.</div>
+                            ) : stats.pendingActions.map((sub, index) => (
                                 <div key={index} className="pending-item">
                                     <div className="pending-item-left">
                                         <div className="pending-icon">!</div>

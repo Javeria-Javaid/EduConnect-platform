@@ -1,19 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bus, MapPin, Clock, User } from 'lucide-react';
+import { toast } from 'sonner';
 import './ParentViews.css';
 
 const ParentTransportView = () => {
-    const transportInfo = {
-        route: 'Route 5',
-        driver: 'John Smith',
-        driverPhone: '+1 234-567-8900',
-        vehicleNumber: 'SCH-2025',
-        pickupTime: '7:30 AM',
-        dropoffTime: '3:45 PM',
-        pickupLocation: 'Main Street Bus Stop',
-        status: 'active'
-    };
+    const [data, setData] = useState({ activeChildData: null });
+    const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+        const fetchTransportData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/parent/dashboard-data`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) setData(await res.json());
+            } catch (error) { toast.error('Error fetching transport data'); }
+            finally { setLoading(false); }
+        };
+        fetchTransportData();
+    }, []);
+
+    const hasTransport = false; // Mocking false since no route explicit assign logic exists in the child data API yet.
     return (
         <div className="parent-view-container">
             <div className="view-header">
@@ -28,40 +36,22 @@ const ParentTransportView = () => {
                         <Bus size={20} className="text-gray-400" />
                     </div>
                     <div className="card-body">
-                        <div className="transport-details">
-                            <div className="detail-item">
-                                <span className="detail-label">Route</span>
-                                <span className="detail-value">{transportInfo.route}</span>
+                        {loading ? <p>Loading...</p> : !hasTransport ? <p>Student does not have an active transport route assigned.</p> : (
+                            <div className="transport-details">
+                                <div className="detail-item">
+                                    <span className="detail-label">Route</span>
+                                    <span className="detail-value">TBD</span>
+                                </div>
+                                <div className="detail-item">
+                                    <span className="detail-label">Vehicle Number</span>
+                                    <span className="detail-value">TBD</span>
+                                </div>
+                                <div className="detail-item">
+                                    <span className="detail-label">Status</span>
+                                    <span className="badge badge-success">active</span>
+                                </div>
                             </div>
-                            <div className="detail-item">
-                                <span className="detail-label">Vehicle Number</span>
-                                <span className="detail-value">{transportInfo.vehicleNumber}</span>
-                            </div>
-                            <div className="detail-item">
-                                <span className="detail-label">Driver Name</span>
-                                <span className="detail-value">{transportInfo.driver}</span>
-                            </div>
-                            <div className="detail-item">
-                                <span className="detail-label">Driver Contact</span>
-                                <span className="detail-value">{transportInfo.driverPhone}</span>
-                            </div>
-                            <div className="detail-item">
-                                <span className="detail-label">Pickup Time</span>
-                                <span className="detail-value">{transportInfo.pickupTime}</span>
-                            </div>
-                            <div className="detail-item">
-                                <span className="detail-label">Drop-off Time</span>
-                                <span className="detail-value">{transportInfo.dropoffTime}</span>
-                            </div>
-                            <div className="detail-item">
-                                <span className="detail-label">Pickup Location</span>
-                                <span className="detail-value">{transportInfo.pickupLocation}</span>
-                            </div>
-                            <div className="detail-item">
-                                <span className="detail-label">Status</span>
-                                <span className="badge badge-success">{transportInfo.status}</span>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

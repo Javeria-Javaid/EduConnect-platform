@@ -12,6 +12,7 @@ const admissionSchema = new mongoose.Schema(
       default: 'Pending' 
     },
     documents: [{ type: String }],
+    school: { type: mongoose.Schema.Types.ObjectId, ref: 'School' },
     date: { type: Date, default: Date.now }
   },
   { timestamps: true }

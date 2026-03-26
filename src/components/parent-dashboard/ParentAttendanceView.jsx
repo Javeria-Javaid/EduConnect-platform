@@ -1,23 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ClipboardCheck, Calendar, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { toast } from 'sonner';
 import './ParentViews.css';
 
 const ParentAttendanceView = () => {
-    const monthlyStats = {
-        present: 22,
-        absent: 1,
-        late: 2,
-        total: 25,
-        percentage: 88
-    };
+    const [data, setData] = useState({ activeChildData: null });
+    const [loading, setLoading] = useState(true);
 
-    const dailyRecords = [
-        { date: 'Dec 5, 2025', status: 'present', time: '08:45 AM' },
-        { date: 'Dec 4, 2025', status: 'present', time: '08:50 AM' },
-        { date: 'Dec 3, 2025', status: 'late', time: '09:15 AM' },
-        { date: 'Dec 2, 2025', status: 'present', time: '08:55 AM' },
-        { date: 'Dec 1, 2025', status: 'absent', time: '-' },
-    ];
+    useEffect(() => {
+        const fetchAttendanceData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/parent/dashboard-data`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) setData(await res.json());
+            } catch (error) { toast.error('Error fetching attendance data'); }
+            finally { setLoading(false); }
+        };
+        fetchAttendanceData();
+    }, []);
+
+    const attendanceStats = data.activeChildData?.attendanceStats || { presentCount: 0, absentCount: 0, attendanceRate: 0 };
+    const dailyRecords = data.activeChildData?.attendanceRecords || [];
 
     return (
         <div className="parent-view-container">
@@ -34,7 +39,7 @@ const ParentAttendanceView = () => {
                         </div>
                         <div className="stat-content">
                             <h3>Present Days</h3>
-                            <p className="stat-value">{monthlyStats.present}</p>
+                            <p className="stat-value">{attendanceStats.presentCount}</p>
                         </div>
                     </div>
                     <div className="stat-card">
@@ -43,7 +48,7 @@ const ParentAttendanceView = () => {
                         </div>
                         <div className="stat-content">
                             <h3>Absent Days</h3>
-                            <p className="stat-value">{monthlyStats.absent}</p>
+                            <p className="stat-value">{attendanceStats.absentCount}</p>
                         </div>
                     </div>
                     <div className="stat-card">
@@ -52,7 +57,7 @@ const ParentAttendanceView = () => {
                         </div>
                         <div className="stat-content">
                             <h3>Late Arrivals</h3>
-                            <p className="stat-value">{monthlyStats.late}</p>
+                            <p className="stat-value">0</p>
                         </div>
                     </div>
                     <div className="stat-card">
@@ -61,7 +66,7 @@ const ParentAttendanceView = () => {
                         </div>
                         <div className="stat-content">
                             <h3>Attendance Rate</h3>
-                            <p className="stat-value">{monthlyStats.percentage}%</p>
+                            <p className="stat-value">{attendanceStats.attendanceRate}%</p>
                         </div>
                     </div>
                 </div>
@@ -72,29 +77,25 @@ const ParentAttendanceView = () => {
                         <Calendar size={20} className="text-gray-400" />
                     </div>
                     <div className="card-body">
-                        <div className="attendance-list">
-                            {dailyRecords.map((record, index) => (
-                                <div key={index} className="attendance-item">
-                                    <div className="attendance-date">
-                                        <span>{record.date}</span>
+                        {loading ? <p>Loading attendance...</p> : dailyRecords.length === 0 ? <p>No attendance records found.</p> : (
+                            <div className="attendance-list">
+                                {dailyRecords.map((record, index) => (
+                                    <div key={index} className="attendance-item">
+                                        <div className="attendance-date">
+                                            <span>{new Date(record.date).toLocaleDateString()}</span>
+                                        </div>
+                                        <div className="attendance-status">
+                                            {record.status === 'Present' && (
+                                                <span className="badge badge-success">Present</span>
+                                            )}
+                                            {record.status === 'Absent' && (
+                                                <span className="badge badge-danger">Absent</span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="attendance-status">
-                                        {record.status === 'present' && (
-                                            <span className="badge badge-success">Present</span>
-                                        )}
-                                        {record.status === 'absent' && (
-                                            <span className="badge badge-danger">Absent</span>
-                                        )}
-                                        {record.status === 'late' && (
-                                            <span className="badge badge-warning">Late</span>
-                                        )}
-                                    </div>
-                                    <div className="attendance-time">
-                                        <span>{record.time}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

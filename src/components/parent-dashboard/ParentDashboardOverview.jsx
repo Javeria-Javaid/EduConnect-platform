@@ -21,7 +21,28 @@ const ParentDashboardOverview = () => {
     const [schools, setSchools] = useState([]);
     const [city, setCity] = useState('');
     const [loading, setLoading] = useState(false);
+    const [stats, setStats] = useState({
+        attendance: '0%',
+        pendingHomework: 0,
+        upcomingExams: 0,
+        feeStatus: 'N/A'
+    });
     const [error, setError] = useState('');
+
+    const fetchStats = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/parent/stats`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setStats(data);
+            }
+        } catch (err) {
+            console.error("Error fetching parent stats:", err);
+        }
+    };
 
     const searchSchools = async () => {
         setLoading(true);
@@ -36,7 +57,6 @@ const ParentDashboardOverview = () => {
             });
             const data = await res.json();
             if (res.ok) {
-                // Controller returns array directly
                 setSchools(Array.isArray(data) ? data : []);
             } else {
                 setError(data.message || 'Failed to fetch schools');
@@ -49,15 +69,15 @@ const ParentDashboardOverview = () => {
     };
 
     useEffect(() => {
-        // Initial load (optional, maybe load all or nearby)
         searchSchools();
+        fetchStats();
     }, []);
 
     const kpiData = [
-        { title: 'Child Attendance', value: '95%', change: 'This Month', icon: ClipboardCheck, color: '#3b82f6' },
-        { title: 'Pending Homework', value: '3', change: 'Due Soon', icon: Book, color: '#f59e0b' },
-        { title: 'Upcoming Exams', value: '2', change: 'Next Week', icon: FileSpreadsheet, color: '#8b5cf6' },
-        { title: 'Fee Status', value: 'Paid', change: 'Current Month', icon: DollarSign, color: '#10b981' },
+        { title: 'Child Attendance', value: stats.attendance, change: 'This Month', icon: ClipboardCheck, color: '#3b82f6' },
+        { title: 'Pending Homework', value: stats.pendingHomework, change: 'Due Soon', icon: Book, color: '#f59e0b' },
+        { title: 'Upcoming Exams', value: stats.upcomingExams, change: 'Next Week', icon: FileSpreadsheet, color: '#8b5cf6' },
+        { title: 'Fee Status', value: stats.feeStatus, change: 'Current Month', icon: DollarSign, color: '#10b981' },
     ];
 
     const todaySchedule = [

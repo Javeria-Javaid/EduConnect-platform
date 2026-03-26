@@ -224,22 +224,30 @@ const TeacherDirectory = () => {
         {
             label: 'View Profile',
             icon: <Eye size={14} />,
-            onClick: (teacher) => console.log('View', teacher)
+            onClick: (s) => console.log('View', s)
         },
         {
             label: 'Edit Details',
             icon: <Edit size={14} />,
-            onClick: (teacher) => console.log('Edit', teacher)
+            onClick: (s) => {
+                setEditingTeacher(s);
+                setIsAddModalOpen(true);
+            }
+        },
+        {
+            label: 'Delete',
+            icon: <Trash2 size={14} />,
+            onClick: (s) => handleDeleteTeacher(s._id)
         },
         {
             label: 'View Timetable',
             icon: <Calendar size={14} />,
-            onClick: (teacher) => console.log('Timetable', teacher)
+            onClick: (s) => console.log('Timetable', s)
         },
         {
             label: 'Send Message',
             icon: <MessageCircle size={14} />,
-            onClick: (teacher) => console.log('Message', teacher)
+            onClick: (s) => console.log('Message', s)
         }
     ];
 
@@ -259,7 +267,10 @@ const TeacherDirectory = () => {
                         Export
                     </button>
                     <button
-                        onClick={() => setIsAddModalOpen(true)}
+                        onClick={() => {
+                            setEditingTeacher(null);
+                            setIsAddModalOpen(true);
+                        }}
                         className="btn-primary"
                     >
                         <Plus size={18} />
@@ -295,6 +306,7 @@ const TeacherDirectory = () => {
                                 <button className="btn-action-sm">Send Message</button>
                                 <button className="btn-action-sm">Update Schedule</button>
                                 <button className="btn-action-sm">Export Data</button>
+                                <button className="btn-danger-sm" onClick={() => toast.info('Bulk action pending')}>Delete</button>
                             </div>
                         </div>
                     </div>
@@ -302,22 +314,30 @@ const TeacherDirectory = () => {
 
                 {/* Data Table */}
                 <div style={{ padding: '20px' }}>
-                    <DataTable
-                        columns={columns}
-                        data={filteredTeachers}
-                        selectable={true}
-                        onSelectionChange={setSelectedTeachers}
-                        onQuickAction={getQuickActions}
-                        pageSize={10}
-                    />
+                    {loading ? (
+                        <div className="loading-state">Loading teachers...</div>
+                    ) : (
+                        <DataTable
+                            columns={columns}
+                            data={filteredTeachers}
+                            selectable={true}
+                            onSelectionChange={setSelectedTeachers}
+                            onQuickAction={getQuickActions}
+                            pageSize={10}
+                        />
+                    )}
                 </div>
             </div>
 
             {/* Add Teacher Modal */}
             <AddTeacherModal
                 isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
+                onClose={() => {
+                    setIsAddModalOpen(false);
+                    setEditingTeacher(null);
+                }}
                 onSubmit={handleAddTeacher}
+                editingTeacher={editingTeacher}
             />
         </div>
     );

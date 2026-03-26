@@ -8,7 +8,9 @@ const SchoolDashboardOverview = () => {
         totalStudents: 0,
         totalTeachers: 0,
         activeClasses: 0,
-        attendance: '0%'
+        attendance: '0%',
+        newApplications: 0,
+        pendingReview: 0
     });
     const [loading, setLoading] = useState(true);
 
@@ -73,10 +75,10 @@ const SchoolDashboardOverview = () => {
                             <div className="card-header"><h2 className="card-title">Admissions Pipeline</h2><UserPlus size={20} /></div>
                             <div className="card-body">
                                 <div className="pipeline-stats">
-                                    <div className="pipeline-item"><div className="pipeline-count">0</div><div className="pipeline-label">New Applications</div></div>
-                                    <div className="pipeline-item"><div className="pipeline-count">0</div><div className="pipeline-label">Pending Review</div></div>
+                                    <div className="pipeline-item"><div className="pipeline-count">{stats.newApplications}</div><div className="pipeline-label">New Applications (30d)</div></div>
+                                    <div className="pipeline-item"><div className="pipeline-count">{stats.pendingReview}</div><div className="pipeline-label">Pending Review</div></div>
                                 </div>
-                                <button className="btn-primary w-full mt-4" onClick={() => toast.info('Admissions logic integration pending')}>Manage Admissions</button>
+                                <button className="btn-primary w-full mt-4" onClick={() => window.location.href = '/school-dashboard/admissions'}>Manage Admissions</button>
                             </div>
                         </div>
 

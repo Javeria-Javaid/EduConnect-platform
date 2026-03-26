@@ -19,6 +19,12 @@ const VendorDashboardOverview = () => {
     const { user } = useAuth();
     const [mySchools, setMySchools] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [stats, setStats] = useState({
+        activeServices: 0,
+        pendingOrders: 0,
+        monthlyEarnings: 0,
+        avgRating: 0
+    });
     
     // Form state for adding a school
     const [showAddForm, setShowAddForm] = useState(false);
@@ -30,6 +36,21 @@ const VendorDashboardOverview = () => {
         contactEmail: '',
         contactPhone: ''
     });
+
+    const fetchStats = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/vendor/stats`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setStats(data);
+            }
+        } catch (err) {
+            console.error("Error fetching vendor stats:", err);
+        }
+    };
 
     const fetchMySchools = async () => {
         try {
@@ -48,9 +69,28 @@ const VendorDashboardOverview = () => {
         }
     };
 
+    const [orders, setOrders] = useState([]);
+
+    const fetchOrders = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/vendor/orders`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setOrders(data);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     useEffect(() => {
         if (user) {
             fetchMySchools();
+            fetchStats();
+            fetchOrders();
         }
     }, [user]);
 
@@ -82,10 +122,10 @@ const VendorDashboardOverview = () => {
     };
 
     const kpiData = [
-        { title: 'Active Services', value: '12', change: 'Currently Active', icon: ShoppingCart, color: '#3b82f6' },
-        { title: 'Pending Orders', value: '5', change: 'Awaiting Confirmation', icon: Clock, color: '#f59e0b' },
-        { title: 'Monthly Earnings', value: '$12,450', change: '+15% from last month', icon: DollarSign, color: '#10b981' },
-        { title: 'Average Rating', value: '4.8', change: 'Based on 45 reviews', icon: Star, color: '#8b5cf6' },
+        { title: 'Active Services', value: stats.activeServices, change: 'Currently Active', icon: ShoppingCart, color: '#3b82f6' },
+        { title: 'Pending Orders', value: stats.pendingOrders, change: 'Awaiting Confirmation', icon: Clock, color: '#f59e0b' },
+        { title: 'Monthly Earnings', value: `$${stats.monthlyEarnings.toLocaleString()}`, change: '+15% from last month', icon: DollarSign, color: '#10b981' },
+        { title: 'Average Rating', value: stats.avgRating, change: 'Based on 45 reviews', icon: Star, color: '#8b5cf6' },
     ];
 
     const recentOrders = [

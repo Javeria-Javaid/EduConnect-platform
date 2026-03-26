@@ -23,7 +23,29 @@ const TeacherDashboardOverview = () => {
     const [jobs, setJobs] = useState([]); // Schools looking for teachers
     const [city, setCity] = useState('');
     const [loading, setLoading] = useState(false);
+    const [stats, setStats] = useState({
+        totalAssignedClasses: 0,
+        totalStudents: 0,
+        todayAttendancePending: 0,
+        homeworkDueToday: 0,
+        upcomingExams: 0
+    });
 
+    const fetchStats = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/stats`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setStats(data);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+    
     // Fetch my applications
     const fetchApplications = async () => {
         try {
@@ -69,8 +91,6 @@ const TeacherDashboardOverview = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                // Body not needed if ID is in params, but coverLetter might be needed. 
-                // Controller uses req.body.coverLetter.
                 body: JSON.stringify({ coverLetter: "I am interested in this position." }) 
             });
             const data = await res.json();
@@ -89,16 +109,17 @@ const TeacherDashboardOverview = () => {
         if (user) {
             fetchApplications();
             searchJobs(); // Load initial list
+            fetchStats();
         }
     }, [user]);
 
     // KPI Data
     const kpiData = [
-        { title: 'Total Assigned Classes', value: '5', change: 'Active Classes', icon: BookOpen, color: '#3b82f6' },
-        { title: 'Total Students', value: '142', change: 'Across all classes', icon: Users, color: '#10b981' },
-        { title: "Today's Attendance Pending", value: '2', change: 'Classes remaining', icon: ClipboardCheck, color: '#f59e0b' },
-        { title: 'Homework Due Today', value: '3', change: 'Assignments to grade', icon: Book, color: '#8b5cf6' },
-        { title: 'Upcoming Exams', value: '2', change: 'Next week', icon: FileSpreadsheet, color: '#ef4444' },
+        { title: 'Total Assigned Classes', value: stats.totalAssignedClasses, change: 'Active Classes', icon: BookOpen, color: '#3b82f6' },
+        { title: 'Total Students', value: stats.totalStudents, change: 'Across all classes', icon: Users, color: '#10b981' },
+        { title: "Today's Attendance Pending", value: stats.todayAttendancePending, change: 'Classes remaining', icon: ClipboardCheck, color: '#f59e0b' },
+        { title: 'Homework Due Today', value: stats.homeworkDueToday, change: 'Assignments to grade', icon: Book, color: '#8b5cf6' },
+        { title: 'Upcoming Exams', value: stats.upcomingExams, change: 'Next week', icon: FileSpreadsheet, color: '#ef4444' },
     ];
 
     // Today's Classes

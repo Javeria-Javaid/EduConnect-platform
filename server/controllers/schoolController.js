@@ -1,5 +1,8 @@
 import School from '../models/School.js';
 import User from '../models/User.js';
+import Class from '../models/Class.js';
+import Attendance from '../models/Attendance.js';
+import Admission from '../models/Admission.js';
 
 export const getSchoolStats = async (req, res) => {
   try {
@@ -15,16 +18,40 @@ export const getSchoolStats = async (req, res) => {
         return res.status(400).json({ message: 'School ID is required for admins' });
     }
 
-    const [totalStudents, totalTeachers] = await Promise.all([
+    const [totalStudents, totalTeachers, activeClassesCount, pendingAdmissionsCount, newAdmissionsCount] = await Promise.all([
         User.countDocuments({ school: targetSchoolId, role: 'student' }),
-        User.countDocuments({ school: targetSchoolId, role: 'teacher' })
+        User.countDocuments({ school: targetSchoolId, role: 'teacher' }),
+        Class.countDocuments({ school: targetSchoolId, active: true }),
+        Admission.countDocuments({ school: targetSchoolId, status: 'Pending' }),
+        Admission.countDocuments({ school: targetSchoolId, date: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } })
     ]);
     
+    // Calculate Attendance Percentage for Today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const [totalAttendanceToday, presentAttendanceToday] = await Promise.all([
+      Attendance.countDocuments({ school: targetSchoolId, date: { $gte: today, $lt: tomorrow } }),
+      Attendance.countDocuments({ school: targetSchoolId, date: { $gte: today, $lt: tomorrow }, status: 'Present' })
+    ]);
+
+    let attendancePercent = '0%';
+    if (totalAttendanceToday > 0) {
+      attendancePercent = `${Math.round((presentAttendanceToday / totalAttendanceToday) * 100)}%`;
+    } else if (totalStudents > 0) {
+      // Fallback if no attendance marked today yet, maybe show a generic active stat or N/A
+      attendancePercent = 'N/A';
+    }
+
     res.json({
       totalStudents,
       totalTeachers,
-      activeClasses: 12, // Placeholder
-      attendance: '95%' // Placeholder
+      activeClasses: activeClassesCount,
+      attendance: attendancePercent,
+      newApplications: newAdmissionsCount,
+      pendingReview: pendingAdmissionsCount
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -11,10 +11,16 @@ import {
 } from '../controllers/schoolController.js';
 import { getStudents, createStudent, updateStudent, deleteStudent } from '../controllers/studentController.js';
 import { getTeachers, createTeacher, updateTeacher, deleteTeacher } from '../controllers/teacherAdminController.js';
+import { getClasses, createClass, updateClass, deleteClass, getClassesStats } from '../controllers/classController.js';
+import { markAttendance, getAttendanceStats } from '../controllers/attendanceController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { authorize } from '../middleware/roleMiddleware.js';
 
 router.get('/stats', protect, authorize('admin', 'school_admin'), getSchoolStats);
+
+// Attendance Management
+router.get('/attendance/stats', protect, authorize('school_admin', 'admin', 'teacher'), getAttendanceStats);
+router.post('/attendance/mark', protect, authorize('school_admin', 'admin', 'teacher'), markAttendance);
 
 // Student Management
 router.get('/students', protect, authorize('school_admin', 'admin'), getStudents);
@@ -27,6 +33,13 @@ router.get('/teachers', protect, authorize('school_admin', 'admin'), getTeachers
 router.post('/teachers', protect, authorize('school_admin', 'admin'), createTeacher);
 router.put('/teachers/:id', protect, authorize('school_admin', 'admin'), updateTeacher);
 router.delete('/teachers/:id', protect, authorize('school_admin', 'admin'), deleteTeacher);
+
+// Class Management
+router.get('/classes', protect, authorize('school_admin', 'admin'), getClasses);
+router.get('/classes/stats', protect, authorize('school_admin', 'admin'), getClassesStats);
+router.post('/classes', protect, authorize('school_admin', 'admin'), createClass);
+router.put('/classes/:id', protect, authorize('school_admin', 'admin'), updateClass);
+router.delete('/classes/:id', protect, authorize('school_admin', 'admin'), deleteClass);
 
 router.route('/')
   .get(getSchools)

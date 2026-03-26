@@ -38,10 +38,10 @@ export const getTeachers = async (req, res) => {
     }));
 
     if (search) {
-       const filtered = formattedStudents.filter(s => 
-          s.name.toLowerCase().includes(search.toLowerCase()) || 
-          s.email.toLowerCase().includes(search.toLowerCase()) ||
-          s.subjects.some(sub => sub.toLowerCase().includes(search.toLowerCase()))
+       const filtered = formattedTeachers.filter(t => 
+          t.name.toLowerCase().includes(search.toLowerCase()) || 
+          t.email.toLowerCase().includes(search.toLowerCase()) ||
+          t.subjects.some(sub => sub.toLowerCase().includes(search.toLowerCase()))
        );
        return res.json(filtered);
     }

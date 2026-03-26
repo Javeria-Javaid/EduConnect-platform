@@ -14,6 +14,12 @@ import contactRoutes from './routes/contactRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
 import admissionRoutes from './routes/admissionRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
+import parentRoutes from './routes/parentRoutes.js';
+import vendorRoutes from './routes/vendorRoutes.js';
+import examRoutes from './routes/examRoutes.js';
+import timetableRoutes from './routes/timetableRoutes.js';
+import financeRoutes from './routes/financeRoutes.js';
+import transportRoutes from './routes/transportRoutes.js';
 
 // Passport config
 import './config/passport.js';
@@ -52,6 +58,12 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/admissions', admissionRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/parent', parentRoutes);
+app.use('/api/vendor', vendorRoutes);
+app.use('/api/exams', examRoutes);
+app.use('/api/timetables', timetableRoutes);
+app.use('/api/finance', financeRoutes);
+app.use('/api/transport', transportRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

@@ -1,17 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileSpreadsheet, Calendar, Award, Download, Clock } from 'lucide-react';
+import { toast } from 'sonner';
 import './ParentViews.css';
 
 const ParentExamsView = () => {
-    const upcomingExams = [
-        { id: 1, subject: 'Mathematics', type: 'Mid-Term', date: 'Dec 15, 2025', time: '9:00 AM - 11:00 AM', room: 'Hall A' },
-        { id: 2, subject: 'Science', type: 'Mid-Term', date: 'Dec 18, 2025', time: '9:00 AM - 11:00 AM', room: 'Hall B' },
-    ];
+    const [data, setData] = useState({ activeChildData: null });
+    const [loading, setLoading] = useState(true);
 
-    const examResults = [
-        { id: 1, exam: 'Quarterly Test', date: 'Nov 15, 2025', score: '92%', grade: 'A', status: 'published' },
-        { id: 2, exam: 'Unit Test', date: 'Oct 10, 2025', score: '88%', grade: 'A-', status: 'published' },
-    ];
+    useEffect(() => {
+        const fetchExamData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/parent/dashboard-data`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) setData(await res.json());
+            } catch (error) { toast.error('Error fetching exam data'); }
+            finally { setLoading(false); }
+        };
+        fetchExamData();
+    }, []);
+
+    const examResults = data.activeChildData?.examResults || [];
+    const upcomingExams = []; // We can fetch pending exams from Exam collection if needed, using placeholders for now if empty.
 
     return (
         <div className="parent-view-container">
@@ -27,24 +38,26 @@ const ParentExamsView = () => {
                         <Calendar size={20} className="text-gray-400" />
                     </div>
                     <div className="card-body">
-                        <div className="exams-list-view">
-                            {upcomingExams.map((exam) => (
-                                <div key={exam.id} className="exam-card">
-                                    <div className="exam-date-badge">
-                                        <span className="exam-day">15</span>
-                                        <span className="exam-month">Dec</span>
-                                    </div>
-                                    <div className="exam-details">
-                                        <h3>{exam.subject} - {exam.type}</h3>
-                                        <div className="exam-info">
-                                            <span><Calendar size={14} /> {exam.date}</span>
-                                            <span><Clock size={14} /> {exam.time}</span>
-                                            <span>Room: {exam.room}</span>
+                        {loading ? <p>Loading exams...</p> : upcomingExams.length === 0 ? <p>No upcoming exams scheduled.</p> : (
+                            <div className="exams-list-view">
+                                {upcomingExams.map((exam) => (
+                                    <div key={exam.id} className="exam-card">
+                                        <div className="exam-date-badge">
+                                            <span className="exam-day">15</span>
+                                            <span className="exam-month">Dec</span>
+                                        </div>
+                                        <div className="exam-details">
+                                            <h3>{exam.subject} - {exam.type}</h3>
+                                            <div className="exam-info">
+                                                <span><Calendar size={14} /> {exam.date}</span>
+                                                <span><Clock size={14} /> {exam.time}</span>
+                                                <span>Room: {exam.room}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -54,24 +67,26 @@ const ParentExamsView = () => {
                         <Award size={20} className="text-gray-400" />
                     </div>
                     <div className="card-body">
-                        <div className="results-list">
-                            {examResults.map((result) => (
-                                <div key={result.id} className="result-item">
-                                    <div className="result-info">
-                                        <h4>{result.exam}</h4>
-                                        <p>{result.date}</p>
+                        {loading ? <p>Loading results...</p> : examResults.length === 0 ? <p>No exam results found.</p> : (
+                            <div className="results-list">
+                                {examResults.map((result) => (
+                                    <div key={result._id} className="result-item">
+                                        <div className="result-info">
+                                            <h4>{result.exam?.name || 'Unknown Exam'}</h4>
+                                            <p>{result.exam ? new Date(result.exam.startDate).toLocaleDateString() : 'N/A'}</p>
+                                        </div>
+                                        <div className="result-scores">
+                                            <span className="result-score">{Math.round(result.percentage)}%</span>
+                                            <span className="result-grade">{result.percentage >= 90 ? 'A+' : result.percentage >= 80 ? 'A' : result.percentage >= 70 ? 'B' : result.percentage >= 60 ? 'C' : 'F'}</span>
+                                        </div>
+                                        <button className="btn-download">
+                                            <Download size={16} />
+                                            Download
+                                        </button>
                                     </div>
-                                    <div className="result-scores">
-                                        <span className="result-score">{result.score}</span>
-                                        <span className="result-grade">{result.grade}</span>
-                                    </div>
-                                    <button className="btn-download">
-                                        <Download size={16} />
-                                        Download
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
