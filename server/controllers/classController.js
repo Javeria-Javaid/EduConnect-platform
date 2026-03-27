@@ -70,7 +70,8 @@ export const updateClass = async (req, res) => {
 
 export const deleteClass = async (req, res) => {
   try {
-    await Class.findByIdAndDelete(req.params.id);
+    const deleted = await Class.findOneAndDelete({ _id: req.params.id, school: req.user.school });
+    if (!deleted) return res.status(404).json({ message: 'Class not found' });
     res.json({ message: 'Class deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -1,40 +1,99 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import DataTable from '../shared/DataTable';
 import FilterPanel from '../shared/FilterPanel';
-import { reportsOverviewData } from './mockData';
-import { FileText, Download, Eye, Users, TrendingUp, AlertCircle } from 'lucide-react';
+import { Download, Users, TrendingUp, AlertCircle } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import './ReportSubSection.css';
 
 const StudentReports = () => {
     const [filters, setFilters] = useState({});
-    const { studentReports } = reportsOverviewData;
+    const [studentReports, setStudentReports] = useState([]);
+    const [classes, setClasses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Mock Summary Data
-    const summaryStats = [
-        { label: 'Total Students', value: '2,543', change: '+12%', icon: Users, bgColor: '#dbeafe' },
-        { label: 'Avg. Performance', value: 'Good', change: 'Stable', icon: TrendingUp, bgColor: '#dcfce7' },
-        { label: 'At Risk', value: '45', change: '-2%', icon: AlertCircle, bgColor: '#fee2e2' },
-    ];
+    useEffect(() => {
+        const load = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const token = localStorage.getItem('token');
+                const [classesRes, reportRes] = await Promise.all([
+                    fetch(`${import.meta.env.VITE_API_URL}/api/schools/classes`, { headers: { Authorization: `Bearer ${token}` } }),
+                    fetch(`${import.meta.env.VITE_API_URL}/api/schools/reports/students`, { headers: { Authorization: `Bearer ${token}` } }),
+                ]);
+                if (!classesRes.ok) throw new Error(`Failed to load classes (${classesRes.status})`);
+                if (!reportRes.ok) throw new Error(`Failed to load student report (${reportRes.status})`);
+                const classesJson = await classesRes.json();
+                const reportJson = await reportRes.json();
+                setClasses(classesJson || []);
+                setStudentReports(reportJson?.studentReports || []);
+            } catch (e) {
+                setError(e?.message || 'Failed to load student reports');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
 
-    const performanceData = [
-        { name: 'Excellent', value: 35, color: '#22c55e' },
-        { name: 'Good', value: 45, color: '#3b82f6' },
-        { name: 'Average', value: 15, color: '#f59e0b' },
-        { name: 'Poor', value: 5, color: '#ef4444' },
-    ];
+    const classOptions = useMemo(() => {
+        const names = new Set((classes || []).map((c) => c?.name).filter(Boolean));
+        return Array.from(names).sort().map((name) => ({ label: name, value: name }));
+    }, [classes]);
+
+    const filteredStudentReports = useMemo(() => {
+        let rows = [...studentReports];
+        const selectedClasses = Array.isArray(filters?.class) ? filters.class : [];
+        const selectedPerf = Array.isArray(filters?.performance) ? filters.performance : [];
+
+        if (selectedClasses.length > 0) {
+            rows = rows.filter((r) => selectedClasses.some((c) => String(r.class || '').startsWith(c)));
+        }
+        if (selectedPerf.length > 0) {
+            rows = rows.filter((r) => selectedPerf.includes(r.performance));
+        }
+        return rows;
+    }, [filters, studentReports]);
+
+    const performanceData = useMemo(() => {
+        const counts = new Map();
+        for (const r of studentReports) {
+            const key = r.performance || 'Not Set';
+            counts.set(key, (counts.get(key) || 0) + 1);
+        }
+        const total = Array.from(counts.values()).reduce((a, b) => a + b, 0) || 1;
+        const colorBy = {
+            Excellent: '#22c55e',
+            Good: '#3b82f6',
+            Average: '#f59e0b',
+            Poor: '#ef4444',
+            'Not Set': '#94a3b8',
+        };
+        return Array.from(counts.entries()).map(([name, count]) => ({
+            name,
+            value: Math.round((count / total) * 100),
+            color: colorBy[name] || '#94a3b8',
+        }));
+    }, [studentReports]);
+
+    const summaryStats = useMemo(() => {
+        const totalStudents = studentReports.length;
+        const atRisk = studentReports.filter((r) => r.performance === 'Poor').length;
+        const avgLabel = performanceData.sort((a, b) => b.value - a.value)[0]?.name || 'Not Set';
+        return [
+            { label: 'Total Students', value: totalStudents.toLocaleString(), change: '—', icon: Users, bgColor: '#dbeafe' },
+            { label: 'Top Segment', value: avgLabel, change: '—', icon: TrendingUp, bgColor: '#dcfce7' },
+            { label: 'At Risk', value: atRisk.toLocaleString(), change: '—', icon: AlertCircle, bgColor: '#fee2e2' },
+        ];
+    }, [studentReports, performanceData]);
 
     const filterOptions = [
         {
             key: 'class',
             label: 'Class',
             type: 'multiselect',
-            options: [
-                { label: 'Class 9', value: '9' },
-                { label: 'Class 10', value: '10' },
-                { label: 'Class 11', value: '11' },
-                { label: 'Class 12', value: '12' },
-            ]
+            options: classOptions
         },
         {
             key: 'performance',
@@ -45,6 +104,7 @@ const StudentReports = () => {
                 { label: 'Good', value: 'Good' },
                 { label: 'Average', value: 'Average' },
                 { label: 'Poor', value: 'Poor' },
+                { label: 'Not Set', value: 'Not Set' },
             ]
         }
     ];
@@ -92,10 +152,20 @@ const StudentReports = () => {
         { key: 'lastReport', label: 'Last Report', sortable: true },
     ];
 
-    const handleQuickAction = (row) => [
-        { label: 'View Profile', icon: <Eye size={14} />, onClick: () => console.log('View', row) },
-        { label: 'Download Report', icon: <Download size={14} />, onClick: () => console.log('Download', row) },
-    ];
+    const downloadCsv = () => {
+        const headers = ['name', 'class', 'performance', 'attendance', 'behavior', 'lastReport'];
+        const lines = [
+            headers.join(','),
+            ...studentReports.map((r) => headers.map((h) => `"${String(r?.[h] ?? '').replaceAll('"', '""')}"`).join(',')),
+        ];
+        const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `student-reports-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <div className="report-subsection-container">
@@ -136,7 +206,7 @@ const StudentReports = () => {
                 <div className="report-table-section">
                     <div className="report-table-header">
                         <h3 className="report-table-title">Student Records</h3>
-                        <button className="report-export-btn">
+                        <button className="report-export-btn" onClick={downloadCsv} disabled={loading || !!error}>
                             <Download size={16} />
                             Export All
                         </button>
@@ -149,11 +219,12 @@ const StudentReports = () => {
                     </div>
                     <DataTable
                         columns={columns}
-                        data={studentReports}
+                        data={filteredStudentReports}
                         selectable={true}
-                        onQuickAction={handleQuickAction}
                         pageSize={8}
                     />
+                    {loading && <div style={{ padding: '12px', color: '#64748b', fontWeight: 600 }}>Loading…</div>}
+                    {error && <div style={{ padding: '12px', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
                 </div>
 
                 {/* Charts Side Panel */}

@@ -1,14 +1,59 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from 'recharts';
 import { FileText, Download, Clock, ArrowUpRight, ArrowDownRight, ChevronRight } from 'lucide-react';
-import { reportsOverviewData } from './mockData';
 import './ReportsOverview.css';
 
 const ReportsOverview = ({ onNavigate, reportTypes }) => {
-    const { summaryCards, recentReports, enrollmentTrend, attendanceDistribution } = reportsOverviewData;
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const load = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/reports/overview`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (!res.ok) throw new Error(`Failed to load reports overview (${res.status})`);
+                const json = await res.json();
+                setData(json);
+            } catch (e) {
+                setError(e?.message || 'Failed to load reports overview');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
+
+    const summaryCards = data?.summaryCards ?? [];
+    const recentReports = data?.recentReports ?? [];
+    const enrollmentTrend = data?.enrollmentTrend ?? [];
+    const attendanceDistribution = data?.attendanceDistribution ?? [];
+    const attendancePresentPercent = useMemo(() => {
+        if (typeof data?.attendancePresentPercent === 'number') return data.attendancePresentPercent;
+        const present = attendanceDistribution.find((d) => d.name === 'Present')?.value ?? 0;
+        const total = attendanceDistribution.reduce((sum, d) => sum + (d.value ?? 0), 0);
+        return total > 0 ? Math.round((present / total) * 100) : null;
+    }, [data?.attendancePresentPercent, attendanceDistribution]);
 
     return (
         <div className="reports-overview-container">
+            {loading && (
+                <div style={{ padding: '16px', color: '#64748b', fontWeight: 600 }}>
+                    Loading reports…
+                </div>
+            )}
+            {error && !loading && (
+                <div style={{ padding: '16px', color: '#ef4444', fontWeight: 600 }}>
+                    {error}
+                </div>
+            )}
+            {!loading && !error && (
+                <>
             {/* Summary Stats */}
             <div className="summary-grid">
                 {summaryCards.map((card, index) => (
@@ -123,7 +168,9 @@ const ReportsOverview = ({ onNavigate, reportTypes }) => {
                         </ResponsiveContainer>
                         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', paddingBottom: '32px' }}>
                             <div style={{ textAlign: 'center' }}>
-                                <span style={{ fontSize: '1.875rem', fontWeight: '800', color: '#1e293b' }}>94%</span>
+                                <span style={{ fontSize: '1.875rem', fontWeight: '800', color: '#1e293b' }}>
+                                    {attendancePresentPercent === null ? 'N/A' : `${attendancePresentPercent}%`}
+                                </span>
                                 <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>Present</p>
                             </div>
                         </div>
@@ -141,6 +188,11 @@ const ReportsOverview = ({ onNavigate, reportTypes }) => {
                         </button>
                     </div>
                     <div className="reports-list">
+                        {recentReports.length === 0 && (
+                            <div style={{ padding: '18px', color: '#64748b', fontWeight: 600 }}>
+                                No saved reports yet.
+                            </div>
+                        )}
                         {recentReports.map((report) => (
                             <div key={report.id} className="report-item">
                                 <div className="report-item-left">
@@ -167,6 +219,8 @@ const ReportsOverview = ({ onNavigate, reportTypes }) => {
                     </div>
                 </div>
             </div>
+                </>
+            )}
         </div>
     );
 };

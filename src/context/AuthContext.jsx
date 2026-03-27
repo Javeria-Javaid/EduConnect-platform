@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
              headers: { Authorization: `Bearer ${token}` }
           });
           if (res.ok) {
-             const userData = await response.json();
+             const userData = await res.json();
              setUser(userData);
           } else {
              localStorage.removeItem('token');

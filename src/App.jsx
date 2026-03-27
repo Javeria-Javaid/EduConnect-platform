@@ -202,13 +202,10 @@ const UnauthorizedPage = () => {
             <p className="text-gray-600 max-w-md">
                 You do not have the required permissions to view this area.
             </p>
-
-            {/* DEBUG INFO */}
             <div className="bg-gray-100 p-4 rounded-lg text-left max-w-md w-full">
-                <p className="font-bold mb-2">🔍 Debug Information:</p>
-                <p><strong>Your Role:</strong> {role || 'Not set'}</p>
-                <p><strong>Email:</strong> {user?.email || 'Not logged in'}</p>
-                <p><strong>User Data:</strong> {JSON.stringify(user, null, 2)}</p>
+                <p className="font-semibold mb-2 text-gray-800">Signed in as</p>
+                <p className="text-sm text-gray-700"><strong>Role:</strong> {role || 'Unknown'}</p>
+                <p className="text-sm text-gray-700"><strong>Email:</strong> {user?.email || 'Unknown'}</p>
             </div>
 
             <button

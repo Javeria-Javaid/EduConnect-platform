@@ -28,7 +28,8 @@ export const saveTimetable = async (req, res) => {
 
 export const deleteTimetable = async (req, res) => {
     try {
-        await Timetable.findByIdAndDelete(req.params.id);
+        const deleted = await Timetable.findOneAndDelete({ _id: req.params.id, school: req.user.school });
+        if (!deleted) return res.status(404).json({ message: 'Timetable not found' });
         res.json({ message: 'Timetable deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });

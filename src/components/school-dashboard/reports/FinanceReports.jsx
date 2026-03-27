@@ -1,28 +1,55 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import DataTable from '../shared/DataTable';
 import FilterPanel from '../shared/FilterPanel';
-import { reportsOverviewData } from './mockData';
 import { FileText, Download, DollarSign, TrendingUp, CreditCard, PieChart as PieIcon, Calendar } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import './ReportSubSection.css';
 
 const FinanceReports = () => {
     const [filters, setFilters] = useState({});
-    const { financeReports } = reportsOverviewData;
+    const [financeReports, setFinanceReports] = useState([]);
+    const [revenueData, setRevenueData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Mock Summary Data
-    const summaryStats = [
-        { label: 'Total Revenue', value: '$1.2M', change: '+8%', icon: DollarSign, bgColor: '#dcfce7' },
-        { label: 'Pending Dues', value: '$45k', change: '-2%', icon: CreditCard, bgColor: '#fee2e2' },
-        { label: 'Expenses', value: '$850k', change: '+5%', icon: TrendingUp, bgColor: '#dbeafe' },
-    ];
+    useEffect(() => {
+        const load = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/reports/finance`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (!res.ok) throw new Error(`Failed to load finance report (${res.status})`);
+                const json = await res.json();
+                setFinanceReports(json?.financeReports || []);
+                setRevenueData(json?.revenueData || []);
+            } catch (e) {
+                setError(e?.message || 'Failed to load finance reports');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
 
-    const revenueData = [
-        { name: 'Tuition Fees', value: 65, color: '#3AC47D' },
-        { name: 'Transport', value: 15, color: '#2A6EF2' },
-        { name: 'Donations', value: 10, color: '#F59E0B' },
-        { name: 'Others', value: 10, color: '#6366F1' },
-    ];
+    const summaryStats = useMemo(() => {
+        let revenue = 0;
+        let expenses = 0;
+        let pending = 0;
+        for (const r of financeReports) {
+            const amt = Number(r.amount) || 0;
+            if (String(r.status).toLowerCase() === 'pending') pending += amt;
+            if (amt >= 0) revenue += amt;
+            if (amt < 0) expenses += Math.abs(amt);
+        }
+        return [
+            { label: 'Total Revenue', value: revenue ? revenue.toLocaleString() : '0', change: '—', icon: DollarSign, bgColor: '#dcfce7' },
+            { label: 'Pending Dues', value: pending ? pending.toLocaleString() : '0', change: '—', icon: CreditCard, bgColor: '#fee2e2' },
+            { label: 'Expenses', value: expenses ? expenses.toLocaleString() : '0', change: '—', icon: TrendingUp, bgColor: '#dbeafe' },
+        ];
+    }, [financeReports]);
 
     const filterOptions = [
         {
@@ -76,10 +103,20 @@ const FinanceReports = () => {
         { key: 'date', label: 'Date', sortable: true },
     ];
 
-    const handleQuickAction = (row) => [
-        { label: 'View Invoice', icon: <FileText size={14} />, onClick: () => console.log('View', row) },
-        { label: 'Download Receipt', icon: <Download size={14} />, onClick: () => console.log('Download', row) },
-    ];
+    const downloadCsv = () => {
+        const headers = ['type', 'amount', 'status', 'date'];
+        const lines = [
+            headers.join(','),
+            ...financeReports.map((r) => headers.map((h) => `"${String(r?.[h] ?? '').replaceAll('"', '""')}"`).join(',')),
+        ];
+        const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `finance-report-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <div className="report-subsection-container">
@@ -120,7 +157,7 @@ const FinanceReports = () => {
                 <div className="report-table-section">
                     <div className="report-table-header">
                         <h3 className="report-table-title">Transaction History</h3>
-                        <button className="report-export-btn">
+                        <button className="report-export-btn" onClick={downloadCsv} disabled={loading || !!error}>
                             <Download size={16} />
                             Export Report
                         </button>
@@ -135,9 +172,10 @@ const FinanceReports = () => {
                         columns={columns}
                         data={financeReports}
                         selectable={true}
-                        onQuickAction={handleQuickAction}
                         pageSize={8}
                     />
+                    {loading && <div style={{ padding: '12px', color: '#64748b', fontWeight: 600 }}>Loading…</div>}
+                    {error && <div style={{ padding: '12px', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
                 </div>
 
                 {/* Revenue Chart */}

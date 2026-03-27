@@ -1,19 +1,60 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import DataTable from '../shared/DataTable';
 import FilterPanel from '../shared/FilterPanel';
-import { reportsOverviewData } from './mockData';
-import { FileText, Download, Bus, MapPin, Clock, AlertCircle } from 'lucide-react';
+import { Download, Bus, MapPin, AlertCircle } from 'lucide-react';
 import './ReportSubSection.css';
 
 const TransportReports = () => {
     const [filters, setFilters] = useState({});
-    const { transportReports = [] } = reportsOverviewData || {};
+    const [routes, setRoutes] = useState([]);
+    const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const summaryStats = [
-        { label: 'Active Routes', value: '12', change: 'All Operational', icon: MapPin, bgColor: '#dbeafe' },
-        { label: 'Students Transported', value: '850', change: '+15', icon: Bus, bgColor: '#dcfce7' },
-        { label: 'Maintenance Alerts', value: '1', change: 'Urgent', icon: AlertCircle, bgColor: '#fee2e2' },
-    ];
+    useEffect(() => {
+        const load = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/transport`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (!res.ok) throw new Error(`Failed to load transport data (${res.status})`);
+                const json = await res.json();
+                setRoutes(json?.routes || []);
+                setStats(json?.stats || null);
+            } catch (e) {
+                setError(e?.message || 'Failed to load transport report');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
+
+    const transportReports = useMemo(() => {
+        return (routes || []).map((r) => ({
+            id: r._id,
+            route: r.name,
+            driver: r.vehicle?.driver || '—',
+            vehicle: r.vehicle?.number || '—',
+            stops: Array.isArray(r.stops) ? r.stops.length : 0,
+            status: r.status || 'On Time',
+            lastUpdate: r.updatedAt ? new Date(r.updatedAt).toISOString().slice(0, 10) : '—',
+        }));
+    }, [routes]);
+
+    const summaryStats = useMemo(() => {
+        const activeRoutes = stats?.activeRoutes ?? transportReports.length;
+        const vehicles = stats?.totalVehicles ?? 0;
+        const maintenance = 0;
+        return [
+            { label: 'Active Routes', value: String(activeRoutes), change: 'Live from DB', icon: MapPin, bgColor: '#dbeafe' },
+            { label: 'Vehicles', value: String(vehicles), change: 'Live from DB', icon: Bus, bgColor: '#dcfce7' },
+            { label: 'Maintenance Alerts', value: String(maintenance), change: '—', icon: AlertCircle, bgColor: '#fee2e2' },
+        ];
+    }, [stats, transportReports.length]);
 
     const filterOptions = [
         {
@@ -39,26 +80,9 @@ const TransportReports = () => {
                 </div>
             )
         },
+        { key: 'vehicle', label: 'Vehicle', sortable: true, render: (row) => <span style={{ color: '#475569', fontWeight: 600 }}>{row.vehicle}</span> },
         { key: 'driver', label: 'Driver', sortable: true, render: (row) => <span style={{ color: '#475569' }}>{row.driver}</span> },
-        {
-            key: 'students', label: 'Occupancy', sortable: true, render: (row) => (
-                <div style={{ width: '100px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '4px' }}>
-                        <span style={{ color: '#64748b' }}>{row.students}/{row.capacity}</span>
-                        <span style={{ color: '#94a3b8' }}>{(row.students / row.capacity * 100).toFixed(0)}%</span>
-                    </div>
-                    <div className="progress-bar-container">
-                        <div
-                            className="progress-bar-fill"
-                            style={{
-                                width: `${(row.students / row.capacity * 100)}%`,
-                                background: row.students / row.capacity > 0.9 ? '#ef4444' : '#3b82f6'
-                            }}
-                        />
-                    </div>
-                </div>
-            )
-        },
+        { key: 'stops', label: 'Stops', sortable: true },
         {
             key: 'status', label: 'Status', sortable: true, render: (row) => (
                 <span className={`status-badge ${row.status === 'On Time' ? 'status-excellent' :
@@ -72,10 +96,20 @@ const TransportReports = () => {
         { key: 'lastUpdate', label: 'Last Update', sortable: true },
     ];
 
-    const handleQuickAction = (row) => [
-        { label: 'Track Route', icon: <MapPin size={14} />, onClick: () => console.log('Track', row) },
-        { label: 'Download Log', icon: <Download size={14} />, onClick: () => console.log('Download', row) },
-    ];
+    const downloadCsv = () => {
+        const headers = ['route', 'vehicle', 'driver', 'stops', 'status', 'lastUpdate'];
+        const lines = [
+            headers.join(','),
+            ...transportReports.map((r) => headers.map((h) => `"${String(r?.[h] ?? '').replaceAll('"', '""')}"`).join(',')),
+        ];
+        const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transport-report-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <div className="report-subsection-container">
@@ -111,7 +145,7 @@ const TransportReports = () => {
             <div className="report-table-section" style={{ gridColumn: '1 / -1' }}>
                 <div className="report-table-header">
                     <h3 className="report-table-title">Route Management</h3>
-                    <button className="report-export-btn">
+                    <button className="report-export-btn" onClick={downloadCsv} disabled={loading || !!error}>
                         <Download size={16} />
                         Export Report
                     </button>
@@ -126,9 +160,10 @@ const TransportReports = () => {
                     columns={columns}
                     data={transportReports}
                     selectable={true}
-                    onQuickAction={handleQuickAction}
                     pageSize={8}
                 />
+                {loading && <div style={{ padding: '12px', color: '#64748b', fontWeight: 600 }}>Loading…</div>}
+                {error && <div style={{ padding: '12px', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
             </div>
         </div>
     );

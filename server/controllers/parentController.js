@@ -20,11 +20,19 @@ export const getParentStats = async (req, res) => {
 
     // Just take the first child for stats for now
     const child = parentProfile.children[0];
+    const childUserId = child.user;
+
+    const recentAttendance = await Attendance.find({ student: childUserId }).sort({ date: -1 }).limit(30).lean();
+    const presentCount = recentAttendance.filter(a => a.status === 'Present' || a.status === 'Late').length;
+    const attendanceRate = recentAttendance.length > 0 ? ((presentCount / recentAttendance.length) * 100).toFixed(1) : '0.0';
+
+    // Upcoming exams (best-effort): based on timetable/exams models being school-wide; keep 0 if not implemented
+    const upcomingExams = await ExamResult.countDocuments({ student: childUserId }); // placeholder signal of exams existence
     
     res.json({
-      attendance: `${child.attendance}%`,
-      pendingHomework: 3,
-      upcomingExams: 2,
+      attendance: `${attendanceRate}%`,
+      pendingHomework: 0,
+      upcomingExams: upcomingExams > 0 ? 1 : 0,
       feeStatus: child.feeStatus
     });
   } catch (error) {
@@ -50,6 +58,13 @@ export const linkChild = async (req, res) => {
         const student = await StudentProfile.findOne({ admissionNumber });
         
         if (!student) return res.status(404).json({ message: 'Student not found' });
+
+        // Ensure parent user is scoped to the child's school (required for school-scoped messaging/routes)
+        if (!req.user.school) {
+            const User = (await import('../models/User.js')).default;
+            await User.findByIdAndUpdate(req.user._id, { school: student.school });
+            req.user.school = student.school;
+        }
 
         let parentProfile = await ParentProfile.findOne({ user: req.user._id });
         if (!parentProfile) {
@@ -80,16 +95,17 @@ export const getDashboardData = async (req, res) => {
             return res.json({ children: [], activeChildData: null });
         }
 
-        const childId = req.query.childId || parentProfile.children[0]._id;
-        const child = await StudentProfile.findById(childId).populate('user', 'firstName lastName email');
+        const childProfileId = req.query.childId || parentProfile.children[0]._id;
+        const child = await StudentProfile.findById(childProfileId).populate('user', 'firstName lastName email');
         
         if (!child) return res.status(404).json({ message: 'Child not found' });
+        const childUserId = child.user?._id || child.user;
 
         // Fetch Exam Results
-        const examResults = await ExamResult.find({ student: childId }).populate('exam', 'name startDate endDate');
+        const examResults = await ExamResult.find({ student: childUserId }).populate('exam', 'name startDate endDate');
         
         // Fetch Attendance
-        const attendance = await Attendance.find({ student: childId }).sort({ date: -1 }).limit(30);
+        const attendance = await Attendance.find({ student: childUserId }).sort({ date: -1 }).limit(30);
         const presentCount = attendance.filter(a => a.status === 'Present').length;
         const absentCount = attendance.filter(a => a.status === 'Absent').length;
         const attendanceRate = attendance.length > 0 ? ((presentCount / attendance.length) * 100).toFixed(1) : 0;
@@ -98,7 +114,7 @@ export const getDashboardData = async (req, res) => {
         const timetables = await Timetable.find({ class: child.currentClass, section: child.section, school: child.school });
 
         // Fetch Fees
-        const transactions = await Transaction.find({ student: child.user._id }).sort({ date: -1 });
+        const transactions = await Transaction.find({ student: childUserId }).sort({ date: -1 });
 
         res.json({
             children: parentProfile.children,

@@ -55,25 +55,25 @@ export const getAdmissionStats = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [total, pending, approved, rejected, waitlisted, todayCount] = await Promise.all([
+    const [total, pending, accepted, rejected, onHold, todayCount] = await Promise.all([
       Admission.countDocuments({ school: schoolId }),
       Admission.countDocuments({ school: schoolId, status: 'Pending' }),
-      Admission.countDocuments({ school: schoolId, status: 'Approved' }),
+      Admission.countDocuments({ school: schoolId, status: 'Accepted' }),
       Admission.countDocuments({ school: schoolId, status: 'Rejected' }),
-      Admission.countDocuments({ school: schoolId, status: 'Waitlisted' }),
+      Admission.countDocuments({ school: schoolId, status: 'On Hold' }),
       Admission.countDocuments({ school: schoolId, createdAt: { $gte: today } }),
     ]);
 
-    const conversionRate = total > 0 ? Math.round((approved / total) * 100) : 0;
+    const conversionRate = total > 0 ? Math.round((accepted / total) * 100) : 0;
 
     res.json({
       total,
       activeCycles: 1,  // placeholder until AdmissionCycle model is added
       applicationsToday: todayCount,
       inReview: pending,
-      approved,
+      accepted,
       rejected,
-      waitlisted,
+      onHold,
       conversionRate,
       missingDocs: 0, // placeholder
     });

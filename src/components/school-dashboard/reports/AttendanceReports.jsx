@@ -1,19 +1,50 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import DataTable from '../shared/DataTable';
 import FilterPanel from '../shared/FilterPanel';
-import { reportsOverviewData } from './mockData';
-import { FileText, Download, Calendar, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Download, CheckCircle, XCircle, Clock } from 'lucide-react';
 import './ReportSubSection.css';
 
 const AttendanceReports = () => {
     const [filters, setFilters] = useState({});
-    const { attendanceReports = [] } = reportsOverviewData || {};
+    const [attendanceReports, setAttendanceReports] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const summaryStats = [
-        { label: "Today's Attendance", value: '94.2%', change: '+0.5%', icon: CheckCircle, bgColor: '#dcfce7' },
-        { label: 'Absent Today', value: '145', change: '-12', icon: XCircle, bgColor: '#fee2e2' },
-        { label: 'Late Arrivals', value: '32', change: '+5', icon: Clock, bgColor: '#fed7aa' },
-    ];
+    useEffect(() => {
+        const load = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/reports/attendance`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (!res.ok) throw new Error(`Failed to load attendance report (${res.status})`);
+                const json = await res.json();
+                setAttendanceReports(json?.attendanceReports || []);
+            } catch (e) {
+                setError(e?.message || 'Failed to load attendance reports');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
+
+    const summaryStats = useMemo(() => {
+        const today = new Date().toISOString().slice(0, 10);
+        const todayRows = attendanceReports.filter((r) => r.date === today);
+        const present = todayRows.reduce((sum, r) => sum + (r.present || 0), 0);
+        const absent = todayRows.reduce((sum, r) => sum + (r.absent || 0), 0);
+        const late = todayRows.reduce((sum, r) => sum + (r.late || 0), 0);
+        const total = present + absent + late;
+        const pct = total > 0 ? Math.round((present / total) * 100) : null;
+        return [
+            { label: "Today's Attendance", value: pct === null ? 'N/A' : `${pct}%`, change: '—', icon: CheckCircle, bgColor: '#dcfce7' },
+            { label: 'Absent Today', value: absent.toLocaleString(), change: '—', icon: XCircle, bgColor: '#fee2e2' },
+            { label: 'Late Arrivals', value: late.toLocaleString(), change: '—', icon: Clock, bgColor: '#fed7aa' },
+        ];
+    }, [attendanceReports]);
 
     const filterOptions = [
         {
@@ -82,10 +113,20 @@ const AttendanceReports = () => {
         },
     ];
 
-    const handleQuickAction = (row) => [
-        { label: 'View Details', icon: <FileText size={14} />, onClick: () => console.log('View', row) },
-        { label: 'Download Report', icon: <Download size={14} />, onClick: () => console.log('Download', row) },
-    ];
+    const downloadCsv = () => {
+        const headers = ['date', 'class', 'present', 'absent', 'late', 'percentage'];
+        const lines = [
+            headers.join(','),
+            ...attendanceReports.map((r) => headers.map((h) => `"${String(r?.[h] ?? '').replaceAll('"', '""')}"`).join(',')),
+        ];
+        const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `attendance-report-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <div className="report-subsection-container">
@@ -122,7 +163,7 @@ const AttendanceReports = () => {
             <div className="report-table-section" style={{ gridColumn: '1 / -1' }}>
                 <div className="report-table-header">
                     <h3 className="report-table-title">Attendance Records</h3>
-                    <button className="report-export-btn">
+                    <button className="report-export-btn" onClick={downloadCsv} disabled={loading || !!error}>
                         <Download size={16} />
                         Export All
                     </button>
@@ -137,9 +178,10 @@ const AttendanceReports = () => {
                     columns={columns}
                     data={attendanceReports}
                     selectable={true}
-                    onQuickAction={handleQuickAction}
                     pageSize={8}
                 />
+                {loading && <div style={{ padding: '12px', color: '#64748b', fontWeight: 600 }}>Loading…</div>}
+                {error && <div style={{ padding: '12px', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
             </div>
         </div>
     );

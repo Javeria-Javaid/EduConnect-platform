@@ -1,21 +1,48 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import DataTable from '../shared/DataTable';
 import FilterPanel from '../shared/FilterPanel';
-import { reportsOverviewData } from './mockData';
-import { FileText, Download, BookOpen, Trophy, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Download, BookOpen, Trophy, AlertTriangle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import './ReportSubSection.css';
 
 const AcademicReports = () => {
     const [filters, setFilters] = useState({});
-    const { academicReports = [], gradeDistribution = [] } = reportsOverviewData || {};
+    const [academicReports, setAcademicReports] = useState([]);
+    const [gradeDistribution, setGradeDistribution] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Mock Summary Data
-    const summaryStats = [
-        { label: 'Avg. Pass Rate', value: '92%', change: '+4%', icon: Trophy, bgColor: '#dcfce7' },
-        { label: 'Top Subject', value: 'English', change: '98% Pass', icon: BookOpen, bgColor: '#dbeafe' },
-        { label: 'Needs Focus', value: 'Physics', change: '82% Pass', icon: AlertTriangle, bgColor: '#fee2e2' },
-    ];
+    useEffect(() => {
+        const load = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/reports/exams`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (!res.ok) throw new Error(`Failed to load exams report (${res.status})`);
+                const json = await res.json();
+                setAcademicReports(json?.academicReports || []);
+                setGradeDistribution(json?.gradeDistribution || []);
+            } catch (e) {
+                setError(e?.message || 'Failed to load academic reports');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
+
+    const summaryStats = useMemo(() => {
+        const rates = academicReports.map((r) => parseInt(String(r.passRate || '').replace('%', ''), 10)).filter((n) => Number.isFinite(n));
+        const avg = rates.length ? Math.round(rates.reduce((a, b) => a + b, 0) / rates.length) : null;
+        return [
+            { label: 'Avg. Pass Rate', value: avg === null ? 'N/A' : `${avg}%`, change: '—', icon: Trophy, bgColor: '#dcfce7' },
+            { label: 'Top Subject', value: 'Overall', change: '—', icon: BookOpen, bgColor: '#dbeafe' },
+            { label: 'Needs Focus', value: '—', change: '—', icon: AlertTriangle, bgColor: '#fee2e2' },
+        ];
+    }, [academicReports]);
 
     const filterOptions = [
         {
@@ -72,10 +99,20 @@ const AcademicReports = () => {
         },
     ];
 
-    const handleQuickAction = (row) => [
-        { label: 'View Details', icon: <FileText size={14} />, onClick: () => console.log('View', row) },
-        { label: 'Download Results', icon: <Download size={14} />, onClick: () => console.log('Download', row) },
-    ];
+    const downloadCsv = () => {
+        const headers = ['exam', 'class', 'subject', 'average', 'passRate'];
+        const lines = [
+            headers.join(','),
+            ...academicReports.map((r) => headers.map((h) => `"${String(r?.[h] ?? '').replaceAll('"', '""')}"`).join(',')),
+        ];
+        const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `exam-results-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <div className="report-subsection-container">
@@ -137,7 +174,7 @@ const AcademicReports = () => {
             <div className="report-table-section" style={{ gridColumn: '1 / -1' }}>
                 <div className="report-table-header">
                     <h3 className="report-table-title">Exam Results</h3>
-                    <button className="report-export-btn">
+                    <button className="report-export-btn" onClick={downloadCsv} disabled={loading || !!error}>
                         <Download size={16} />
                         Export All
                     </button>
@@ -152,9 +189,10 @@ const AcademicReports = () => {
                     columns={columns}
                     data={academicReports}
                     selectable={true}
-                    onQuickAction={handleQuickAction}
                     pageSize={8}
                 />
+                {loading && <div style={{ padding: '12px', color: '#64748b', fontWeight: 600 }}>Loading…</div>}
+                {error && <div style={{ padding: '12px', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
             </div>
         </div>
     );

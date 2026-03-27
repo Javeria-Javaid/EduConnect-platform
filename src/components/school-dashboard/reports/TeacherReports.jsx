@@ -1,21 +1,50 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import DataTable from '../shared/DataTable';
 import FilterPanel from '../shared/FilterPanel';
-import { reportsOverviewData } from './mockData';
-import { FileText, Download, Eye, Briefcase, Clock, Star, Award } from 'lucide-react';
+import { Download, Briefcase, Clock, Star, Award } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import './ReportSubSection.css';
 
 const TeacherReports = () => {
     const [filters, setFilters] = useState({});
-    const { teacherReports = [] } = reportsOverviewData || {};
+    const [teacherReports, setTeacherReports] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Mock Summary Data
-    const summaryStats = [
-        { label: 'Total Teachers', value: '145', change: '+2%', icon: Briefcase, bgColor: '#dbeafe' },
-        { label: 'Avg. Workload', value: '22h', change: '-1h', icon: Clock, bgColor: '#fed7aa' },
-        { label: 'Top Performers', value: '12', change: '+3', icon: Star, bgColor: '#fef3c7' },
-    ];
+    useEffect(() => {
+        const load = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/reports/teachers`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (!res.ok) throw new Error(`Failed to load teacher report (${res.status})`);
+                const json = await res.json();
+                setTeacherReports(json?.teacherReports || []);
+            } catch (e) {
+                setError(e?.message || 'Failed to load teacher reports');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
+
+    const summaryStats = useMemo(() => {
+        const total = teacherReports.length;
+        const avgLoad =
+            total > 0
+                ? Math.round(teacherReports.reduce((sum, t) => sum + (parseInt(t.workload, 10) || 0), 0) / total)
+                : 0;
+        const top = teacherReports.filter((t) => t.performance === 'Excellent').length;
+        return [
+            { label: 'Total Teachers', value: total.toLocaleString(), change: '—', icon: Briefcase, bgColor: '#dbeafe' },
+            { label: 'Avg. Workload', value: `${avgLoad}h`, change: '—', icon: Clock, bgColor: '#fed7aa' },
+            { label: 'Top Performers', value: top.toLocaleString(), change: '—', icon: Star, bgColor: '#fef3c7' },
+        ];
+    }, [teacherReports]);
 
     // Transform data for workload chart
     const workloadData = teacherReports.map(t => ({
@@ -88,9 +117,23 @@ const TeacherReports = () => {
     ];
 
     const handleQuickAction = (row) => [
-        { label: 'View Profile', icon: <Eye size={14} />, onClick: () => console.log('View', row) },
-        { label: 'Download Report', icon: <Download size={14} />, onClick: () => console.log('Download', row) },
+        // Removed non-functional quick actions for MVP
     ];
+
+    const downloadCsv = () => {
+        const headers = ['name', 'subject', 'workload', 'attendance', 'performance', 'lastEvaluation'];
+        const lines = [
+            headers.join(','),
+            ...teacherReports.map((r) => headers.map((h) => `"${String(r?.[h] ?? '').replaceAll('"', '""')}"`).join(',')),
+        ];
+        const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `teacher-reports-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <div className="report-subsection-container">
@@ -131,7 +174,7 @@ const TeacherReports = () => {
                 <div className="report-table-section">
                     <div className="report-table-header">
                         <h3 className="report-table-title">Teacher Records</h3>
-                        <button className="report-export-btn">
+                        <button className="report-export-btn" onClick={downloadCsv} disabled={loading || !!error}>
                             <Download size={16} />
                             Export All
                         </button>
@@ -146,9 +189,10 @@ const TeacherReports = () => {
                         columns={columns}
                         data={teacherReports}
                         selectable={true}
-                        onQuickAction={handleQuickAction}
                         pageSize={8}
                     />
+                    {loading && <div style={{ padding: '12px', color: '#64748b', fontWeight: 600 }}>Loading…</div>}
+                    {error && <div style={{ padding: '12px', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
                 </div>
 
                 {/* Workload Chart */}

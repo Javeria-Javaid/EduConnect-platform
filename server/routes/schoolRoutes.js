@@ -14,11 +14,29 @@ import { getStudents, createStudent, updateStudent, deleteStudent } from '../con
 import { getTeachers, getTeacherStats, createTeacher, updateTeacher, deleteTeacher, getTeacherStudents } from '../controllers/teacherAdminController.js';
 import { getClasses, createClass, updateClass, deleteClass, getClassesStats } from '../controllers/classController.js';
 import { markAttendance, getAttendanceStats } from '../controllers/attendanceController.js';
+import {
+  getSchoolReportsOverview,
+  getStudentsReport,
+  getAttendanceReport,
+  getTeachersReport,
+  getExamsReport,
+  getFinanceReportForSchool,
+  getAdmissionsReportForSchool,
+} from '../controllers/schoolReportsController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { authorize } from '../middleware/roleMiddleware.js';
 
 router.get('/stats', protect, authorize('admin', 'school_admin'), getSchoolStats);
 router.get('/parent-stats', protect, authorize('admin', 'school_admin'), getParentStatsForAdmin);
+
+// Reports (School-scoped)
+router.get('/reports/overview', protect, authorize('school_admin', 'admin'), getSchoolReportsOverview);
+router.get('/reports/students', protect, authorize('school_admin', 'admin'), getStudentsReport);
+router.get('/reports/teachers', protect, authorize('school_admin', 'admin'), getTeachersReport);
+router.get('/reports/attendance', protect, authorize('school_admin', 'admin'), getAttendanceReport);
+router.get('/reports/exams', protect, authorize('school_admin', 'admin'), getExamsReport);
+router.get('/reports/finance', protect, authorize('school_admin', 'admin'), getFinanceReportForSchool);
+router.get('/reports/admissions', protect, authorize('school_admin', 'admin'), getAdmissionsReportForSchool);
 
 // Attendance Management
 router.get('/attendance/stats', protect, authorize('school_admin', 'admin', 'teacher'), getAttendanceStats);

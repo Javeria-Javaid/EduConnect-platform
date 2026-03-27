@@ -23,7 +23,8 @@ export const createTransaction = async (req, res) => {
 
 export const deleteTransaction = async (req, res) => {
     try {
-        await Transaction.findByIdAndDelete(req.params.id);
+        const deleted = await Transaction.findOneAndDelete({ _id: req.params.id, school: req.user.school });
+        if (!deleted) return res.status(404).json({ message: 'Transaction not found' });
         res.json({ message: 'Transaction deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import School from '../models/School.js';
 
 const protect = async (req, res, next) => {
   let token;
@@ -24,14 +23,9 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'Not authorized, user not found' });
       }
 
-      // If a school_admin has no school assigned, try to find and assign the first available school
-      if (!req.user.school && req.user.role === 'school_admin') {
-        const school = await School.findOne({}).lean();
-        if (school) {
-          req.user.school = school._id;
-          // Persist the school assignment on the user record
-          await User.findByIdAndUpdate(req.user._id, { school: school._id });
-        }
+      // Enforce tenant scoping: school_admin/teacher/parent must be assigned to a school
+      if (!req.user.school && ['school_admin', 'teacher', 'parent', 'student'].includes(req.user.role)) {
+        return res.status(403).json({ message: 'User is not assigned to a school' });
       }
 
       next();
