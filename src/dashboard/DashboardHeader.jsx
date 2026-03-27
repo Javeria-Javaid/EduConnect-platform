@@ -1,12 +1,34 @@
-import React from 'react';
-import { Search, Bell, User, Menu } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Bell, User, Menu, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-import './DashboardHeader.css'; // Updated with ultra-specific selectors
+import './DashboardHeader.css';
 
 const DashboardHeader = ({ toggleSidebar, isMobile }) => {
     const { user, role } = useAuth();
+    const [unreadCount, setUnreadCount] = useState(0);
 
-    // Derive display name from email or role since we don't have a name field yet
+    const fetchUnreadCount = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/messages/unread-count`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setUnreadCount(data.unreadCount);
+            }
+        } catch (error) {
+            console.error('Failed to fetch unread count', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchUnreadCount();
+        // Refresh count every 30 seconds as a fallback
+        const interval = setInterval(fetchUnreadCount, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
     const displayName = user?.email ? user.email.split('@')[0] : 'User';
     const displayRole = role === 'school_admin' ? 'School Administrator' :
         role === 'admin' ? 'Super Admin' :
@@ -27,6 +49,14 @@ const DashboardHeader = ({ toggleSidebar, isMobile }) => {
             </div>
 
             <div className="header-right">
+                <button className="icon-btn message-btn">
+                    <MessageSquare size={20} />
+                    {unreadCount > 0 && (
+                        <span className="notification-badge message-badge">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                    )}
+                </button>
                 <button className="icon-btn notification-btn">
                     <Bell size={20} />
                     <span className="notification-badge">3</span>

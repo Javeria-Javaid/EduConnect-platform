@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Eye, Edit, MessageCircle, Printer, Plus, Download, Search, Trash2 } from 'lucide-react';
+import { Eye, Edit, MessageCircle, Printer, Plus, Download, Trash2 } from 'lucide-react';
 import SearchBar from '../shared/SearchBar';
 import DataTable from '../shared/DataTable';
 import FilterPanel from '../shared/FilterPanel';
@@ -12,22 +12,91 @@ const StudentDirectory = () => {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchBy, setSearchBy] = useState('Name');
     const [activeFilters, setActiveFilters] = useState({});
     const [selectedStudents, setSelectedStudents] = useState([]);
+    
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const pageSize = 10;
+
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
+    const [dynamicFilters, setDynamicFilters] = useState(studentFilters);
+
+    const fetchClasses = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/classes`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const classOptions = data.map(c => ({ label: c.name, value: c.name }));
+                
+                // Update studentFilters array directly in state to inject dynamic classes
+                const updatedFilters = studentFilters.map(filter => {
+                    if (filter.key === 'class') {
+                        return { ...filter, options: classOptions };
+                    }
+                    return filter;
+                });
+                setDynamicFilters(updatedFilters);
+            }
+        } catch (error) {
+            console.error('Failed to load classes for filters', error);
+        }
+    };
 
     const fetchStudents = async () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/students`, {
+            
+            // Build query params
+            const params = new URLSearchParams({
+                page: currentPage,
+                limit: pageSize,
+                search: searchTerm,
+                searchBy: searchBy
+            });
+
+            if (activeFilters.class && activeFilters.class.length > 0) {
+                params.append('class', activeFilters.class.join(','));
+            }
+            if (activeFilters.section && activeFilters.section.length > 0) {
+                params.append('section', activeFilters.section.join(','));
+            }
+            if (activeFilters.gender) {
+                params.append('gender', activeFilters.gender);
+            }
+            if (activeFilters.feeStatus && activeFilters.feeStatus.length > 0) {
+                params.append('feeStatus', activeFilters.feeStatus.join(','));
+            }
+            if (activeFilters.attendanceRange) {
+                params.append('attendanceRange', activeFilters.attendanceRange);
+            }
+            if (activeFilters.performanceRange) {
+                params.append('performanceRange', activeFilters.performanceRange);
+            }
+
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/students?${params.toString()}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const data = await res.json();
+            
             if (res.ok) {
-                setStudents(data);
+                const result = await res.json();
+                // Expecting { data, total, page, totalPages } format now
+                if (result.data) {
+                    setStudents(result.data);
+                    setTotalCount(result.total);
+                } else {
+                    setStudents(result);
+                    setTotalCount(result.length);
+                }
             } else {
+                const data = await res.json();
                 toast.error(data.message || 'Failed to fetch students');
             }
         } catch (error) {
@@ -38,8 +107,24 @@ const StudentDirectory = () => {
     };
 
     useEffect(() => {
-        fetchStudents();
+        fetchClasses();
     }, []);
+
+    useEffect(() => {
+        fetchStudents();
+    }, [currentPage, activeFilters]);
+
+    // Handle search debounce
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (currentPage !== 1) {
+                setCurrentPage(1); // Will trigger fetchStudents via the other effect
+            } else {
+                fetchStudents();
+            }
+        }, 300);
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm, searchBy]);
 
     const handleAddStudent = async (studentData) => {
         try {
@@ -91,35 +176,19 @@ const StudentDirectory = () => {
         }
     };
 
-    // Filter and search logic
-    const filteredStudents = useMemo(() => {
-        return students.filter(student => {
-            // Search filter
-            const matchesSearch = !searchTerm ||
-                student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                student.parentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                student.admissionNumber.toLowerCase().includes(searchTerm.toLowerCase());
+    const handleSearch = (val, field) => {
+        setSearchTerm(val);
+        setSearchBy(field);
+    };
 
-            // Class filter
-            const matchesClass = !activeFilters.class ||
-                activeFilters.class.includes(student.class);
+    const handleFilterChange = (newFilters) => {
+        setActiveFilters(newFilters);
+        setCurrentPage(1); // Reset to first page when filtering
+    };
 
-            // Section filter
-            const matchesSection = !activeFilters.section ||
-                activeFilters.section.includes(student.section);
-
-            // Gender filter
-            const matchesGender = !activeFilters.gender ||
-                student.gender === activeFilters.gender;
-
-            // Fee status filter
-            const matchesFeeStatus = !activeFilters.feeStatus ||
-                activeFilters.feeStatus.includes(student.feeStatus);
-
-            return matchesSearch && matchesClass && matchesSection &&
-                matchesGender && matchesFeeStatus;
-        });
-    }, [students, searchTerm, activeFilters]);
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
 
     // Table columns configuration
     const columns = [
@@ -127,12 +196,12 @@ const StudentDirectory = () => {
             key: 'photo',
             label: 'Photo',
             render: (student) => (
-                <img src={student.photo} alt={student.name} className="student-photo" />
+                <img src={student.photo || 'https://via.placeholder.com/50'} alt={student.name} className="student-photo" />
             )
         },
         {
             key: 'name',
-            label: 'Name',
+            label: 'NAME',
             sortable: true,
             render: (student) => (
                 <div className="student-info-cell">
@@ -143,50 +212,58 @@ const StudentDirectory = () => {
         },
         {
             key: 'class',
-            label: 'Class',
+            label: 'CLASS',
             sortable: true,
             render: (student) => (
                 <span className="class-badge">
-                    {student.class}-{student.section}
+                    {student.class}{student.section ? `-${student.section}` : ''}
                 </span>
             )
         },
         {
             key: 'rollNumber',
-            label: 'Roll No.',
+            label: 'ROLL NO.',
             sortable: true,
-            render: (student) => <span style={{ color: '#64748b', fontSize: '0.9rem' }}>{student.rollNumber}</span>
+            render: (student) => <span style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: '500' }}>{student.rollNumber}</span>
         },
         {
             key: 'attendance',
-            label: 'Attendance',
+            label: 'ATTENDANCE',
             sortable: true,
-            render: (student) => (
-                <div style={{ width: '100px' }}>
-                    <div style={{ height: '6px', width: '100%', background: '#f1f5f9', borderRadius: '3px', marginBottom: '4px', overflow: 'hidden' }}>
-                        <div
-                            style={{
-                                height: '100%',
-                                width: `${student.attendance}%`,
-                                background: student.attendance >= 90 ? '#10b981' :
-                                    student.attendance >= 75 ? '#f59e0b' : '#ef4444',
-                                borderRadius: '3px'
-                            }}
-                        />
+            render: (student) => {
+                const att = student.attendance;
+                if (att === 'N/A') return <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>No data</span>;
+                
+                const percent = Number(att);
+                const color = percent >= 75 ? '#10b981' : percent >= 50 ? '#f59e0b' : '#ef4444';
+                
+                return (
+                    <div style={{ width: '100px' }}>
+                        <div style={{ height: '6px', width: '100%', background: '#f1f5f9', borderRadius: '3px', marginBottom: '4px', overflow: 'hidden' }}>
+                            <div
+                                style={{
+                                    height: '100%',
+                                    width: `${percent}%`,
+                                    background: color,
+                                    borderRadius: '3px'
+                                }}
+                            />
+                        </div>
+                        <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#475569' }}>{percent}%</span>
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{student.attendance}%</span>
-                </div>
-            )
+                );
+            }
         },
         {
             key: 'feeStatus',
-            label: 'Fee Status',
+            label: 'FEE STATUS',
             sortable: true,
             render: (student) => {
                 const statusClass = {
-                    Paid: 'badge-success',
-                    Pending: 'badge-warning',
-                    Overdue: 'badge-danger'
+                    'Paid': 'badge-success',
+                    'Pending': 'badge-warning',
+                    'Overdue': 'badge-danger',
+                    'Not Set': 'badge-neutral'
                 }[student.feeStatus] || 'badge-neutral';
 
                 return (
@@ -198,17 +275,22 @@ const StudentDirectory = () => {
         },
         {
             key: 'performance',
-            label: 'Performance',
+            label: 'PERFORMANCE',
             sortable: true,
-            render: (student) => (
-                <div style={{ display: 'flex', gap: '2px' }}>
-                    {[...Array(5)].map((_, i) => (
-                        <span key={i} style={{ fontSize: '0.9rem', color: i < student.performance ? '#facc15' : '#e2e8f0' }}>
-                            ★
-                        </span>
-                    ))}
-                </div>
-            )
+            render: (student) => {
+                if (!student.performance || student.performance === 0) {
+                    return <span style={{ color: '#94a3b8', fontSize: '0.85rem' }} title="No exam data available">No exams yet</span>;
+                }
+                return (
+                    <div style={{ display: 'flex', gap: '2px' }}>
+                        {[...Array(5)].map((_, i) => (
+                            <span key={i} style={{ fontSize: '1rem', color: i < student.performance ? '#f59e0b' : '#e2e8f0' }}>
+                                ★
+                            </span>
+                        ))}
+                    </div>
+                );
+            }
         }
     ];
 
@@ -216,32 +298,28 @@ const StudentDirectory = () => {
     const getQuickActions = (student) => [
         {
             label: 'View Profile',
-            icon: <Eye size={14} />,
+            icon: <Eye size={16} strokeWidth={2} />,
             onClick: (s) => console.log('View', s)
         },
         {
             label: 'Edit Details',
-            icon: <Edit size={14} />,
+            icon: <Edit size={16} strokeWidth={2} />,
             onClick: (s) => {
                 setEditingStudent(s);
                 setIsAddModalOpen(true);
             }
         },
         {
-            label: 'Delete',
-            icon: <Trash2 size={14} />,
-            onClick: (s) => handleDeleteStudent(s._id)
-        },
-        {
             label: 'Send Message',
-            icon: <MessageCircle size={14} />,
+            icon: <MessageCircle size={16} strokeWidth={2} />,
             onClick: (s) => console.log('Message', s)
         },
         {
-            label: 'Print ID Card',
-            icon: <Printer size={14} />,
-            onClick: (s) => console.log('Print', s)
+            label: 'Delete',
+            icon: <Trash2 size={16} strokeWidth={2} />,
+            onClick: (s) => handleDeleteStudent(s._id)
         }
+        // Removed Print ID Card as it was inconsistent and unimplemented, leaving View, Edit, Message, Delete
     ];
 
     return (
@@ -251,13 +329,13 @@ const StudentDirectory = () => {
                 <div className="header-content">
                     <h1>Student Directory</h1>
                     <p>
-                        {filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''} found
+                        Total {totalCount} student{totalCount !== 1 ? 's' : ''} enrolled
                     </p>
                 </div>
                 <div className="header-actions">
-                    <button className="btn-secondary">
-                        <Download size={18} />
-                        Export
+                    <button className="btn-secondary" onClick={() => fetchStudents()}>
+                        <Search size={18} />
+                        Refresh
                     </button>
                     <button
                         onClick={() => {
@@ -278,14 +356,14 @@ const StudentDirectory = () => {
                     <div className="search-filter-row">
                         <div className="search-wrapper">
                             <SearchBar
-                                placeholder="Search by name, parent, or admission number..."
-                                onSearch={setSearchTerm}
+                                placeholder={`Search by ${searchBy.toLowerCase()}...`}
+                                onSearch={handleSearch}
                                 searchFields={['Name', 'Parent Name', 'Admission Number']}
                             />
                         </div>
                         <FilterPanel
-                            filters={studentFilters}
-                            onFilterChange={setActiveFilters}
+                            filters={dynamicFilters}
+                            onFilterChange={handleFilterChange}
                         />
                     </div>
                 </div>
@@ -301,7 +379,6 @@ const StudentDirectory = () => {
                                 <button className="btn-action-sm">Print IDs</button>
                                 <button className="btn-danger-sm" onClick={() => {
                                     if(window.confirm(`Delete ${selectedStudents.length} students?`)) {
-                                        // Bulk delete logic would go here
                                         toast.info('Bulk delete pending implementation');
                                     }
                                 }}>Delete</button>
@@ -311,17 +388,21 @@ const StudentDirectory = () => {
                 )}
 
                 {/* Data Table */}
-                <div style={{ padding: '20px' }}>
+                <div style={{ padding: '20px', overflowX: 'auto' }}>
                     {loading ? (
                         <div className="loading-state">Loading students...</div>
                     ) : (
                         <DataTable
                             columns={columns}
-                            data={filteredStudents}
+                            data={students}
                             selectable={true}
                             onSelectionChange={setSelectedStudents}
                             onQuickAction={getQuickActions}
-                            pageSize={10}
+                            pageSize={pageSize}
+                            serverSide={true}
+                            totalCount={totalCount}
+                            currentPage={currentPage}
+                            onPageChange={handlePageChange}
                         />
                     )}
                 </div>

@@ -1,7 +1,7 @@
 .dashboard-sidebar {
     height: 100vh;
-    background-color: #ffffff;
-    border-right: 1px solid #e2e8f0;
+    background-color: var(--surface-color);
+    border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     transition: width 0.3s ease;
@@ -39,7 +39,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 20px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .logo-text {
@@ -135,7 +135,7 @@
 
 .sidebar-footer {
     padding: 20px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--border-color);
 }
 
 .logout-btn {

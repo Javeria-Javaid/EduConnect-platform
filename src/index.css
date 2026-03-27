@@ -38,6 +38,18 @@
   --spacing-xl: 32px;
 }
 
+.dark {
+  --surface-color: #0f172a;
+  --sidebar-bg: #1e293b;
+  --background-color: #020617;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  
+  --border-color: #334155;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -47,8 +59,8 @@
 body {
   font-family: var(--font-family-base);
   line-height: 1.6;
-  color: #333;
-  background-color: var(--surface-color);
+  color: var(--text-secondary);
+  background-color: var(--background-color);
   min-height: 100vh;
   display: flex;
   flex-direction: column;

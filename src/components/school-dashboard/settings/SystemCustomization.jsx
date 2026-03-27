@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Monitor, Moon, Sun, Layout, Type } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 const SystemCustomization = () => {
-    const [theme, setTheme] = useState('light');
+    const { theme, setTheme } = useTheme();
     const [sidebar, setSidebar] = useState('expanded');
 
     return (

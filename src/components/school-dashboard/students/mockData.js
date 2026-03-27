@@ -110,7 +110,30 @@ export const studentFilters = [
         options: [
             { label: 'Paid', value: 'Paid' },
             { label: 'Pending', value: 'Pending' },
-            { label: 'Overdue', value: 'Overdue' }
+            { label: 'Overdue', value: 'Overdue' },
+            { label: 'Not Set', value: 'Not Set' }
+        ]
+    },
+    {
+        key: 'attendanceRange',
+        label: 'Attendance',
+        type: 'select',
+        options: [
+            { label: 'Below 50%', value: 'Below 50%' },
+            { label: '50-75%', value: '50-75%' },
+            { label: 'Above 75%', value: 'Above 75%' }
+        ]
+    },
+    {
+        key: 'performanceRange',
+        label: 'Performance',
+        type: 'select',
+        options: [
+            { label: '5 Stars', value: '5' },
+            { label: '4 Stars', value: '4' },
+            { label: '3 Stars', value: '3' },
+            { label: '2 Stars', value: '2' },
+            { label: '1 Star', value: '1' }
         ]
     }
 ];

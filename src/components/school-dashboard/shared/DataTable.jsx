@@ -8,11 +8,17 @@ const DataTable = ({
     selectable = false,
     onSelectionChange,
     onQuickAction,
-    pageSize = 10
+    pageSize = 10,
+    serverSide = false,
+    totalCount = 0,
+    currentPage: externalPage = 1,
+    onPageChange
 }) => {
-    const [currentPage, setCurrentPage] = useState(1);
+    const [localPage, setLocalPage] = useState(1);
     const [selectedRows, setSelectedRows] = useState([]);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
+    const currentPage = serverSide ? externalPage : localPage;
 
     // Sort data
     const sortedData = [...data].sort((a, b) => {
@@ -26,9 +32,19 @@ const DataTable = ({
     });
 
     // Pagination
-    const totalPages = Math.ceil(sortedData.length / pageSize);
+    const finalTotalCount = serverSide ? totalCount : sortedData.length;
+    const totalPages = Math.max(1, Math.ceil(finalTotalCount / pageSize));
     const startIndex = (currentPage - 1) * pageSize;
-    const paginatedData = sortedData.slice(startIndex, startIndex + pageSize);
+    const paginatedData = serverSide ? sortedData : sortedData.slice(startIndex, startIndex + pageSize);
+
+    const handlePageChange = (newPage) => {
+        if (!serverSide) {
+            setLocalPage(newPage);
+        }
+        if (onPageChange) {
+            onPageChange(newPage);
+        }
+    };
 
     const handleSort = (key) => {
         let direction = 'asc';
@@ -40,7 +56,7 @@ const DataTable = ({
 
     const handleSelectAll = (e) => {
         if (e.target.checked) {
-            const allIds = paginatedData.map(row => row.id);
+            const allIds = paginatedData.map(row => row.id || row._id);
             setSelectedRows(allIds);
             onSelectionChange && onSelectionChange(allIds);
         } else {
@@ -110,7 +126,7 @@ const DataTable = ({
                                             />
                                         </td>
                                     )}
-                                    {columns.map((col) => (
+                                        {columns.map((col) => (
                                         <td key={col.key} className="table-cell">
                                             {col.render ? col.render(row) : row[col.key]}
                                         </td>
@@ -118,10 +134,10 @@ const DataTable = ({
                                     {onQuickAction && (
                                         <td className="table-cell actions-cell">
                                             <div className="action-buttons-group">
-                                                {onQuickAction(row).map((action, i) => (
+                                                {onQuickAction(row).filter(Boolean).map((action, i) => (
                                                     <button
                                                         key={i}
-                                                        onClick={action.onClick}
+                                                        onClick={() => action.onClick(row)}
                                                         className="action-btn"
                                                         title={action.label}
                                                     >
@@ -147,11 +163,11 @@ const DataTable = ({
             {/* Pagination */}
             <div className="pagination-container">
                 <span className="pagination-info">
-                    Showing <span className="highlight">{startIndex + 1}</span> to <span className="highlight">{Math.min(startIndex + pageSize, sortedData.length)}</span> of <span className="highlight">{sortedData.length}</span> entries
+                    Showing <span className="highlight">{startIndex + (paginatedData.length > 0 ? 1 : 0)}</span> to <span className="highlight">{startIndex + paginatedData.length}</span> of <span className="highlight">{finalTotalCount}</span> entries
                 </span>
                 <div className="pagination-controls">
                     <button
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                         disabled={currentPage === 1}
                         className="pagination-btn"
                     >
@@ -160,14 +176,14 @@ const DataTable = ({
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                         <button
                             key={page}
-                            onClick={() => setCurrentPage(page)}
+                            onClick={() => handlePageChange(page)}
                             className={`pagination-page-btn ${currentPage === page ? 'active' : ''}`}
                         >
                             {page}
                         </button>
                     ))}
                     <button
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                         disabled={currentPage === totalPages}
                         className="pagination-btn"
                     >

@@ -22,7 +22,7 @@
   padding: 30px;
   flex: 1;
   overflow-y: auto;
-  background-color: #ffffff !important;
+  background-color: var(--background-color);
 }
 
 .sidebar-overlay {

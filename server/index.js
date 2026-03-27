@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import passport from 'passport';
 import session from 'express-session';
 import connectDB from './config/db.js';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 // Route imports
 import authRoutes from './routes/authRoutes.js';
@@ -21,6 +23,7 @@ import examRoutes from './routes/examRoutes.js';
 import timetableRoutes from './routes/timetableRoutes.js';
 import financeRoutes from './routes/financeRoutes.js';
 import transportRoutes from './routes/transportRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
 
 // Passport config
 import './config/passport.js';
@@ -31,13 +34,18 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const httpServer = createServer(app);
+
+const CORS_ORIGIN = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:5173'];
+const io = new Server(httpServer, {
+    cors: { origin: CORS_ORIGIN, credentials: true }
+});
 
 // Middleware
 app.use(express.json());
-const CORS_ORIGIN = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:5173'];
-app.use(cors({ origin: CORS_ORIGIN, credentials: true })); // credentials: true for session if needed
+app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
 
-// Session middleware (required for Passport OAuth)
+// Session middleware
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'secret',
@@ -53,7 +61,7 @@ app.use(passport.session());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/schools', schoolRoutes);
-app.use('/api/teacher', teacherRoutes); // Note: singular 'teacher' to match frontend assumption or plural? Frontend used 'teacher' in my edit.
+app.use('/api/teacher', teacherRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/homework', homeworkRoutes);
@@ -66,13 +74,45 @@ app.use('/api/exams', examRoutes);
 app.use('/api/timetables', timetableRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/transport', transportRoutes);
+app.use('/api/messages', messageRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Socket.io Real-Time Messaging Hub
+io.on('connection', (socket) => {
+    socket.on('setup', (userData) => {
+        socket.join(userData._id);
+        socket.emit('connected');
+    });
+
+    socket.on('join chat', (room) => {
+        socket.join(room);
+    });
+
+    socket.on('new message', (newMessageReceived) => {
+        const conversation = newMessageReceived.conversation;
+        if (!conversation || !conversation.participants) return;
+        
+        conversation.participants.forEach(user => {
+            // Don't send notification to the sender
+            if (user._id === newMessageReceived.sender._id || user === newMessageReceived.sender._id) return;
+            // Emit to recipient's private room
+            socket.in(user._id || user).emit('message received', newMessageReceived);
+        });
+    });
+
+    socket.on('typing', (data) => socket.in(data.roomId).emit('typing', data));
+    socket.on('stop typing', (data) => socket.in(data.roomId).emit('stop typing', data));
+    
+    socket.on('disconnect', () => {
+        // cleanup 
+    });
+});
+
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+httpServer.listen(PORT, () => {
+  console.log(`Server & Socket.io running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });

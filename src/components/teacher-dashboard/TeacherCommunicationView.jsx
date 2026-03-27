@@ -43,10 +43,12 @@ const TeacherCommunicationView = () => {
         setSendError('');
 
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/send-message`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
                     recipient,
@@ -60,9 +62,8 @@ const TeacherCommunicationView = () => {
             const data = await response.json();
 
             if (response.ok) {
-                const newMsg = await response.json();
                 toast.success('Message sent successfully!');
-                setMessagesList([{...newMsg.message, from: 'Me', date: new Date().toLocaleDateString()}, ...messagesList]);
+                setMessagesList([{...data.message, from: 'Me', date: new Date().toLocaleDateString()}, ...messagesList]);
                 setRecipient('');
                 setSubject('');
                 setMessageText('');

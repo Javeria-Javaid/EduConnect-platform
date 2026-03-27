@@ -1,51 +1,141 @@
 import StudentProfile from '../models/StudentProfile.js';
 import User from '../models/User.js';
 
+import Attendance from '../models/Attendance.js';
+import Transaction from '../models/Transaction.js';
+import ExamResult from '../models/ExamResult.js';
+
 export const getStudents = async (req, res) => {
   try {
     const schoolId = req.user.school;
-    const { search, class: className, section } = req.query;
+    const { 
+        page = 1, 
+        limit = 10, 
+        search, 
+        searchBy = 'Name', 
+        class: className, 
+        section,
+        feeStatus,
+        attendanceRange,
+        performanceRange
+    } = req.query;
 
     let query = { school: schoolId };
 
-    if (className) query.class = className;
-    if (section) query.section = section;
-
-    const students = await StudentProfile.find(query).populate('user', 'firstName lastName email role');
-    
-    // Format for frontend
-    const formattedStudents = students.map(s => ({
-      _id: s._id,
-      userId: s.user?._id,
-      name: `${s.user?.firstName} ${s.user?.lastName}`,
-      email: s.user?.email,
-      admissionNumber: s.admissionNumber,
-      rollNumber: s.rollNumber,
-      class: s.class,
-      section: s.section,
-      parentName: s.parentName,
-      parentPhone: s.parentPhone,
-      gender: s.gender,
-      feeStatus: s.feeStatus,
-      attendance: s.attendance,
-      performance: s.performance,
-      photo: s.photo,
-    }));
-
-    if (search) {
-       const filtered = formattedStudents.filter(s => 
-          s.name.toLowerCase().includes(search.toLowerCase()) || 
-          s.admissionNumber.toLowerCase().includes(search.toLowerCase()) ||
-          s.parentName.toLowerCase().includes(search.toLowerCase())
-       );
-       return res.json(filtered);
+    if (className) {
+        const classes = className.split(',');
+        query.class = classes.length > 1 ? { $in: classes } : className;
+    }
+    if (section) {
+        const sections = section.split(',');
+        query.section = sections.length > 1 ? { $in: sections } : section;
     }
 
-    res.json(formattedStudents);
+    if (search) {
+        if (searchBy === 'Parent Name') query.parentName = { $regex: search, $options: 'i' };
+        if (searchBy === 'Admission Number') query.admissionNumber = { $regex: search, $options: 'i' };
+    }
+
+    let students = await StudentProfile.find(query).populate('user', 'firstName lastName email role');
+
+    // Name search must be handled after populate
+    if (search && searchBy === 'Name') {
+        const lowerSearch = search.toLowerCase();
+        students = students.filter(s => {
+            const name = `${s.user?.firstName || ''} ${s.user?.lastName || ''}`.toLowerCase();
+            return name.includes(lowerSearch);
+        });
+    }
+
+    // Resolve stats for each student
+    let formattedStudents = await Promise.all(students.map(async (s) => {
+        // Attendance
+        const attRecords = await Attendance.find({ student: s.user?._id });
+        let attendance = 'N/A';
+        if (attRecords.length > 0) {
+            const present = attRecords.filter(r => r.status === 'Present' || r.status === 'Late').length;
+            attendance = Math.round((present / attRecords.length) * 100);
+        }
+
+        // Fee Status
+        const tx = await Transaction.findOne({ student: s.user?._id, type: 'Income' }).sort({ date: -1 });
+        let resolvedFeeStatus = 'Not Set';
+        if (tx) {
+            if (tx.status === 'Paid') resolvedFeeStatus = 'Paid';
+            else if (tx.status === 'Pending') resolvedFeeStatus = 'Pending';
+            else if (tx.status === 'Failed') resolvedFeeStatus = 'Overdue';
+        }
+
+        // Performance
+        const exams = await ExamResult.find({ student: s.user?._id });
+        let performance = 0;
+        if (exams.length > 0) {
+            const avg = exams.reduce((acc, curr) => acc + curr.percentage, 0) / exams.length;
+            if (avg >= 90) performance = 5;
+            else if (avg >= 75) performance = 4;
+            else if (avg >= 60) performance = 3;
+            else if (avg >= 45) performance = 2;
+            else performance = 1;
+        }
+
+        return {
+            _id: s._id,
+            userId: s.user?._id,
+            name: `${s.user?.firstName || ''} ${s.user?.lastName || ''}`.trim(),
+            email: s.user?.email,
+            admissionNumber: s.admissionNumber,
+            rollNumber: s.rollNumber,
+            class: s.class,
+            section: s.section,
+            parentName: s.parentName,
+            parentPhone: s.parentPhone,
+            gender: s.gender,
+            feeStatus: resolvedFeeStatus,
+            attendance,
+            performance,
+            photo: s.photo,
+        };
+    }));
+
+    // Apply remaining filters
+    if (feeStatus) {
+        const statuses = feeStatus.split(',');
+        formattedStudents = formattedStudents.filter(s => statuses.includes(s.feeStatus));
+    }
+
+    if (attendanceRange) {
+        if (attendanceRange === 'Below 50%') formattedStudents = formattedStudents.filter(s => s.attendance !== 'N/A' && s.attendance < 50);
+        if (attendanceRange === '50-75%') formattedStudents = formattedStudents.filter(s => s.attendance >= 50 && s.attendance <= 75);
+        if (attendanceRange === 'Above 75%') formattedStudents = formattedStudents.filter(s => s.attendance > 75);
+    }
+
+    if (performanceRange) {
+        const stars = parseInt(performanceRange);
+        if (!isNaN(stars)) {
+            formattedStudents = formattedStudents.filter(s => s.performance === stars);
+        }
+    }
+
+    // Server-side Pagination
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    const total = formattedStudents.length;
+    
+    const startIndex = (pageNum - 1) * limitNum;
+    const endIndex = pageNum * limitNum;
+    const paginated = formattedStudents.slice(startIndex, endIndex);
+
+    res.json({
+        data: paginated,
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum)
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 export const createStudent = async (req, res) => {
   try {

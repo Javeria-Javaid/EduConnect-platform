@@ -11,7 +11,7 @@ import {
   getParentStatsForAdmin,
 } from '../controllers/schoolController.js';
 import { getStudents, createStudent, updateStudent, deleteStudent } from '../controllers/studentController.js';
-import { getTeachers, createTeacher, updateTeacher, deleteTeacher } from '../controllers/teacherAdminController.js';
+import { getTeachers, getTeacherStats, createTeacher, updateTeacher, deleteTeacher, getTeacherStudents } from '../controllers/teacherAdminController.js';
 import { getClasses, createClass, updateClass, deleteClass, getClassesStats } from '../controllers/classController.js';
 import { markAttendance, getAttendanceStats } from '../controllers/attendanceController.js';
 import { protect } from '../middleware/authMiddleware.js';
@@ -31,7 +31,9 @@ router.put('/students/:id', protect, authorize('school_admin', 'admin'), updateS
 router.delete('/students/:id', protect, authorize('school_admin', 'admin'), deleteStudent);
 
 // Teacher Management
+router.get('/teachers/stats', protect, authorize('school_admin', 'admin'), getTeacherStats);
 router.get('/teachers', protect, authorize('school_admin', 'admin'), getTeachers);
+router.get('/teachers/:id/students', protect, authorize('school_admin', 'admin', 'teacher'), getTeacherStudents);
 router.post('/teachers', protect, authorize('school_admin', 'admin'), createTeacher);
 router.put('/teachers/:id', protect, authorize('school_admin', 'admin'), updateTeacher);
 router.delete('/teachers/:id', protect, authorize('school_admin', 'admin'), deleteTeacher);

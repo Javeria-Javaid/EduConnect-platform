@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import './SearchBar.css';
 
@@ -10,18 +10,33 @@ const SearchBar = ({
 }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isFocused, setIsFocused] = useState(false);
+    const [activeField, setActiveField] = useState(searchFields.length > 0 ? searchFields[0] : '');
 
-    const handleSearch = (value) => {
+    // If searchFields change, reset active field
+    useEffect(() => {
+        if (searchFields.length > 0 && !searchFields.includes(activeField)) {
+            setActiveField(searchFields[0]);
+        }
+    }, [searchFields]);
+
+    const handleSearch = (value, field = activeField) => {
         setSearchTerm(value);
         if (onSearch) {
-            onSearch(value);
+            onSearch(value, field);
+        }
+    };
+
+    const handleFieldChange = (field) => {
+        setActiveField(field);
+        if (searchTerm && onSearch) {
+            onSearch(searchTerm, field);
         }
     };
 
     const clearSearch = () => {
         setSearchTerm('');
         if (onSearch) {
-            onSearch('');
+            onSearch('', activeField);
         }
     };
 
@@ -52,7 +67,19 @@ const SearchBar = ({
                 <div className="search-fields-hint">
                     <span className="hint-label">Search by:</span>
                     {searchFields.map((field, index) => (
-                        <span key={index} className="hint-field">{field}</span>
+                        <span 
+                            key={index} 
+                            className={`hint-field ${activeField === field ? 'active' : ''}`}
+                            onClick={() => handleFieldChange(field)}
+                            style={{ 
+                                cursor: 'pointer', 
+                                fontWeight: activeField === field ? '700' : '400',
+                                backgroundColor: activeField === field ? '#e2e8f0' : 'transparent',
+                                color: activeField === field ? '#0f172a' : '#64748b'
+                            }}
+                        >
+                            {field}
+                        </span>
                     ))}
                 </div>
             )}

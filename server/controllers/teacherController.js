@@ -83,9 +83,24 @@ export const applyForJob = async (req, res) => {
   try {
     const school = await School.findById(req.params.schoolId);
     if (!school) return res.status(404).json({ message: 'School not found' });
-    const existingApplication = await Application.findOne({ teacher: req.user._id, school: req.params.schoolId });
-    if (existingApplication) return res.status(400).json({ message: 'Already applied' });
-    const application = new Application({ teacher: req.user._id, school: req.params.schoolId, coverLetter: req.body.coverLetter });
+    
+    // Check if already applied to this school
+    const existingApplication = await Application.findOne({ 
+        teacher: req.user._id, 
+        school: req.params.schoolId 
+    });
+    
+    if (existingApplication) return res.status(400).json({ message: 'Already applied to this school' });
+    
+    const application = new Application({ 
+        teacher: req.user._id, 
+        applicantRef: req.user._id,
+        applicantName: `${req.user.firstName} ${req.user.lastName}`,
+        applicantEmail: req.user.email,
+        school: req.params.schoolId, 
+        coverLetter: req.body.coverLetter || "I am interested in this position."
+    });
+    
     await application.save();
     res.status(201).json(application);
   } catch (error) {

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { User, Lock, Bell, Palette, Globe, Shield } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { teacherInfo } from './mockData';
 import './TeacherDashboardOverview.css';
 
 const TeacherSettingsView = () => {
     const [activeTab, setActiveTab] = useState('profile');
-    const [theme, setTheme] = useState('light');
+    const { theme, setTheme } = useTheme();
 
     return (
         <div className="teacher-dashboard-overview">

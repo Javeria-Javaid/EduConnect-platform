@@ -8,22 +8,36 @@ const messageSchema = new mongoose.Schema({
     },
     recipient: {
         type: String,
-        required: true,
         trim: true
     },
     recipientType: {
         type: String,
-        enum: ['parent', 'student', 'group', 'all'],
+        enum: ['parent', 'student', 'group', 'all', 'individual'], // Added individual
         default: 'parent'
     },
     subject: {
         type: String,
-        required: true,
         trim: true
     },
-    body: {
+    // New Fields for Chat Conversations
+    conversation: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Conversation'
+    },
+    content: {
         type: String,
-        required: true
+        trim: true
+    },
+    readBy: [{
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User'
+    }],
+    sentAt: {
+        type: Date,
+        default: Date.now
+    },
+    body: {
+        type: String
     },
     sentDate: {
         type: Date,
