@@ -112,11 +112,11 @@ const StudentReports = () => {
     const columns = [
         {
             key: 'name', label: 'Student Name', sortable: true, render: (row) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div className="report-inline-row">
                     <div className="student-avatar">
                         {row.name.split(' ').map(n => n[0]).join('')}
                     </div>
-                    <span style={{ fontWeight: '600', color: '#1e293b' }}>{row.name}</span>
+                    <span className="report-cell-primary">{row.name}</span>
                 </div>
             )
         },
@@ -137,14 +137,14 @@ const StudentReports = () => {
         },
         {
             key: 'attendance', label: 'Attendance', sortable: true, render: (row) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="report-inline-row tight">
                     <div className="progress-bar-container">
                         <div
                             className="progress-bar-fill"
                             style={{ width: row.attendance, background: '#3b82f6' }}
                         />
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{row.attendance}</span>
+                    <span className="report-cell-muted">{row.attendance}</span>
                 </div>
             )
         },
@@ -186,22 +186,22 @@ const StudentReports = () => {
                                     <h3>{stat.label}</h3>
                                     <p className="report-summary-value">{stat.value}</p>
                                 </div>
-                                <div className="report-summary-icon" style={{ backgroundColor: stat.bgColor, color: '#3b82f6' }}>
+                                <div className="report-summary-icon report-summary-icon-dynamic" style={{ '--summary-icon-bg': stat.bgColor }}>
                                     <Icon size={24} />
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '12px', fontSize: '0.85rem', fontWeight: '600' }}>
-                                <span style={{ color: stat.change.startsWith('+') ? '#10b981' : '#ef4444' }}>
+                            <div className="report-summary-change-row">
+                                <span className={stat.change.startsWith('+') ? 'report-trend-positive' : 'report-trend-negative'}>
                                     {stat.change}
                                 </span>
-                                <span style={{ color: '#94a3b8' }}>vs last term</span>
+                                <span className="report-trend-muted">vs last term</span>
                             </div>
                         </div>
                     );
                 })}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+            <div className="report-content-grid report-single-column">
                 {/* Filters & Table */}
                 <div className="report-table-section">
                     <div className="report-table-header">
@@ -223,14 +223,14 @@ const StudentReports = () => {
                         selectable={true}
                         pageSize={8}
                     />
-                    {loading && <div style={{ padding: '12px', color: '#64748b', fontWeight: 600 }}>Loading…</div>}
-                    {error && <div style={{ padding: '12px', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
+                    {loading && <div className="report-state-message report-state-loading">Loading...</div>}
+                    {error && <div className="report-state-message report-state-error">{error}</div>}
                 </div>
 
                 {/* Charts Side Panel */}
                 <div className="report-chart-card">
                     <h3 className="report-chart-title">Performance Distribution</h3>
-                    <div style={{ height: '400px', marginBottom: '20px', padding: '10px 0' }}>
+                    <div className="report-pie-wrap">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
@@ -253,33 +253,20 @@ const StudentReports = () => {
                                     verticalAlign="bottom"
                                     height={50}
                                     iconType="circle"
-                                    formatter={(value, entry) => (
-                                        <span style={{ color: '#475569', fontSize: '0.875rem', fontWeight: '500' }}>
-                                            {value}
-                                        </span>
-                                    )}
+                                    formatter={(value) => <span className="report-legend-label">{value}</span>}
                                 />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
-                    <div style={{
-                        marginTop: '20px',
-                        paddingTop: '20px',
-                        borderTop: '1px solid #f1f5f9',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px'
-                    }}>
-                        <h4 style={{ fontSize: '0.9rem', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>
-                            Breakdown
-                        </h4>
+                    <div className="report-breakdown">
+                        <h4 className="report-breakdown-title">Breakdown</h4>
                         {performanceData.map((item) => (
-                            <div key={item.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#f8fafc', borderRadius: '8px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', backgroundColor: item.color, boxShadow: `0 2px 8px ${item.color}40` }} />
-                                    <span style={{ color: '#475569', fontSize: '0.875rem', fontWeight: '500' }}>{item.name}</span>
+                            <div key={item.name} className="report-breakdown-item">
+                                <div className="report-breakdown-left">
+                                    <div className="report-breakdown-dot" style={{ '--dot-color': item.color, '--dot-shadow-color': `${item.color}40` }} />
+                                    <span className="report-breakdown-name">{item.name}</span>
                                 </div>
-                                <span style={{ fontWeight: '700', color: '#1e293b', fontSize: '0.95rem' }}>{item.value}%</span>
+                                <span className="report-breakdown-value">{item.value}%</span>
                             </div>
                         ))}
                     </div>

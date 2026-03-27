@@ -149,7 +149,7 @@ const DashboardOverview = () => {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="no-data-msg" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>No admission data for selected period.</div>
+              <div className="no-data-msg">No admission data for selected period.</div>
             )}
           </div>
         </div>
@@ -174,7 +174,7 @@ const DashboardOverview = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="no-data-msg" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>No job application data found.</div>
+              <div className="no-data-msg">No job application data found.</div>
             )}
           </div>
         </div>
@@ -202,7 +202,7 @@ const DashboardOverview = () => {
                 </div>
               </div>
             )) : (
-              <div className="no-data-msg-p" style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>No pending approvals.</div>
+              <div className="no-data-msg-p">No pending approvals.</div>
             )}
           </div>
         </div>

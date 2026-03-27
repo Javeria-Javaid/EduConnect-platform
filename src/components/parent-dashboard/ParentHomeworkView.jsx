@@ -1,13 +1,45 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Book, Clock, CheckCircle, FileText } from 'lucide-react';
+import { toast } from 'sonner';
 import './ParentViews.css';
 
 const ParentHomeworkView = () => {
-    const homeworkList = [
-        { id: 1, subject: 'Mathematics', title: 'Chapter 5 Exercises', due: 'Dec 8, 2025', status: 'pending', description: 'Complete exercises 1-20 from Chapter 5' },
-        { id: 2, subject: 'Science', title: 'Lab Report', due: 'Dec 10, 2025', status: 'pending', description: 'Write a report on the chemistry experiment' },
-        { id: 3, subject: 'English', title: 'Essay Writing', due: 'Dec 7, 2025', status: 'submitted', description: 'Write a 500-word essay on climate change' },
-    ];
+    const [homeworkList, setHomeworkList] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/parent/dashboard-data`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error();
+
+                const exams = data?.activeChildData?.examResults || [];
+                const upcoming = exams
+                    .filter(r => r?.exam?.startDate && new Date(r.exam.startDate) >= new Date())
+                    .sort((a, b) => new Date(a.exam.startDate) - new Date(b.exam.startDate))
+                    .slice(0, 8)
+                    .map((r, idx) => ({
+                        id: r._id || idx,
+                        subject: 'Exam Preparation',
+                        title: r.exam?.name || 'Upcoming Exam',
+                        due: new Date(r.exam.startDate).toLocaleDateString(),
+                        status: 'pending',
+                        description: 'Prepare for this scheduled exam.'
+                    }));
+
+                setHomeworkList(upcoming);
+            } catch {
+                toast.error('Failed to load assignments');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
 
     return (
         <div className="parent-view-container">
@@ -24,7 +56,11 @@ const ParentHomeworkView = () => {
                     </div>
                     <div className="card-body">
                         <div className="homework-list-view">
-                            {homeworkList.map((hw) => (
+                            {loading ? (
+                                <p>Loading assignments...</p>
+                            ) : homeworkList.length === 0 ? (
+                                <p>No pending assignments at the moment.</p>
+                            ) : homeworkList.map((hw) => (
                                 <div key={hw.id} className="homework-card">
                                     <div className="homework-header">
                                         <div className="homework-subject">{hw.subject}</div>

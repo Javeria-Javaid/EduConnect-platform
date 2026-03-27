@@ -294,6 +294,17 @@
     font-weight: 600;
 }
 
+.empty-state-message {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px dashed #cbd5e1;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
 /* Attendance Stats */
 .attendance-stats {
     display: flex;

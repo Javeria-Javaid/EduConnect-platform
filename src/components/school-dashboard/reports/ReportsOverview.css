@@ -6,6 +6,19 @@
     gap: 24px;
 }
 
+.reports-state-message {
+    padding: 16px;
+    font-weight: 600;
+}
+
+.reports-state-loading {
+    color: #64748b;
+}
+
+.reports-state-error {
+    color: #ef4444;
+}
+
 /* === SUMMARY CARDS === */
 .summary-grid {
     display: grid;
@@ -301,6 +314,33 @@
 
 .chart-container {
     height: 320px;
+    position: relative;
+}
+
+.attendance-center-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    padding-bottom: 32px;
+}
+
+.attendance-center-content {
+    text-align: center;
+}
+
+.attendance-center-value {
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.attendance-center-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin: 0;
 }
 
 /* === RECENT REPORTS === */
@@ -393,6 +433,35 @@
     background: #2563eb;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.reports-history-btn {
+    font-size: 0.9rem;
+    color: #3b82f6;
+    font-weight: 600;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.reports-empty-state {
+    padding: 18px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.report-meta-date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.report-type-pill {
+    padding: 2px 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
 }
 
 /* === RESPONSIVE === */

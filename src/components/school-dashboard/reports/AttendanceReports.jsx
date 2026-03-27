@@ -73,41 +73,41 @@ const AttendanceReports = () => {
     const columns = [
         {
             key: 'date', label: 'Date', sortable: true, render: (row) => (
-                <span style={{ fontWeight: '600', color: '#475569' }}>{row.date}</span>
+                <span className="report-cell-primary report-cell-secondary">{row.date}</span>
             )
         },
         {
             key: 'class', label: 'Class', sortable: true, render: (row) => (
-                <span style={{ padding: '4px 10px', borderRadius: '8px', background: '#f1f5f9', color: '#475569', fontSize: '0.75rem', fontWeight: '700' }}>
+                <span className="report-class-pill">
                     {row.class}
                 </span>
             )
         },
         {
             key: 'present', label: 'Present', sortable: true, render: (row) => (
-                <span style={{ color: '#10b981', fontWeight: '600' }}>{row.present}</span>
+                <span className="report-count-good">{row.present}</span>
             )
         },
         {
             key: 'absent', label: 'Absent', sortable: true, render: (row) => (
-                <span style={{ color: '#ef4444', fontWeight: '600' }}>{row.absent}</span>
+                <span className="report-count-bad">{row.absent}</span>
             )
         },
         {
             key: 'late', label: 'Late', sortable: true, render: (row) => (
-                <span style={{ color: '#f59e0b', fontWeight: '600' }}>{row.late}</span>
+                <span className="report-count-warn">{row.late}</span>
             )
         },
         {
             key: 'percentage', label: 'Attendance %', sortable: true, render: (row) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="report-inline-row tight">
                     <div className="progress-bar-container">
                         <div
                             className="progress-bar-fill"
                             style={{ width: row.percentage, background: parseInt(row.percentage) >= 90 ? '#10b981' : '#f59e0b' }}
                         />
                     </div>
-                    <span style={{ fontSize: '0.75rem', fontWeight: '600' }}>{row.percentage}</span>
+                    <span className="report-cell-muted report-cell-strong">{row.percentage}</span>
                 </div>
             )
         },
@@ -145,22 +145,22 @@ const AttendanceReports = () => {
                                     <h3>{stat.label}</h3>
                                     <p className="report-summary-value">{stat.value}</p>
                                 </div>
-                                <div className="report-summary-icon" style={{ backgroundColor: stat.bgColor, color: '#3b82f6' }}>
+                                <div className="report-summary-icon report-summary-icon-dynamic" style={{ '--summary-icon-bg': stat.bgColor }}>
                                     <Icon size={24} />
                                 </div>
                             </div>
                             <div className="report-summary-footer">
-                                <span style={{ color: stat.change.startsWith('+') ? '#10b981' : '#ef4444' }}>
+                                <span className={stat.change.startsWith('+') ? 'report-trend-positive' : 'report-trend-negative'}>
                                     {stat.change}
                                 </span>
-                                <span style={{ color: '#94a3b8' }}>vs yesterday</span>
+                                <span className="report-trend-muted">vs yesterday</span>
                             </div>
                         </div>
                     );
                 })}
             </div>
 
-            <div className="report-table-section" style={{ gridColumn: '1 / -1' }}>
+            <div className="report-table-section report-full-width">
                 <div className="report-table-header">
                     <h3 className="report-table-title">Attendance Records</h3>
                     <button className="report-export-btn" onClick={downloadCsv} disabled={loading || !!error}>
@@ -180,8 +180,8 @@ const AttendanceReports = () => {
                     selectable={true}
                     pageSize={8}
                 />
-                {loading && <div style={{ padding: '12px', color: '#64748b', fontWeight: 600 }}>Loading…</div>}
-                {error && <div style={{ padding: '12px', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
+                {loading && <div className="report-state-message report-state-loading">Loading...</div>}
+                {error && <div className="report-state-message report-state-error">{error}</div>}
             </div>
         </div>
     );

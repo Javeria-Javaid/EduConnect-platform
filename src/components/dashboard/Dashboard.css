@@ -189,6 +189,28 @@
   margin-bottom: 1.5rem;
 }
 
+.no-data-msg {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  text-align: center;
+  padding: 16px;
+}
+
+.no-data-msg-p {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
 .pending-item {
   display: flex;
   align-items: center;

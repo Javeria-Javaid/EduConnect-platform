@@ -24,6 +24,41 @@ const VendorBillingView = () => {
         fetchInvoices();
     }, []);
 
+    const downloadInvoice = (invoice) => {
+        try {
+            const rows = [
+                ['Invoice ID', invoice._id],
+                ['School', invoice.school?.name || invoice.school?.schoolName || 'Unknown School'],
+                ['Date', new Date(invoice.createdAt).toLocaleDateString()],
+                ['Status', invoice.status || 'pending'],
+                ['Amount', invoice.totalAmount || invoice.amount || 0],
+                [''],
+                ['Item', 'Qty', 'Price']
+            ];
+
+            (invoice.items || []).forEach((it) => {
+                rows.push([it.name || it.productName || 'Item', it.quantity || 1, it.price || 0]);
+            });
+
+            const csv = rows.map(r => r.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Invoice_${invoice._id?.toString().slice(0, 8)}.csv`;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            toast.success('Invoice downloaded');
+        } catch {
+            toast.error('Failed to download invoice');
+        }
+    };
+
     return (
         <div className="vendor-view-container">
             <div className="view-header">
@@ -44,7 +79,7 @@ const VendorBillingView = () => {
                                     <div key={invoice._id} className="invoice-row">
                                         <div className="invoice-info">
                                             <h4>{invoice._id.toString().substring(0,8).toUpperCase()}</h4>
-                                            <p>{invoice.school?.schoolName || 'Unknown School'}</p>
+                                            <p>{invoice.school?.name || invoice.school?.schoolName || 'Unknown School'}</p>
                                             <span className="invoice-date">{new Date(invoice.createdAt).toLocaleDateString()}</span>
                                         </div>
                                         <div className="invoice-amount">${invoice.totalAmount}</div>
@@ -55,7 +90,7 @@ const VendorBillingView = () => {
                                                 <span className="badge badge-warning">Pending</span>
                                             )}
                                         </div>
-                                        <button className="btn-download">
+                                        <button className="btn-download" onClick={() => downloadInvoice(invoice)}>
                                             <Download size={16} />
                                             Download
                                         </button>

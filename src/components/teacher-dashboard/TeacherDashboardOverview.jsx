@@ -192,7 +192,7 @@ const TeacherDashboardOverview = () => {
                     </div>
                     <div className="card-body">
                         <div className="schedule-list">
-                            {applications.length === 0 ? <p>No applications yet.</p> : applications.map((app) => (
+                            {applications.length === 0 ? <p className="empty-state-message">No applications yet.</p> : applications.map((app) => (
                                 <div key={app._id} className="schedule-item">
                                     <div className="schedule-details">
                                         <h4>{app.school?.name || 'Unknown School'}</h4>

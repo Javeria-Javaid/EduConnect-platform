@@ -52,7 +52,7 @@ const TeacherClassesView = () => {
                                     grade: c.name,
                                     section: s.name,
                                     subject: c.name + ' - ' + s.name,
-                                    room: s.room || 'TBD',
+                                    room: s.room || '—',
                                     schedule: 'Mon-Fri',
                                     students: studentsData.filter(stu => stu.class === c.name && stu.section === s.name).length,
                                 });
@@ -190,12 +190,7 @@ const TeacherClassesView = () => {
                                     <span style={{ color: '#6b7280', fontSize: '14px' }}>{classItem.room}</span>
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
-                                    <button className="btn-secondary" style={{ fontSize: '12px', padding: '6px 12px' }}>
-                                        <FileText size={14} /> View Roster
-                                    </button>
-                                    <button className="btn-secondary" style={{ fontSize: '12px', padding: '6px 12px' }}>
-                                        <BarChart3 size={14} /> Stats
-                                    </button>
+                                    {/* Roster + stats are shown in the detailed view below; buttons removed because they were no-ops */}
                                 </div>
                             </div>
                         </div>

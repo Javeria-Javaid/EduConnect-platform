@@ -56,7 +56,7 @@ const VendorOrdersView = () => {
                                 {orders.map((order) => (
                                     <div key={order._id} className="order-row">
                                         <div className="order-info">
-                                            <h4>{order.school?.schoolName || 'Unknown School'}</h4>
+                                            <h4>{order.school?.name || order.school?.schoolName || 'Unknown School'}</h4>
                                             <p>{order.items?.length || 0} items</p>
                                             <span className="order-date">{new Date(order.createdAt).toLocaleDateString()}</span>
                                         </div>

@@ -17,7 +17,7 @@ import { useAuth } from '../context/AuthContext';
 import './DashboardSidebar.css';
 
 const VendorDashboardSidebar = ({ isOpen, toggleSidebar, isMobile }) => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {

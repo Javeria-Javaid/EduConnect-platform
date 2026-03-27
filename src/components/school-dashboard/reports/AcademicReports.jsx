@@ -71,19 +71,19 @@ const AcademicReports = () => {
     const columns = [
         {
             key: 'exam', label: 'Exam Name', sortable: true, render: (row) => (
-                <span style={{ fontWeight: '600', color: '#1e293b' }}>{row.exam}</span>
+                <span className="report-cell-primary">{row.exam}</span>
             )
         },
         { key: 'class', label: 'Class', sortable: true },
         { key: 'subject', label: 'Subject', sortable: true },
         {
             key: 'average', label: 'Avg. Score', sortable: true, render: (row) => (
-                <span style={{ fontWeight: '800', color: '#1e293b' }}>{row.average}</span>
+                <span className="report-cell-amount">{row.average}</span>
             )
         },
         {
             key: 'passRate', label: 'Pass Rate', sortable: true, render: (row) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="report-inline-row tight">
                     <div className="progress-bar-container">
                         <div
                             className="progress-bar-fill"
@@ -93,7 +93,7 @@ const AcademicReports = () => {
                             }}
                         />
                     </div>
-                    <span style={{ fontSize: '0.75rem', fontWeight: '600' }}>{row.passRate}</span>
+                    <span className="report-cell-muted report-cell-strong">{row.passRate}</span>
                 </div>
             )
         },
@@ -133,12 +133,12 @@ const AcademicReports = () => {
                                     <h3>{stat.label}</h3>
                                     <p className="report-summary-value">{stat.value}</p>
                                 </div>
-                                <div className="report-summary-icon" style={{ backgroundColor: stat.bgColor, color: '#3b82f6' }}>
+                                <div className="report-summary-icon report-summary-icon-dynamic" style={{ '--summary-icon-bg': stat.bgColor }}>
                                     <Icon size={24} />
                                 </div>
                             </div>
                             <div className="report-summary-footer">
-                                <span style={{ color: '#64748b', fontWeight: '600' }}>
+                                <span className="report-cell-secondary report-cell-strong">
                                     {stat.change}
                                 </span>
                             </div>
@@ -148,9 +148,9 @@ const AcademicReports = () => {
             </div>
 
             {/* Grade Distribution Chart */}
-            <div className="report-chart-card" style={{ gridColumn: '1 / -1' }}>
+            <div className="report-chart-card report-full-width">
                 <h3 className="report-chart-title">Overall Grade Distribution</h3>
-                <div style={{ height: '320px' }}>
+                <div className="report-chart-container-lg">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={gradeDistribution} barSize={50}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
@@ -171,7 +171,7 @@ const AcademicReports = () => {
             </div>
 
             {/* Filters & Table */}
-            <div className="report-table-section" style={{ gridColumn: '1 / -1' }}>
+            <div className="report-table-section report-full-width">
                 <div className="report-table-header">
                     <h3 className="report-table-title">Exam Results</h3>
                     <button className="report-export-btn" onClick={downloadCsv} disabled={loading || !!error}>
@@ -191,8 +191,8 @@ const AcademicReports = () => {
                     selectable={true}
                     pageSize={8}
                 />
-                {loading && <div style={{ padding: '12px', color: '#64748b', fontWeight: 600 }}>Loading…</div>}
-                {error && <div style={{ padding: '12px', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
+                {loading && <div className="report-state-message report-state-loading">Loading...</div>}
+                {error && <div className="report-state-message report-state-error">{error}</div>}
             </div>
         </div>
     );

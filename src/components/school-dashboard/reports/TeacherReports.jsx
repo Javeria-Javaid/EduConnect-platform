@@ -79,22 +79,22 @@ const TeacherReports = () => {
     const columns = [
         {
             key: 'name', label: 'Teacher Name', sortable: true, render: (row) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div className="student-avatar" style={{ background: '#dbeafe', color: '#2563eb' }}>
+                <div className="report-inline-row">
+                    <div className="student-avatar report-transport-icon">
                         {row.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div>
-                        <span style={{ fontWeight: '600', color: '#1e293b', display: 'block' }}>{row.name}</span>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{row.subject}</span>
+                        <span className="report-cell-primary report-display-block">{row.name}</span>
+                        <span className="report-cell-muted">{row.subject}</span>
                     </div>
                 </div>
             )
         },
         {
             key: 'workload', label: 'Workload', sortable: true, render: (row) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Clock size={14} style={{ color: '#94a3b8' }} />
-                    <span style={{ fontSize: '0.85rem', color: '#475569' }}>{row.workload}</span>
+                <div className="report-inline-row tight">
+                    <Clock size={14} className="report-icon-muted" />
+                    <span className="report-cell-muted report-cell-md">{row.workload}</span>
                 </div>
             )
         },
@@ -107,9 +107,9 @@ const TeacherReports = () => {
         },
         {
             key: 'performance', label: 'Performance', sortable: true, render: (row) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {row.performance === 'Excellent' && <Award size={16} style={{ color: '#f59e0b' }} />}
-                    <span style={{ fontSize: '0.85rem', color: '#475569' }}>{row.performance}</span>
+                <div className="report-inline-row tight">
+                    {row.performance === 'Excellent' && <Award size={16} className="report-icon-award" />}
+                    <span className="report-cell-muted report-cell-md">{row.performance}</span>
                 </div>
             )
         },
@@ -154,15 +154,15 @@ const TeacherReports = () => {
                                     <h3>{stat.label}</h3>
                                     <p className="report-summary-value">{stat.value}</p>
                                 </div>
-                                <div className="report-summary-icon" style={{ backgroundColor: stat.bgColor, color: '#3b82f6' }}>
+                                <div className="report-summary-icon report-summary-icon-dynamic" style={{ '--summary-icon-bg': stat.bgColor }}>
                                     <Icon size={24} />
                                 </div>
                             </div>
                             <div className="report-summary-footer">
-                                <span style={{ color: stat.change.startsWith('+') ? '#10b981' : '#ef4444' }}>
+                                <span className={stat.change.startsWith('+') ? 'report-trend-positive' : 'report-trend-negative'}>
                                     {stat.change}
                                 </span>
-                                <span style={{ color: '#94a3b8' }}>vs last term</span>
+                                <span className="report-trend-muted">vs last term</span>
                             </div>
                         </div>
                     );
@@ -191,8 +191,8 @@ const TeacherReports = () => {
                         selectable={true}
                         pageSize={8}
                     />
-                    {loading && <div style={{ padding: '12px', color: '#64748b', fontWeight: 600 }}>Loading…</div>}
-                    {error && <div style={{ padding: '12px', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
+                    {loading && <div className="report-state-message report-state-loading">Loading...</div>}
+                    {error && <div className="report-state-message report-state-error">{error}</div>}
                 </div>
 
                 {/* Workload Chart */}
@@ -216,7 +216,7 @@ const TeacherReports = () => {
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
-                    <div style={{ marginTop: '16px', fontSize: '0.85rem', color: '#64748b', textAlign: 'center' }}>
+                    <div className="report-chart-note">
                         Teachers with &gt;22 hrs are highlighted in red
                     </div>
                 </div>

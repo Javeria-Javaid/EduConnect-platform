@@ -256,6 +256,38 @@ const StudentDirectory = () => {
         }
     };
 
+    const handleBulkDeleteStudents = async () => {
+        if (!selectedStudents || selectedStudents.length === 0) return;
+        if (!window.confirm(`Delete ${selectedStudents.length} students?`)) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const ids = [...selectedStudents];
+
+            const results = await Promise.all(
+                ids.map(async (id) => {
+                    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/students/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    return { id, ok: res.ok };
+                })
+            );
+
+            const failed = results.filter(r => !r.ok).map(r => r.id);
+            if (failed.length > 0) {
+                toast.error(`Failed to delete ${failed.length} student(s).`);
+            } else {
+                toast.success('Students deleted');
+            }
+
+            setSelectedStudents([]);
+            fetchStudents();
+        } catch {
+            toast.error('Network error while deleting students');
+        }
+    };
+
     const handleSearch = (val, field) => {
         setSearchTerm(val);
         setSearchBy(field);
@@ -449,7 +481,7 @@ const StudentDirectory = () => {
 
             {/* Controls & Content */}
             <div className="directory-card">
-                <div className="controls-section" style={{ border: 'none', boxShadow: 'none', paddingBottom: '0' }}>
+                <div className="controls-section controls-section-compact">
                     <div className="search-filter-row">
                         <div className="search-wrapper">
                             <SearchBar
@@ -467,25 +499,23 @@ const StudentDirectory = () => {
 
                 {/* Bulk Actions Bar */}
                 {selectedStudents.length > 0 && (
-                    <div style={{ padding: '0 20px' }}>
+                    <div className="bulk-actions-wrapper">
                         <div className="bulk-actions-bar">
                             <span className="selected-count">{selectedStudents.length} selected</span>
                             <div className="action-buttons">
-                                <button className="btn-action-sm">Send Message</button>
-                                <button className="btn-action-sm">Update Class</button>
-                                <button className="btn-action-sm">Print IDs</button>
-                                <button className="btn-danger-sm" onClick={() => {
-                                    if(window.confirm(`Delete ${selectedStudents.length} students?`)) {
-                                        toast.info('Bulk delete pending implementation');
-                                    }
-                                }}>Delete</button>
+                                <button
+                                    className="btn-danger-sm"
+                                    onClick={() => handleBulkDeleteStudents()}
+                                >
+                                    Delete
+                                </button>
                             </div>
                         </div>
                     </div>
                 )}
 
                 {/* Data Table */}
-                <div style={{ padding: '20px', overflowX: 'auto' }}>
+                <div className="table-section">
                     {loading ? (
                         <div className="loading-state">Loading students...</div>
                     ) : (

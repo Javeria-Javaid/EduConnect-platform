@@ -2,7 +2,12 @@ import Homework from '../models/Homework.js';
 
 export const getHomeworks = async (req, res) => {
     try {
-        const homeworks = await Homework.find({ school: req.user.school, teacher: req.user._id }).sort({ createdAt: -1 });
+        const homeworks = await Homework.find({ school: req.user.school, teacher: req.user._id })
+            .sort({ createdAt: -1 })
+            .populate({
+                path: 'submissions.student',
+                select: 'admissionNumber'
+            });
         res.json(homeworks);
     } catch (error) {
         res.status(500).json({ message: error.message });

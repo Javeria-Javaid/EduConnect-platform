@@ -90,6 +90,10 @@
     text-align: right;
 }
 
+.actions-header {
+    text-align: right;
+}
+
 /* Checkbox Styling */
 .table-checkbox {
     width: 18px;
@@ -118,7 +122,9 @@
 }
 
 .action-btn {
-    padding: 8px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
     color: #64748b;
     background: transparent;
     border: none;
@@ -133,7 +139,7 @@
 .action-btn:hover {
     color: #3b82f6;
     background: #eff6ff;
-    transform: scale(1.1);
+    transform: translateY(-1px);
 }
 
 /* Empty State */

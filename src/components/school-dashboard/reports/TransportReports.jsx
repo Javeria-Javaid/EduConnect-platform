@@ -72,16 +72,16 @@ const TransportReports = () => {
     const columns = [
         {
             key: 'route', label: 'Route Name', sortable: true, render: (row) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div className="transaction-icon" style={{ background: '#dbeafe', color: '#2563eb' }}>
+                <div className="report-inline-row">
+                    <div className="transaction-icon report-transport-icon">
                         <Bus size={16} />
                     </div>
-                    <span style={{ fontWeight: '600', color: '#1e293b' }}>{row.route}</span>
+                    <span className="report-cell-primary">{row.route}</span>
                 </div>
             )
         },
-        { key: 'vehicle', label: 'Vehicle', sortable: true, render: (row) => <span style={{ color: '#475569', fontWeight: 600 }}>{row.vehicle}</span> },
-        { key: 'driver', label: 'Driver', sortable: true, render: (row) => <span style={{ color: '#475569' }}>{row.driver}</span> },
+        { key: 'vehicle', label: 'Vehicle', sortable: true, render: (row) => <span className="report-cell-secondary report-cell-strong">{row.vehicle}</span> },
+        { key: 'driver', label: 'Driver', sortable: true, render: (row) => <span className="report-cell-secondary">{row.driver}</span> },
         { key: 'stops', label: 'Stops', sortable: true },
         {
             key: 'status', label: 'Status', sortable: true, render: (row) => (
@@ -128,12 +128,12 @@ const TransportReports = () => {
                                     <h3>{stat.label}</h3>
                                     <p className="report-summary-value">{stat.value}</p>
                                 </div>
-                                <div className="report-summary-icon" style={{ backgroundColor: stat.bgColor, color: '#3b82f6' }}>
+                                <div className="report-summary-icon report-summary-icon-dynamic" style={{ '--summary-icon-bg': stat.bgColor }}>
                                     <Icon size={24} />
                                 </div>
                             </div>
                             <div className="report-summary-footer">
-                                <span style={{ color: '#64748b', fontWeight: '600' }}>
+                                <span className="report-cell-secondary report-cell-strong">
                                     {stat.change}
                                 </span>
                             </div>
@@ -142,7 +142,7 @@ const TransportReports = () => {
                 })}
             </div>
 
-            <div className="report-table-section" style={{ gridColumn: '1 / -1' }}>
+            <div className="report-table-section report-full-width">
                 <div className="report-table-header">
                     <h3 className="report-table-title">Route Management</h3>
                     <button className="report-export-btn" onClick={downloadCsv} disabled={loading || !!error}>
@@ -162,8 +162,8 @@ const TransportReports = () => {
                     selectable={true}
                     pageSize={8}
                 />
-                {loading && <div style={{ padding: '12px', color: '#64748b', fontWeight: 600 }}>Loading…</div>}
-                {error && <div style={{ padding: '12px', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
+                {loading && <div className="report-state-message report-state-loading">Loading...</div>}
+                {error && <div className="report-state-message report-state-error">{error}</div>}
             </div>
         </div>
     );

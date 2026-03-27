@@ -79,77 +79,59 @@ const TeacherStudentsView = () => {
             {!selectedStudent ? (
                 <div>
                     {/* Search */}
-                    <div className="dashboard-card" style={{ marginBottom: '24px' }}>
+                    <div className="dashboard-card students-search-card">
                         <div className="card-body">
-                            <div style={{ position: 'relative' }}>
-                                <Search size={20} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                            <div className="students-search-input-wrap">
+                                <Search size={20} className="students-search-icon" />
                                 <input
                                     type="text"
                                     placeholder="Search students by name or class..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px 12px 12px 44px',
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '8px',
-                                        fontSize: '14px'
-                                    }}
+                                    className="students-search-input"
                                 />
                             </div>
                         </div>
                     </div>
 
                     {/* Students Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                    <div className="students-grid">
                         {loading && (
                             <div className="dashboard-card">
-                                <div className="card-body" style={{ color: '#6b7280' }}>Loading students…</div>
+                                <div className="card-body empty-state-message">Loading students...</div>
                             </div>
                         )}
                         {filteredStudents.map((student) => (
                             <div
                                 key={student.userId || student._id}
-                                className="dashboard-card"
-                                style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+                                className="dashboard-card student-card-clickable"
                                 onClick={() => setSelectedStudent(student)}
                             >
                                 <div className="card-body">
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                                        <div style={{
-                                            width: '48px',
-                                            height: '48px',
-                                            borderRadius: '50%',
-                                            backgroundColor: '#3b82f6',
-                                            color: 'white',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '18px',
-                                            fontWeight: '600'
-                                        }}>
+                                    <div className="student-card-head">
+                                        <div className="student-avatar-md">
                                             {student.name.charAt(0)}
                                         </div>
                                         <div>
-                                            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
+                                            <h3 className="student-card-title">
                                                 {student.name}
                                             </h3>
-                                            <p style={{ fontSize: '12px', color: '#6b7280' }}>
+                                            <p className="student-card-subtitle">
                                                 {student.class} • Roll #{student.rollNumber || 'N/A'}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                        <div style={{ padding: '8px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
-                                            <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Attendance</p>
-                                            <p style={{ fontWeight: '600', fontSize: '14px', color: student.attendance !== 'N/A' && Number(student.attendance) >= 90 ? '#10b981' : '#f59e0b' }}>
+                                    <div className="student-kpi-grid">
+                                        <div className="student-kpi-card">
+                                            <p className="student-kpi-label">Attendance</p>
+                                            <p className={`student-kpi-value ${student.attendance !== 'N/A' && Number(student.attendance) >= 90 ? 'kpi-success' : 'kpi-warning'}`}>
                                                 {student.attendance === 'N/A' ? 'N/A' : `${student.attendance}%`}
                                             </p>
                                         </div>
-                                        <div style={{ padding: '8px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
-                                            <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Avg Score</p>
-                                            <p style={{ fontWeight: '600', fontSize: '14px', color: '#3b82f6' }}>
+                                        <div className="student-kpi-card">
+                                            <p className="student-kpi-label">Avg Score</p>
+                                            <p className="student-kpi-value kpi-primary">
                                                 {student.performance ? `${student.performance}★` : '—'}
                                             </p>
                                         </div>
@@ -162,7 +144,7 @@ const TeacherStudentsView = () => {
             ) : (
                 // Student Detail View
                 <div>
-                    <button onClick={() => setSelectedStudent(null)} className="btn-secondary" style={{ marginBottom: '20px' }}>
+                    <button onClick={() => setSelectedStudent(null)} className="btn-secondary students-back-btn">
                         ← Back to Students
                     </button>
 
@@ -173,43 +155,32 @@ const TeacherStudentsView = () => {
                                 <h2 className="card-title">Student Profile</h2>
                             </div>
                             <div className="card-body">
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-                                    <div style={{
-                                        width: '64px',
-                                        height: '64px',
-                                        borderRadius: '50%',
-                                        backgroundColor: '#3b82f6',
-                                        color: 'white',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '24px',
-                                        fontWeight: '600'
-                                    }}>
+                                <div className="student-profile-head">
+                                    <div className="student-avatar-lg">
                                         {selectedStudent.name.charAt(0)}
                                     </div>
                                     <div>
-                                        <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>
+                                        <h3 className="student-profile-name">
                                             {selectedStudent.name}
                                         </h3>
-                                        <p style={{ color: '#6b7280' }}>
+                                        <p className="student-profile-subtitle">
                                             {selectedStudent.class} • Roll #{selectedStudent.rollNo}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div style={{ display: 'grid', gap: '12px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
+                                <div className="student-contact-list">
+                                    <div className="student-contact-item">
                                         <Users size={16} color="#6b7280" />
-                                        <span style={{ color: '#4b5563' }}>Admission #: {selectedStudent.admissionNumber || '—'}</span>
+                                        <span className="student-contact-text">Admission #: {selectedStudent.admissionNumber || '—'}</span>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
+                                    <div className="student-contact-item">
                                         <Mail size={16} color="#6b7280" />
-                                        <span style={{ color: '#4b5563' }}>{selectedStudent.email || '—'}</span>
+                                        <span className="student-contact-text">{selectedStudent.email || '—'}</span>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
+                                    <div className="student-contact-item">
                                         <Phone size={16} color="#6b7280" />
-                                        <span style={{ color: '#4b5563' }}>{selectedStudent.parentPhone || '—'}</span>
+                                        <span className="student-contact-text">{selectedStudent.parentPhone || '—'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -221,31 +192,31 @@ const TeacherStudentsView = () => {
                                 <h2 className="card-title">Academic Performance</h2>
                             </div>
                             <div className="card-body">
-                                <div style={{ display: 'grid', gap: '16px' }}>
-                                    <div style={{ padding: '16px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                <div className="student-metrics-grid">
+                                    <div className="student-metric-card metric-green">
+                                        <div className="student-metric-head">
                                             <TrendingUp size={20} color="#10b981" />
-                                            <h4 style={{ fontWeight: '600', color: '#065f46' }}>Average Score</h4>
+                                            <h4 className="student-metric-title metric-green-text">Average Score</h4>
                                         </div>
-                                        <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#10b981' }}>{selectedStudent.avgScore}</p>
+                                        <p className="student-metric-value metric-green-value">{selectedStudent.avgScore}</p>
                                     </div>
 
-                                    <div style={{ padding: '16px', backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                    <div className="student-metric-card metric-blue">
+                                        <div className="student-metric-head">
                                             <Calendar size={20} color="#3b82f6" />
-                                            <h4 style={{ fontWeight: '600', color: '#1e40af' }}>Attendance Rate</h4>
+                                            <h4 className="student-metric-title metric-blue-text">Attendance Rate</h4>
                                         </div>
-                                        <p style={{ fontSize: '32px', fontWeight: 'bold', color: '#3b82f6' }}>{selectedStudent.attendance}%</p>
+                                        <p className="student-metric-value metric-blue-value">{selectedStudent.attendance}%</p>
                                     </div>
                                 </div>
 
-                                <div style={{ marginTop: '24px' }}>
-                                    <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>Recent Grades</h4>
-                                    <div style={{ display: 'grid', gap: '8px' }}>
+                                <div className="recent-grades-section">
+                                    <h4 className="recent-grades-title">Recent Grades</h4>
+                                    <div className="recent-grades-list">
                                         {['Math Test', 'Physics Quiz', 'Homework'].map((item, idx) => (
-                                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
-                                                <span style={{ fontSize: '14px' }}>{item}</span>
-                                                <span style={{ fontWeight: '600', color: '#3b82f6' }}>{85 + idx * 3}/100</span>
+                                            <div key={idx} className="recent-grade-item">
+                                                <span className="recent-grade-label">{item}</span>
+                                                <span className="recent-grade-score">{85 + idx * 3}/100</span>
                                             </div>
                                         ))}
                                     </div>
@@ -259,19 +230,19 @@ const TeacherStudentsView = () => {
                                 <h2 className="card-title">Parent/Guardian Contact</h2>
                             </div>
                             <div className="card-body">
-                                <div style={{ marginBottom: '16px' }}>
-                                    <h4 style={{ fontWeight: '600', marginBottom: '8px' }}>Father's Name</h4>
-                                    <p style={{ color: '#6b7280' }}>{selectedStudent.parentName || '—'}</p>
+                                <div className="parent-contact-field">
+                                    <h4 className="parent-contact-label">Father's Name</h4>
+                                    <p className="parent-contact-value">{selectedStudent.parentName || '—'}</p>
                                 </div>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <h4 style={{ fontWeight: '600', marginBottom: '8px' }}>Contact Number</h4>
-                                    <p style={{ color: '#6b7280' }}>{selectedStudent.parentPhone || '—'}</p>
+                                <div className="parent-contact-field">
+                                    <h4 className="parent-contact-label">Contact Number</h4>
+                                    <p className="parent-contact-value">{selectedStudent.parentPhone || '—'}</p>
                                 </div>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <h4 style={{ fontWeight: '600', marginBottom: '8px' }}>Email</h4>
-                                    <p style={{ color: '#6b7280' }}>Linked parent required for chat</p>
+                                <div className="parent-contact-field">
+                                    <h4 className="parent-contact-label">Email</h4>
+                                    <p className="parent-contact-value">Linked parent required for chat</p>
                                 </div>
-                                <button className="btn-primary" style={{ width: '100%', marginTop: '12px' }} onClick={() => openMessageToParent(selectedStudent)}>
+                                <button className="btn-primary parent-message-btn" onClick={() => openMessageToParent(selectedStudent)}>
                                     <MessageSquare size={16} /> Message Parent
                                 </button>
                             </div>

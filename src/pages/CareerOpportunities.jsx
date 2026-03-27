@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Briefcase, DollarSign, Clock, GraduationCap, Package, ShoppingCart, Star } from 'lucide-react';
+import { MapPin, Briefcase, DollarSign, Clock, GraduationCap, Package, ShoppingCart, Star, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer/Footer';
 import './CareerOpportunities.css';
@@ -66,11 +66,11 @@ const CareerOpportunities = () => {
                                                 <h3>{job.title}</h3>
                                                 <p className="school-name">{job.department}</p>
                                             </div>
-                                            <span className={`job-status ${job.status.toLowerCase()}`}>✓ {job.status}</span>
+                                            <span className={`job-status ${(job.status || 'Active').toLowerCase()}`}>✓ {job.status || 'Active'}</span>
                                         </div>
                                         <div className="job-details">
-                                            <div className="detail-item"><Clock size={16} /> <span>{job.type}</span></div>
-                                            <div className="detail-item"><Calendar size={16} /> <span>Posted: {new Date(job.posted).toLocaleDateString()}</span></div>
+                                            <div className="detail-item"><Clock size={16} /> <span>{job.type || 'Full-time'}</span></div>
+                                            <div className="detail-item"><Calendar size={16} /> <span>Posted: {job.posted ? new Date(job.posted).toLocaleDateString() : 'Recently'}</span></div>
                                         </div>
                                         <div className="requirements">
                                             <p>{job.description || 'No description provided.'}</p>

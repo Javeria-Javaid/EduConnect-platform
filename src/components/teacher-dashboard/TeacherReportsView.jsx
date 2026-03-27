@@ -130,14 +130,14 @@ const TeacherReportsView = () => {
             </div>
 
             {/* Filters */}
-            <div className="dashboard-card" style={{ marginBottom: '24px' }}>
+            <div className="dashboard-card reports-filters-card">
                 <div className="card-body">
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                        <Filter size={16} color="#6b7280" />
+                    <div className="reports-filter-bar">
+                        <Filter size={16} className="reports-filter-icon" />
                         <select
                             value={selectedClass}
                             onChange={(e) => setSelectedClass(e.target.value)}
-                            style={{ padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', minWidth: '200px' }}
+                            className="reports-filter-select"
                         >
                             <option value="all">All My Students</option>
                             {classes.map(c => (
@@ -147,7 +147,7 @@ const TeacherReportsView = () => {
                         <select
                             value={dateRange}
                             onChange={(e) => setDateRange(e.target.value)}
-                            style={{ padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', minWidth: '150px' }}
+                            className="reports-filter-select"
                         >
                             <option>This Month</option>
                             <option>Last Month</option>
@@ -164,29 +164,29 @@ const TeacherReportsView = () => {
                 </div>
                 <div className="card-body">
                     {loading ? (
-                        <p style={{ color: '#6b7280' }}>Loading…</p>
+                        <p className="empty-state-message">Loading…</p>
                     ) : filteredStudents.length === 0 ? (
-                        <p style={{ color: '#6b7280' }}>No students found for this filter.</p>
+                        <p className="empty-state-message">No students found for this filter.</p>
                     ) : (
-                        <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <div className="reports-table-wrap">
+                            <table className="reports-table">
                                 <thead>
-                                    <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Name</th>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Class</th>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Section</th>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Attendance</th>
-                                        <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Performance</th>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Class</th>
+                                        <th>Section</th>
+                                        <th>Attendance</th>
+                                        <th>Performance</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredStudents.map((s) => (
-                                        <tr key={s._id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                                            <td style={{ padding: '12px', fontWeight: '500' }}>{s?.name}</td>
-                                            <td style={{ padding: '12px' }}>{s?.class}</td>
-                                            <td style={{ padding: '12px' }}>{s?.section}</td>
-                                            <td style={{ padding: '12px' }}>{s?.attendance?.rate ?? '—'}</td>
-                                            <td style={{ padding: '12px' }}>{s?.performance?.average ?? '—'}</td>
+                                        <tr key={s._id}>
+                                            <td className="reports-cell-primary">{s?.name}</td>
+                                            <td>{s?.class}</td>
+                                            <td>{s?.section}</td>
+                                            <td>{s?.attendance?.rate ?? '—'}</td>
+                                            <td>{s?.performance?.average ?? '—'}</td>
                                         </tr>
                                     ))}
                                 </tbody>

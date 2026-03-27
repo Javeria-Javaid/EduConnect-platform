@@ -18,7 +18,6 @@ import { toast } from 'sonner';
 const VendorDashboardOverview = () => {
     const { user } = useAuth();
     const [mySchools, setMySchools] = useState([]);
-    const [loading, setLoading] = useState(false);
     const [stats, setStats] = useState({
         activeServices: 0,
         pendingOrders: 0,
@@ -48,7 +47,7 @@ const VendorDashboardOverview = () => {
                 setStats(data);
             }
         } catch (err) {
-            console.error("Error fetching vendor stats:", err);
+            toast.error('Failed to load vendor stats');
         }
     };
 
@@ -65,7 +64,7 @@ const VendorDashboardOverview = () => {
                 setMySchools(Array.isArray(data) ? data : []);
             }
         } catch (error) {
-            console.error("Error fetching schools:", error);
+            toast.error('Failed to load schools');
         }
     };
 
@@ -82,7 +81,7 @@ const VendorDashboardOverview = () => {
                 setOrders(data);
             }
         } catch (err) {
-            console.error(err);
+            toast.error('Failed to load orders');
         }
     };
 
@@ -128,11 +127,14 @@ const VendorDashboardOverview = () => {
         { title: 'Average Rating', value: stats.avgRating, change: 'Based on 45 reviews', icon: Star, color: '#8b5cf6' },
     ];
 
-    const recentOrders = [
-        { id: 1, school: 'Greenwood High School', service: 'Stationery Supplies', amount: '$1,200', status: 'pending', date: 'Dec 5, 2025' },
-        { id: 2, school: 'Riverside Academy', service: 'Catering Services', amount: '$850', status: 'confirmed', date: 'Dec 4, 2025' },
-        { id: 3, school: 'Sunshine Elementary', service: 'Cleaning Supplies', amount: '$450', status: 'completed', date: 'Dec 3, 2025' },
-    ];
+    const recentOrders = (orders || []).slice(0, 5);
+    const revenueByMonth = recentOrders.reduce((acc, order) => {
+        const d = new Date(order.createdAt || Date.now());
+        const key = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        const amount = Number(order.totalAmount || order.amount || 0);
+        acc[key] = (acc[key] || 0) + amount;
+        return acc;
+    }, {});
 
     return (
         <div className="vendor-dashboard-overview">
@@ -168,10 +170,9 @@ const VendorDashboardOverview = () => {
                 <div className="dashboard-card">
                     <div className="card-header">
                         <h2 className="card-title">My Registered Schools</h2>
-                        <div style={{ display: 'flex', gap: '10px' }}>
+                        <div className="vendor-header-actions">
                              <button 
-                                className="btn-primary" 
-                                style={{ padding: '5px 10px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '5px' }}
+                                className="btn-primary vendor-add-school-btn"
                                 onClick={() => setShowAddForm(!showAddForm)}
                              >
                                 <Plus size={16} /> Add School
@@ -180,23 +181,23 @@ const VendorDashboardOverview = () => {
                     </div>
                     <div className="card-body">
                         {showAddForm && (
-                            <form onSubmit={handleAddSchool} style={{ marginBottom: '20px', padding: '15px', background: '#f0f9ff', borderRadius: '8px' }}>
-                                <h3 style={{ marginBottom: '10px' }}>Register New School</h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                    <input placeholder="School Name" required value={newSchool.name} onChange={e => setNewSchool({...newSchool, name: e.target.value})} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-                                    <input placeholder="City" required value={newSchool.city} onChange={e => setNewSchool({...newSchool, city: e.target.value})} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-                                    <input placeholder="Address" required value={newSchool.address} onChange={e => setNewSchool({...newSchool, address: e.target.value})} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-                                    <input placeholder="Contact Email" required type="email" value={newSchool.contactEmail} onChange={e => setNewSchool({...newSchool, contactEmail: e.target.value})} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-                                    <input placeholder="Contact Phone" required value={newSchool.contactPhone} onChange={e => setNewSchool({...newSchool, contactPhone: e.target.value})} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
+                            <form onSubmit={handleAddSchool} className="vendor-school-form">
+                                <h3 className="vendor-school-form-title">Register New School</h3>
+                                <div className="vendor-school-form-grid">
+                                    <input className="vendor-school-input" placeholder="School Name" required value={newSchool.name} onChange={e => setNewSchool({...newSchool, name: e.target.value})} />
+                                    <input className="vendor-school-input" placeholder="City" required value={newSchool.city} onChange={e => setNewSchool({...newSchool, city: e.target.value})} />
+                                    <input className="vendor-school-input" placeholder="Address" required value={newSchool.address} onChange={e => setNewSchool({...newSchool, address: e.target.value})} />
+                                    <input className="vendor-school-input" placeholder="Contact Email" required type="email" value={newSchool.contactEmail} onChange={e => setNewSchool({...newSchool, contactEmail: e.target.value})} />
+                                    <input className="vendor-school-input" placeholder="Contact Phone" required value={newSchool.contactPhone} onChange={e => setNewSchool({...newSchool, contactPhone: e.target.value})} />
                                 </div>
-                                <textarea placeholder="Description" value={newSchool.description} onChange={e => setNewSchool({...newSchool, description: e.target.value})} style={{ width: '100%', marginTop: '10px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-                                <button type="submit" className="btn-primary" style={{ marginTop: '10px' }}>Submit</button>
+                                <textarea className="vendor-school-input vendor-school-textarea" placeholder="Description" value={newSchool.description} onChange={e => setNewSchool({...newSchool, description: e.target.value})} />
+                                <button type="submit" className="btn-primary vendor-school-submit-btn">Submit</button>
                             </form>
                         )}
 
                         <div className="orders-list">
                             {mySchools.length === 0 ? (
-                                <p>You haven't registered any schools yet.</p>
+                                <p className="empty-state-message">You haven't registered any schools yet.</p>
                             ) : (
                                 mySchools.map((school) => (
                                     <div key={school._id} className="order-item">
@@ -222,9 +223,18 @@ const VendorDashboardOverview = () => {
                         <TrendingUp size={20} className="text-gray-400" />
                     </div>
                     <div className="card-body">
-                        <div className="chart-placeholder">
-                            <p>Revenue chart will be displayed here</p>
-                        </div>
+                        {Object.keys(revenueByMonth).length === 0 ? (
+                            <p className="empty-state-message">No recent revenue data.</p>
+                        ) : (
+                            <div className="performance-list">
+                                {Object.entries(revenueByMonth).map(([month, amount]) => (
+                                    <div key={month} className="performance-item">
+                                        <span>{month}</span>
+                                        <span className="performance-rating">${Number(amount).toLocaleString()}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -265,7 +275,7 @@ const VendorDashboardOverview = () => {
                                     <Clock size={16} />
                                 </div>
                                 <div className="action-details">
-                                    <p>5 orders awaiting confirmation</p>
+                                    <p>{stats.pendingOrders || 0} orders awaiting confirmation</p>
                                     <span className="action-time">Action Required</span>
                                 </div>
                             </div>
@@ -274,7 +284,7 @@ const VendorDashboardOverview = () => {
                                     <Package size={16} />
                                 </div>
                                 <div className="action-details">
-                                    <p>3 deliveries scheduled for tomorrow</p>
+                                    <p>{recentOrders.filter(o => o.status === 'confirmed').length} deliveries in progress</p>
                                     <span className="action-time">Upcoming</span>
                                 </div>
                             </div>

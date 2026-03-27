@@ -22,7 +22,7 @@ import { useAuth } from '../context/AuthContext';
 import './DashboardSidebar.css'; // Reusing the same CSS
 
 const SchoolDashboardSidebar = ({ isOpen, toggleSidebar, isMobile }) => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {

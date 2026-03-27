@@ -12,19 +12,12 @@ const TeacherAttendanceView = () => {
     const [teacherClasses, setTeacherClasses] = useState([]);
     const [allStudents, setAllStudents] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // Provide safe fallback for UI while real stats API is pending
-    const attendanceData = {
-        monthly: {
-            present: 145,
-            absent: 8,
-            late: 5,
-            averageAttendance: 92
-        },
-        today: {
-            classes: teacherClasses
-        }
-    };
+    const [attendanceStats, setAttendanceStats] = useState({
+        totalPresent: 0,
+        totalAbsent: 0,
+        totalLate: 0,
+        todayAttendance: 0
+    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -58,6 +51,19 @@ const TeacherAttendanceView = () => {
                     });
                     setTeacherClasses(assignedClasses);
                     setAllStudents(studentsData);
+                }
+
+                const statsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/attendance/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (statsRes.ok) {
+                    const stats = await statsRes.json();
+                    setAttendanceStats({
+                        totalPresent: stats.totalPresent || 0,
+                        totalAbsent: stats.totalAbsent || 0,
+                        totalLate: stats.totalLate || 0,
+                        todayAttendance: stats.todayAttendance || 0
+                    });
                 }
             } catch (error) { toast.error('Failed to load data'); }
             finally { setLoading(false); }
@@ -134,7 +140,7 @@ const TeacherAttendanceView = () => {
                 [''],
                 ['Today\'s Classes'],
                 ['Class', 'Total Students', 'Present', 'Absent', 'Status'],
-                ...attendanceData.today.classes.map(c => [
+                ...teacherClasses.map(c => [
                     c.className,
                     c.totalStudents,
                     c.marked ? c.present : 'Not Marked',
@@ -142,12 +148,12 @@ const TeacherAttendanceView = () => {
                     c.marked ? 'Completed' : 'Pending'
                 ]),
                 [''],
-                ['Monthly Summary'],
+                ['Today Summary'],
                 ['Metric', 'Value'],
-                ['Total Present', attendanceData.monthly.present],
-                ['Total Absent', attendanceData.monthly.absent],
-                ['Late Arrivals', attendanceData.monthly.late],
-                ['Average Attendance', attendanceData.monthly.averageAttendance + '%']
+                ['Total Present', attendanceStats.totalPresent],
+                ['Total Absent', attendanceStats.totalAbsent],
+                ['Late Arrivals', attendanceStats.totalLate],
+                ['Average Attendance', attendanceStats.todayAttendance + '%']
             ];
 
             const csvContent = csvData.map(row => row.join(',')).join('\n');
@@ -195,8 +201,8 @@ const TeacherAttendanceView = () => {
                             </div>
                             <div className="kpi-content">
                                 <h3 className="kpi-title">Total Present</h3>
-                                <div className="kpi-value">{attendanceData.monthly.present}</div>
-                                <div className="kpi-change">This month</div>
+                                <div className="kpi-value">{attendanceStats.totalPresent}</div>
+                                <div className="kpi-change">Today</div>
                             </div>
                         </div>
                         <div className="kpi-card">
@@ -205,8 +211,8 @@ const TeacherAttendanceView = () => {
                             </div>
                             <div className="kpi-content">
                                 <h3 className="kpi-title">Total Absent</h3>
-                                <div className="kpi-value">{attendanceData.monthly.absent}</div>
-                                <div className="kpi-change">This month</div>
+                                <div className="kpi-value">{attendanceStats.totalAbsent}</div>
+                                <div className="kpi-change">Today</div>
                             </div>
                         </div>
                         <div className="kpi-card">
@@ -215,8 +221,8 @@ const TeacherAttendanceView = () => {
                             </div>
                             <div className="kpi-content">
                                 <h3 className="kpi-title">Late Arrivals</h3>
-                                <div className="kpi-value">{attendanceData.monthly.late}</div>
-                                <div className="kpi-change">This month</div>
+                                <div className="kpi-value">{attendanceStats.totalLate}</div>
+                                <div className="kpi-change">Today</div>
                             </div>
                         </div>
                         <div className="kpi-card">
@@ -225,7 +231,7 @@ const TeacherAttendanceView = () => {
                             </div>
                             <div className="kpi-content">
                                 <h3 className="kpi-title">Attendance Rate</h3>
-                                <div className="kpi-value">{attendanceData.monthly.averageAttendance}%</div>
+                                <div className="kpi-value">{attendanceStats.todayAttendance}%</div>
                                 <div className="kpi-change">Average</div>
                             </div>
                         </div>

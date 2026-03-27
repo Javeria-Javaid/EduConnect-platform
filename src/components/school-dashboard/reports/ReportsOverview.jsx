@@ -43,12 +43,12 @@ const ReportsOverview = ({ onNavigate, reportTypes }) => {
     return (
         <div className="reports-overview-container">
             {loading && (
-                <div style={{ padding: '16px', color: '#64748b', fontWeight: 600 }}>
+                <div className="reports-state-message reports-state-loading">
                     Loading reports…
                 </div>
             )}
             {error && !loading && (
-                <div style={{ padding: '16px', color: '#ef4444', fontWeight: 600 }}>
+                <div className="reports-state-message reports-state-error">
                     {error}
                 </div>
             )}
@@ -166,12 +166,12 @@ const ReportsOverview = ({ onNavigate, reportTypes }) => {
                                 <Legend verticalAlign="bottom" height={36} />
                             </PieChart>
                         </ResponsiveContainer>
-                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', paddingBottom: '32px' }}>
-                            <div style={{ textAlign: 'center' }}>
-                                <span style={{ fontSize: '1.875rem', fontWeight: '800', color: '#1e293b' }}>
+                        <div className="attendance-center-overlay">
+                            <div className="attendance-center-content">
+                                <span className="attendance-center-value">
                                     {attendancePresentPercent === null ? 'N/A' : `${attendancePresentPercent}%`}
                                 </span>
-                                <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>Present</p>
+                                <p className="attendance-center-label">Present</p>
                             </div>
                         </div>
                     </div>
@@ -183,13 +183,13 @@ const ReportsOverview = ({ onNavigate, reportTypes }) => {
                 <div className="recent-reports-card">
                     <div className="chart-header">
                         <h3 className="chart-title">Recently Generated</h3>
-                        <button style={{ fontSize: '0.9rem', color: '#3b82f6', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer' }}>
+                        <button className="reports-history-btn">
                             View All History
                         </button>
                     </div>
                     <div className="reports-list">
                         {recentReports.length === 0 && (
-                            <div style={{ padding: '18px', color: '#64748b', fontWeight: 600 }}>
+                            <div className="reports-empty-state">
                                 No saved reports yet.
                             </div>
                         )}
@@ -202,10 +202,10 @@ const ReportsOverview = ({ onNavigate, reportTypes }) => {
                                     <div className="report-info">
                                         <h4>{report.name}</h4>
                                         <div className="report-meta">
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <span className="report-meta-date">
                                                 <Clock size={12} /> {report.date}
                                             </span>
-                                            <span style={{ padding: '2px 8px', background: '#f1f5f9', color: '#64748b', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                                            <span className="report-type-pill">
                                                 {report.type}
                                             </span>
                                         </div>

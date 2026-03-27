@@ -371,6 +371,62 @@
     color: #2563eb;
 }
 
+.vendor-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.vendor-add-school-btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.vendor-school-form {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f0f9ff;
+    border-radius: 8px;
+}
+
+.vendor-school-form-title {
+    margin-bottom: 10px;
+}
+
+.vendor-school-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.vendor-school-input {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.vendor-school-textarea {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.vendor-school-submit-btn {
+    margin-top: 10px;
+}
+
+.empty-state-message {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px dashed #cbd5e1;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
 @media (max-width: 768px) {
     .vendor-dashboard-overview {
         padding: 20px;

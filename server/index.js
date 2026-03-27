@@ -24,6 +24,7 @@ import timetableRoutes from './routes/timetableRoutes.js';
 import financeRoutes from './routes/financeRoutes.js';
 import transportRoutes from './routes/transportRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
+import profileRoutes from './routes/profileRoutes.js';
 
 // Passport config
 import './config/passport.js';
@@ -75,6 +76,7 @@ app.use('/api/timetables', timetableRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/transport', transportRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

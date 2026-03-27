@@ -452,7 +452,7 @@ const TeacherDirectory = () => {
 
             {/* Controls & Content */}
             <div className="directory-card">
-                <div className="controls-section" style={{ border: 'none', boxShadow: 'none', paddingBottom: '0' }}>
+                <div className="controls-section controls-section-compact">
                     <div className="search-filter-row">
                         <div className="search-wrapper">
                             <SearchBar
@@ -470,7 +470,7 @@ const TeacherDirectory = () => {
 
                 {/* Bulk Actions Bar */}
                 {selectedTeachers.length > 0 && (
-                    <div style={{ padding: '0 20px' }}>
+                    <div className="bulk-actions-wrapper">
                         <div className="bulk-actions-bar">
                             <span className="selected-count">{selectedTeachers.length} selected</span>
                             <div className="action-buttons">
@@ -488,7 +488,7 @@ const TeacherDirectory = () => {
                 )}
 
                 {/* Data Table */}
-                <div style={{ padding: '20px', overflowX: 'auto' }}>
+                <div className="table-section">
                     {loading ? (
                         <div className="loading-state">Loading teachers...</div>
                     ) : (

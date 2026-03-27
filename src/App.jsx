@@ -67,6 +67,7 @@ import VendorBillingView from './components/vendor-dashboard/VendorBillingView.j
 import VendorCommunicationView from './components/vendor-dashboard/VendorCommunicationView.jsx';
 import VendorReportsView from './components/vendor-dashboard/VendorReportsView.jsx';
 import VendorSettingsView from './components/vendor-dashboard/VendorSettingsView.jsx';
+import UnifiedProfileView from './components/profile/UnifiedProfileView.jsx';
 
 
 // Import your existing landing page components
@@ -255,7 +256,7 @@ function App() {
                             <Route path="reports" element={<Reports />} />
                             <Route path="support" element={<Support />} />
                             <Route path="communication" element={<CommunicationCenter />} />
-                            <Route path="settings" element={<Settings />} />
+                            <Route path="settings" element={<UnifiedProfileView />} />
                         </Route>
                     </Route>
 
@@ -277,7 +278,7 @@ function App() {
                             <Route path="finance" element={<SchoolFinanceView />} />
                             <Route path="transport" element={<SchoolTransportView />} />
                             <Route path="reports" element={<SchoolReportsView />} />
-                            <Route path="settings" element={<SchoolSettingsView />} />
+                            <Route path="settings" element={<UnifiedProfileView />} />
                         </Route>
                     </Route>
 
@@ -296,7 +297,7 @@ function App() {
                             <Route path="communication" element={<TeacherCommunicationView />} />
                             <Route path="resources" element={<TeacherResourcesView />} />
                             <Route path="reports" element={<TeacherReportsView />} />
-                            <Route path="settings" element={<TeacherSettingsView />} />
+                            <Route path="settings" element={<UnifiedProfileView />} />
                         </Route>
                     </Route>
 
@@ -314,7 +315,7 @@ function App() {
                             <Route path="fees" element={<ParentFeesView />} />
                             <Route path="transport" element={<ParentTransportView />} />
                             <Route path="communication" element={<ParentCommunicationView />} />
-                            <Route path="settings" element={<ParentSettingsView />} />
+                            <Route path="settings" element={<UnifiedProfileView />} />
                         </Route>
                     </Route>
 
@@ -325,13 +326,13 @@ function App() {
                     >
                         <Route element={<VendorDashboardLayout />}>
                             <Route index element={<VendorDashboardOverview />} />
-                            <Route path="profile" element={<VendorProfileView />} />
+                            <Route path="profile" element={<UnifiedProfileView />} />
                             <Route path="orders" element={<VendorOrdersView />} />
                             <Route path="inventory" element={<VendorInventoryView />} />
                             <Route path="billing" element={<VendorBillingView />} />
                             <Route path="communication" element={<VendorCommunicationView />} />
                             <Route path="reports" element={<VendorReportsView />} />
-                            <Route path="settings" element={<VendorSettingsView />} />
+                            <Route path="settings" element={<UnifiedProfileView />} />
                         </Route>
                     </Route>
 

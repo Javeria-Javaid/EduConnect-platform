@@ -77,17 +77,17 @@ const FinanceReports = () => {
     const columns = [
         {
             key: 'type', label: 'Transaction Type', sortable: true, render: (row) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div className="report-inline-row">
                     <div className="transaction-icon">
                         <DollarSign size={16} />
                     </div>
-                    <span style={{ fontWeight: '600', color: '#1e293b' }}>{row.type}</span>
+                    <span className="report-cell-primary">{row.type}</span>
                 </div>
             )
         },
         {
             key: 'amount', label: 'Amount', sortable: true, render: (row) => (
-                <span style={{ fontWeight: '800', color: '#1e293b' }}>{row.amount}</span>
+                <span className="report-cell-amount">{row.amount}</span>
             )
         },
         {
@@ -137,15 +137,15 @@ const FinanceReports = () => {
                                     <h3>{stat.label}</h3>
                                     <p className="report-summary-value">{stat.value}</p>
                                 </div>
-                                <div className="report-summary-icon" style={{ backgroundColor: stat.bgColor, color: '#3b82f6' }}>
+                                <div className="report-summary-icon report-summary-icon-dynamic" style={{ '--summary-icon-bg': stat.bgColor }}>
                                     <Icon size={24} />
                                 </div>
                             </div>
                             <div className="report-summary-footer">
-                                <span style={{ color: stat.change.startsWith('+') ? '#10b981' : '#ef4444' }}>
+                                <span className={stat.change.startsWith('+') ? 'report-trend-positive' : 'report-trend-negative'}>
                                     {stat.change}
                                 </span>
-                                <span style={{ color: '#94a3b8' }}>vs last month</span>
+                                <span className="report-trend-muted">vs last month</span>
                             </div>
                         </div>
                     );
@@ -174,8 +174,8 @@ const FinanceReports = () => {
                         selectable={true}
                         pageSize={8}
                     />
-                    {loading && <div style={{ padding: '12px', color: '#64748b', fontWeight: 600 }}>Loading…</div>}
-                    {error && <div style={{ padding: '12px', color: '#ef4444', fontWeight: 600 }}>{error}</div>}
+                    {loading && <div className="report-state-message report-state-loading">Loading...</div>}
+                    {error && <div className="report-state-message report-state-error">{error}</div>}
                 </div>
 
                 {/* Revenue Chart */}

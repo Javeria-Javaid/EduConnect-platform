@@ -186,7 +186,7 @@ const ParentDashboardOverview = () => {
 
                     <div className="schools-list" style={{ display: 'grid', gap: '15px', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))' }}>
                         {schools.length === 0 ? (
-                            <p>No schools found. Try searching for a city.</p>
+                            <p className="empty-state-message">No schools found. Try searching for a city.</p>
                         ) : (
                             schools.map(school => (
                                 <div key={school._id} style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px', background: '#f9fafb' }}>
@@ -308,7 +308,7 @@ const ParentDashboardOverview = () => {
                     <div className="card-body">
                         <div className="announcements-list">
                             {announcements.length === 0 ? (
-                                <p>No recent announcements.</p>
+                                <p className="empty-state-message">No recent announcements.</p>
                             ) : announcements.map((ann) => (
                                 <div key={ann.id} className="announcement-item">
                                     <h4>{ann.title}</h4>

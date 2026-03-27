@@ -22,7 +22,16 @@ const ParentFeesView = () => {
     }, []);
 
     const paymentHistory = data.activeChildData?.transactions || [];
-    const feeInvoices = []; // Placeholders since we only do transactions. Or use pending transactions as invoices.
+    const feeInvoices = paymentHistory
+        .filter(p => p.type === 'Fee' || p.type === 'fee' || p.category?.toLowerCase().includes('fee'))
+        .slice(0, 8)
+        .map((p) => ({
+            id: p._id,
+            month: p.date ? new Date(p.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Current Cycle',
+            dueDate: p.date ? new Date(p.date).toLocaleDateString() : 'N/A',
+            amount: `PKR ${p.amount || 0}`,
+            status: (p.status || '').toLowerCase() === 'paid' ? 'paid' : 'pending'
+        }));
 
     return (
         <div className="parent-view-container">
@@ -55,7 +64,7 @@ const ParentFeesView = () => {
                                             )}
                                         </div>
                                         {invoice.status === 'pending' && (
-                                            <button className="btn-primary">Pay Now</button>
+                                            <span className="badge badge-warning">Payment Pending</span>
                                         )}
                                     </div>
                                 ))}

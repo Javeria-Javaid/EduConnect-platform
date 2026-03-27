@@ -4,6 +4,8 @@ import ExamResult from '../models/ExamResult.js';
 import Timetable from '../models/Timetable.js';
 import Attendance from '../models/Attendance.js';
 import Transaction from '../models/Transaction.js';
+import Vehicle from '../models/Vehicle.js';
+import Route from '../models/Route.js';
 
 export const getParentStats = async (req, res) => {
   try {
@@ -116,6 +118,14 @@ export const getDashboardData = async (req, res) => {
         // Fetch Fees
         const transactions = await Transaction.find({ student: childUserId }).sort({ date: -1 });
 
+        // Fetch Transport (school-wide; student-specific assignment not modeled yet)
+        const [vehicles, routes] = await Promise.all([
+            Vehicle.find({ school: child.school }),
+            Route.find({ school: child.school }).populate('vehicle')
+        ]);
+
+        const driversAvailable = vehicles.filter(v => v.status === 'Active').length;
+
         res.json({
             children: parentProfile.children,
             activeChildData: {
@@ -124,7 +134,18 @@ export const getDashboardData = async (req, res) => {
                 attendanceRecords: attendance,
                 attendanceStats: { presentCount, absentCount, attendanceRate },
                 timetables,
-                transactions
+                transactions,
+                transport: {
+                    stats: {
+                        totalVehicles: vehicles.length,
+                        activeRoutes: routes.length,
+                        studentsUsingTransport: 0,
+                        pendingRequests: 0,
+                        driversAvailable
+                    },
+                    vehicles,
+                    routes
+                }
             }
         });
     } catch (error) {

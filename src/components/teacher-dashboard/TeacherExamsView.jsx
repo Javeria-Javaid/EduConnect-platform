@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { FileSpreadsheet, Plus, TrendingUp, Download, Award, Users } from 'lucide-react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { FileSpreadsheet, Plus, TrendingUp, Award, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'sonner';
+import ManageMarksModal from '../school-dashboard/exams/ManageMarksModal';
 import './TeacherDashboardOverview.css';
 
 const TeacherExamsView = () => {
@@ -10,6 +11,8 @@ const TeacherExamsView = () => {
     const [examsList, setExamsList] = useState([]);
     const [teacherClasses, setTeacherClasses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isMarksModalOpen, setIsMarksModalOpen] = useState(false);
+    const [selectedExamForMarks, setSelectedExamForMarks] = useState(null);
     
     // Form state
     const [formData, setFormData] = useState({
@@ -53,23 +56,34 @@ const TeacherExamsView = () => {
         fetchData();
     }, [user]);
 
+    const kpis = useMemo(() => {
+        const list = examsList || [];
+        return {
+            total: list.length,
+            scheduled: list.filter(e => e.status === 'Scheduled').length,
+            active: list.filter(e => e.status === 'Active').length,
+            completed: list.filter(e => e.status === 'Completed').length
+        };
+    }, [examsList]);
+
     const handleCreateExam = async (e) => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
             const classObj = teacherClasses.find(c => c.id === formData.classId);
+            if (!classObj) {
+                toast.error('Please select a class');
+                return;
+            }
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/exams`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
-                    title: formData.title,
-                    type: formData.type,
-                    class: classObj.grade,
-                    section: classObj.section,
-                    subject: classObj.subject,
+                    name: formData.title,
+                    term: formData.type,
                     startDate: formData.date,
                     endDate: formData.date,
-                    totalMarks: formData.totalMarks,
+                    classes: [classObj.grade],
                     status: 'Scheduled'
                 })
             });
@@ -84,7 +98,14 @@ const TeacherExamsView = () => {
         } catch (error) { toast.error('Error creating exam'); }
     };
 
+    const getStatusBadgeClass = (status) => {
+        if (status === 'Completed') return 'badge badge-success';
+        if (status === 'Scheduled') return 'badge badge-info';
+        return 'badge badge-warning';
+    };
+
     return (
+        <>
         <div className="teacher-dashboard-overview">
             <div className="overview-header">
                 <div>
@@ -104,8 +125,8 @@ const TeacherExamsView = () => {
                     </div>
                     <div className="kpi-content">
                         <h3 className="kpi-title">Total Exams</h3>
-                        <div className="kpi-value">{examsList.length}</div>
-                        <div className="kpi-change">This term</div>
+                        <div className="kpi-value">{kpis.total}</div>
+                        <div className="kpi-change">All exams</div>
                     </div>
                 </div>
                 <div className="kpi-card">
@@ -113,9 +134,9 @@ const TeacherExamsView = () => {
                         <TrendingUp size={24} />
                     </div>
                     <div className="kpi-content">
-                        <h3 className="kpi-title">Avg Score</h3>
-                        <div className="kpi-value">76.5%</div>
-                        <div className="kpi-change">Across all exams</div>
+                        <h3 className="kpi-title">Scheduled</h3>
+                        <div className="kpi-value">{kpis.scheduled}</div>
+                        <div className="kpi-change">Waiting to start</div>
                     </div>
                 </div>
                 <div className="kpi-card">
@@ -123,9 +144,9 @@ const TeacherExamsView = () => {
                         <Award size={24} />
                     </div>
                     <div className="kpi-content">
-                        <h3 className="kpi-title">Highest Score</h3>
-                        <div className="kpi-value">98</div>
-                        <div className="kpi-change">This term</div>
+                        <h3 className="kpi-title">Active</h3>
+                        <div className="kpi-value">{kpis.active}</div>
+                        <div className="kpi-change">In progress</div>
                     </div>
                 </div>
                 <div className="kpi-card">
@@ -133,9 +154,9 @@ const TeacherExamsView = () => {
                         <Users size={24} />
                     </div>
                     <div className="kpi-content">
-                        <h3 className="kpi-title">Students</h3>
-                        <div className="kpi-value">116</div>
-                        <div className="kpi-change">Evaluated</div>
+                        <h3 className="kpi-title">Completed</h3>
+                        <div className="kpi-value">{kpis.completed}</div>
+                        <div className="kpi-change">Results available</div>
                     </div>
                 </div>
             </div>
@@ -200,43 +221,14 @@ const TeacherExamsView = () => {
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
                                     <div>
-                                        <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>{exam.title}</h3>
-                                        <p style={{ fontSize: '14px', color: '#6b7280' }}>{exam.class} {exam.section} • {exam.subject}</p>
+                                        <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>{exam.name || exam.title || 'Exam'}</h3>
+                                        <p style={{ fontSize: '14px', color: '#6b7280' }}>
+                                            Term: {exam.term || '—'} • Classes: {(exam.classes || []).join(', ') || '—'}
+                                        </p>
                                     </div>
-                                    {exam.status === 'Completed' ? (
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
-                                            fontSize: '12px',
-                                            fontWeight: '500',
-                                            backgroundColor: '#d1fae5',
-                                            color: '#065f46'
-                                        }}>
-                                            ✓ Completed
-                                        </span>
-                                    ) : exam.status === 'Scheduled' ? (
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
-                                            fontSize: '12px',
-                                            fontWeight: '500',
-                                            backgroundColor: '#dbeafe',
-                                            color: '#1e40af'
-                                        }}>
-                                            Scheduled
-                                        </span>
-                                    ) : (
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
-                                            fontSize: '12px',
-                                            fontWeight: '500',
-                                            backgroundColor: '#fef3c7',
-                                            color: '#92400e'
-                                        }}>
-                                            Active
-                                        </span>
-                                    )}
+                                    <span className={getStatusBadgeClass(exam.status)}>
+                                        {exam.status === 'Completed' ? 'Completed' : exam.status === 'Scheduled' ? 'Scheduled' : 'Active'}
+                                    </span>
                                 </div>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '16px', marginBottom: '16px' }}>
@@ -246,7 +238,7 @@ const TeacherExamsView = () => {
                                     </div>
                                     <div style={{ padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
                                         <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Total Marks</p>
-                                        <p style={{ fontWeight: '600', fontSize: '14px' }}>{exam.totalMarks}</p>
+                                        <p style={{ fontWeight: '600', fontSize: '14px' }}>{exam.totalMarks || '—'}</p>
                                     </div>
                                     {exam.status === 'Completed' && (
                                         <>
@@ -264,23 +256,37 @@ const TeacherExamsView = () => {
 
                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                     {exam.status !== 'Completed' && (
-                                        <button className="btn-primary" style={{ fontSize: '14px' }} onClick={() => toast('Marks upload module under construction')}>Upload Marks</button>
+                                        <button
+                                            className="btn-primary"
+                                            onClick={() => {
+                                                setSelectedExamForMarks(exam);
+                                                setIsMarksModalOpen(true);
+                                            }}
+                                        >
+                                            Upload Marks
+                                        </button>
                                     )}
-                                    {exam.status === 'Scheduled' && (
-                                        <button className="btn-primary" style={{ fontSize: '14px' }} onClick={async () => {
-                                            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/exams/${exam._id}`, {
-                                                method: 'PUT', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'Completed' })
-                                            });
-                                            if (res.ok) setExamsList(examsList.map(e => e._id === exam._id ? {...e, status: 'Completed'} : e));
-                                        }}>Mark Completed</button>
-                                    )}
-                                    {exam.status === 'Completed' && (
-                                        <>
-                                            <button className="btn-secondary" style={{ fontSize: '14px' }}>
-                                                <Download size={14} /> Export PDF
-                                            </button>
-                                            <button className="btn-secondary" style={{ fontSize: '14px' }}>View Rank List</button>
-                                        </>
+                                    {exam.status !== 'Completed' && (
+                                        <button
+                                            className="btn-primary"
+                                            onClick={async () => {
+                                                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/exams/${exam._id}`, {
+                                                    method: 'PUT',
+                                                    headers: {
+                                                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                                        'Content-Type': 'application/json'
+                                                    },
+                                                    body: JSON.stringify({ status: 'Completed' })
+                                                });
+                                                if (res.ok) {
+                                                    setExamsList(prev => prev.map(e => (e._id === exam._id ? { ...e, status: 'Completed' } : e)));
+                                                } else {
+                                                    toast.error('Failed to mark exam completed');
+                                                }
+                                            }}
+                                        >
+                                            Mark Completed
+                                        </button>
                                     )}
                                 </div>
                             </div>
@@ -289,6 +295,26 @@ const TeacherExamsView = () => {
                 </div>
             </div>
         </div>
+            <ManageMarksModal
+                isOpen={isMarksModalOpen}
+                onClose={async () => {
+                    setIsMarksModalOpen(false);
+                    setSelectedExamForMarks(null);
+                    try {
+                        const token = localStorage.getItem('token');
+                        const examsRes = await fetch(`${import.meta.env.VITE_API_URL}/api/exams`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (examsRes.ok) {
+                            setExamsList(await examsRes.json());
+                        }
+                    } catch {
+                        // no-op
+                    }
+                }}
+                exam={selectedExamForMarks}
+            />
+        </>
     );
 };
 

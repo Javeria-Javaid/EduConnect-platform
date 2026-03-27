@@ -53,16 +53,20 @@ const ParentAcademicView = () => {
             name: s.name,
             grade: getGrade(percentage),
             percentage: Math.round(percentage),
-            teacher: 'TBD'
         };
     });
 
-    const examHistory = examResults.map(r => ({
+    const sortedExamResults = [...examResults].sort((a, b) => new Date(b.exam?.startDate || 0) - new Date(a.exam?.startDate || 0));
+    const examHistory = sortedExamResults.map(r => ({
         exam: r.exam?.name || 'Unknown Exam',
         date: r.exam ? new Date(r.exam.startDate).toLocaleDateString() : 'N/A',
-        score: `${Math.round(r.percentage)}%`,
-        grade: getGrade(r.percentage)
+        score: `${Math.round(r.percentage || 0)}%`,
+        grade: getGrade(r.percentage || 0)
     }));
+
+    const avgExamPercentage = examResults.length
+        ? Math.round(examResults.reduce((sum, r) => sum + (r.percentage || 0), 0) / examResults.length)
+        : null;
 
     return (
         <div className="parent-view-container">
@@ -131,13 +135,32 @@ const ParentAcademicView = () => {
 
                 <div className="content-card">
                     <div className="card-header">
-                        <h2 className="card-title">Progress Chart</h2>
+                        <h2 className="card-title">Performance Summary</h2>
                         <Award size={20} className="text-gray-400" />
                     </div>
                     <div className="card-body">
-                        <div className="chart-placeholder">
-                            <p>Performance trend chart will be displayed here</p>
-                        </div>
+                        {loading ? (
+                            <p>Loading summary...</p>
+                        ) : avgExamPercentage === null ? (
+                            <p>No performance data.</p>
+                        ) : (
+                            <div style={{ display: 'grid', gap: 10 }}>
+                                <p style={{ marginBottom: 0, color: '#475569' }}>
+                                    Average across exams: <span style={{ fontWeight: 700, color: '#3b82f6' }}>{avgExamPercentage}%</span>
+                                </p>
+                                <div style={{ display: 'grid', gap: 8 }}>
+                                    {examHistory.slice(0, 4).map((h, idx) => (
+                                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff' }}>
+                                            <div>
+                                                <div style={{ fontWeight: 600 }}>{h.exam}</div>
+                                                <div style={{ fontSize: 12, color: '#6b7280' }}>{h.date}</div>
+                                            </div>
+                                            <div style={{ fontWeight: 700, color: '#10b981' }}>{h.score}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

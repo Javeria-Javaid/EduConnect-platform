@@ -46,6 +46,10 @@ export const AuthProvider = ({ children }) => {
     window.location.href = '/login';
   };
 
+  const updateUser = (newData) => {
+    setUser(prev => prev ? { ...prev, ...newData } : newData);
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -53,6 +57,7 @@ export const AuthProvider = ({ children }) => {
       role: user?.role ?? null,
       login,
       logout,
+      updateUser,
       loading
     }),
     [user, loading],

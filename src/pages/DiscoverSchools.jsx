@@ -90,7 +90,11 @@ const DiscoverSchools = () => {
                                 {schools.map((school, idx) => (
                                     <motion.div key={school._id || idx} className="school-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}>
                                         <div className="school-image">
-                                            <img src="/api/placeholder/400/250" alt={school.name} />
+                                            <img 
+                                                src={school.banner || school.logo || `https://images.unsplash.com/photo-152305085306e-8c3339709b66?auto=format&fit=crop&q=80&w=400&h=250`} 
+                                                alt={school.name}
+                                                onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=400&h=250'; }}
+                                            />
                                             <span className="admission-badge open">✓ Admissions Open</span>
                                         </div>
                                         <div className="school-info">

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, FileText, CheckCircle, Clock, AlertCircle, Calendar, Upload } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Plus, FileText, CheckCircle, Clock, AlertCircle, Calendar } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'sonner';
 import './TeacherDashboardOverview.css';
@@ -11,6 +11,7 @@ const TeacherHomeworkView = () => {
     const [homeworkList, setHomeworkList] = useState([]);
     const [teacherClasses, setTeacherClasses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [gradeDrafts, setGradeDrafts] = useState({});
 
     const [formData, setFormData] = useState({
         title: '', classId: '', description: '', dueDate: '', maxMarks: 100
@@ -50,6 +51,67 @@ const TeacherHomeworkView = () => {
         };
         fetchData();
     }, [user]);
+
+    const kpis = useMemo(() => {
+        const now = new Date();
+        const list = homeworkList || [];
+
+        const assignmentsWithAnySubmission = list.filter(hw => (hw.submissions || []).length > 0).length;
+        const submittedAssignments = list.filter(hw => (hw.submissions || []).some(s => s.status === 'Submitted' || s.status === 'Graded')).length;
+        const pendingGradingAssignments = list.filter(hw => (hw.submissions || []).some(s => s.status === 'Submitted')).length;
+        const overdueAssignments = list.filter(hw => {
+            if (!hw.dueDate) return false;
+            const isOverdue = new Date(hw.dueDate) < now;
+            if (!isOverdue) return false;
+            return (hw.submissions || []).some(s => s.status !== 'Graded');
+        }).length;
+
+        return {
+            totalAssignments: list.length,
+            submittedAssignments: submittedAssignments || assignmentsWithAnySubmission,
+            pendingGradingAssignments,
+            overdueAssignments
+        };
+    }, [homeworkList]);
+
+    const handleGradeSubmission = async (homeworkId, studentId) => {
+        const draft = gradeDrafts[studentId] || {};
+        const marks = Number(draft.marks);
+        const feedback = draft.feedback || '';
+
+        if (!Number.isFinite(marks)) {
+            toast.error('Enter marks to grade.');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/homework/${homeworkId}/grade`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ marks, feedback, studentId })
+            });
+
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                toast.error(data?.message || 'Failed to grade submission');
+                return;
+            }
+
+            setHomeworkList(prev => prev.map(hw => hw._id === homeworkId ? data : hw));
+            setSelectedHomework(prev => (prev && prev._id === homeworkId ? data : prev));
+            setGradeDrafts(prev => {
+                const next = { ...prev };
+                delete next[studentId];
+                return next;
+            });
+            toast.success('Submission graded');
+        } catch {
+            toast.error('Network error while grading');
+        }
+    };
 
     const handleCreateHomework = async (e) => {
         e.preventDefault();
@@ -100,7 +162,7 @@ const TeacherHomeworkView = () => {
                     </div>
                     <div className="kpi-content">
                         <h3 className="kpi-title">Total Assignments</h3>
-                        <div className="kpi-value">{homeworkList.length}</div>
+                        <div className="kpi-value">{kpis.totalAssignments}</div>
                         <div className="kpi-change">Active</div>
                     </div>
                 </div>
@@ -110,8 +172,8 @@ const TeacherHomeworkView = () => {
                     </div>
                     <div className="kpi-content">
                         <h3 className="kpi-title">Submitted</h3>
-                        <div className="kpi-value">65</div>
-                        <div className="kpi-change">Out of 90 total</div>
+                        <div className="kpi-value">{kpis.submittedAssignments}</div>
+                        <div className="kpi-change">Based on submissions</div>
                     </div>
                 </div>
                 <div className="kpi-card">
@@ -120,7 +182,7 @@ const TeacherHomeworkView = () => {
                     </div>
                     <div className="kpi-content">
                         <h3 className="kpi-title">Pending Grading</h3>
-                        <div className="kpi-value">35</div>
+                        <div className="kpi-value">{kpis.pendingGradingAssignments}</div>
                         <div className="kpi-change">To be graded</div>
                     </div>
                 </div>
@@ -130,8 +192,8 @@ const TeacherHomeworkView = () => {
                     </div>
                     <div className="kpi-content">
                         <h3 className="kpi-title">Overdue</h3>
-                        <div className="kpi-value">8</div>
-                        <div className="kpi-change">Not submitted</div>
+                        <div className="kpi-value">{kpis.overdueAssignments}</div>
+                        <div className="kpi-change">Needs attention</div>
                     </div>
                 </div>
             </div>
@@ -170,14 +232,6 @@ const TeacherHomeworkView = () => {
                             <div>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Description</label>
                                 <textarea rows="4" required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Assignment details and instructions" style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}></textarea>
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Attach Files</label>
-                                <div style={{ border: '2px dashed #e5e7eb', borderRadius: '6px', padding: '24px', textAlign: 'center', cursor: 'pointer' }}>
-                                    <Upload size={32} color="#9ca3af" style={{ margin: '0 auto 8px' }} />
-                                    <p style={{ color: '#6b7280' }}>Click to upload or drag and drop</p>
-                                    <p style={{ fontSize: '12px', color: '#9ca3af' }}>PDF, DOC, or images (max 10MB)</p>
-                                </div>
                             </div>
                             <button type="submit" className="btn-primary">
                                 Create Assignment
@@ -238,10 +292,75 @@ const TeacherHomeworkView = () => {
                                 {selectedHomework?._id === hw._id && (
                                     <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
                                         <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '12px' }}>{hw.description}</p>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button className="btn-primary" style={{ fontSize: '14px' }}>Grade Submissions</button>
-                                            <button className="btn-secondary" style={{ fontSize: '14px' }}>View Details</button>
-                                            <button className="btn-secondary" style={{ fontSize: '14px' }}>Send Reminder</button>
+                                        <div style={{ display: 'grid', gap: '12px' }}>
+                                            {(hw.submissions || []).length === 0 ? (
+                                                <p style={{ color: '#64748b' }}>No submissions yet.</p>
+                                            ) : (
+                                                (hw.submissions || []).map((sub) => {
+                                                    const studentId =
+                                                        typeof sub.student === 'object' ? sub.student?._id || sub.student?.id : sub.student;
+                                                    const studentLabel = typeof sub.student === 'object' ? sub.student?.admissionNumber : studentId;
+
+                                                    const status = sub.status || 'Pending';
+                                                    const isGraded = status === 'Graded';
+
+                                                    const draft = gradeDrafts[studentId] || { marks: '', feedback: sub.feedback || '' };
+
+                                                    return (
+                                                        <div key={`${hw._id}-${studentId}`} style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, background: '#fff' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 8 }}>
+                                                                <div>
+                                                                    <div style={{ fontWeight: 700, marginBottom: 4 }}>Student: {studentLabel || '—'}</div>
+                                                                    <div style={{ fontSize: 12, color: '#64748b' }}>Current status: {status}</div>
+                                                                </div>
+                                                                <span className={isGraded ? 'badge badge-success' : 'badge badge-warning'}>
+                                                                    {isGraded ? 'Graded' : status}
+                                                                </span>
+                                                            </div>
+
+                                                            {!isGraded && (
+                                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                                                    <div>
+                                                                        <label style={{ display: 'block', fontSize: 12, color: '#475569', fontWeight: 600, marginBottom: 6 }}>Marks</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={draft.marks}
+                                                                            onChange={(e) => setGradeDrafts(prev => ({
+                                                                                ...prev,
+                                                                                [studentId]: { ...(prev[studentId] || {}), marks: e.target.value, feedback: draft.feedback }
+                                                                            }))}
+                                                                            style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: 6 }}
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label style={{ display: 'block', fontSize: 12, color: '#475569', fontWeight: 600, marginBottom: 6 }}>Feedback</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            value={draft.feedback}
+                                                                            onChange={(e) => setGradeDrafts(prev => ({
+                                                                                ...prev,
+                                                                                [studentId]: { ...(prev[studentId] || {}), feedback: e.target.value, marks: draft.marks }
+                                                                            }))}
+                                                                            placeholder="Short feedback"
+                                                                            style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: 6 }}
+                                                                        />
+                                                                    </div>
+
+                                                                    <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end' }}>
+                                                                        <button
+                                                                            type="button"
+                                                                            className="btn-primary"
+                                                                            onClick={() => handleGradeSubmission(hw._id, studentId)}
+                                                                        >
+                                                                            Grade Submission
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })
+                                            )}
                                         </div>
                                     </div>
                                 )}

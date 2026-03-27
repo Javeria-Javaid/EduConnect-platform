@@ -106,7 +106,7 @@ const DataTable = ({
                                     </div>
                                 </th>
                             ))}
-                            {onQuickAction && <th style={{ textAlign: 'right' }}>Actions</th>}
+                            {onQuickAction && <th className="actions-header">Actions</th>}
                         </tr>
                     </thead>
                     <tbody className="table-body">

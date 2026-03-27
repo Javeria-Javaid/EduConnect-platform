@@ -22,7 +22,48 @@ const ParentExamsView = () => {
     }, []);
 
     const examResults = data.activeChildData?.examResults || [];
-    const upcomingExams = []; // We can fetch pending exams from Exam collection if needed, using placeholders for now if empty.
+    const upcomingExams = examResults
+        .filter(r => r?.exam?.startDate && new Date(r.exam.startDate) >= new Date())
+        .sort((a, b) => new Date(a.exam.startDate) - new Date(b.exam.startDate))
+        .map((r, idx) => ({
+            id: r._id || idx,
+            title: r.exam?.name || 'Upcoming Exam',
+            date: new Date(r.exam.startDate),
+        }));
+
+    const downloadResult = (result) => {
+        try {
+            const lines = [
+                ['Exam', result.exam?.name || 'Unknown Exam'],
+                ['Date', result.exam?.startDate ? new Date(result.exam.startDate).toLocaleDateString() : 'N/A'],
+                ['Percentage', `${Math.round(result.percentage || 0)}%`],
+                ['Grade', result.percentage >= 90 ? 'A+' : result.percentage >= 80 ? 'A' : result.percentage >= 70 ? 'B' : result.percentage >= 60 ? 'C' : 'F'],
+                [''],
+                ['Subject', 'Obtained', 'Total']
+            ];
+
+            (result.marks || []).forEach((m) => {
+                lines.push([m.subject || '', m.obtained ?? '', m.total ?? '']);
+            });
+
+            const csv = lines.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Exam_Result_${(result.exam?.name || 'result').replace(/\s+/g, '_')}.csv`;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            toast.success('Result downloaded');
+        } catch {
+            toast.error('Failed to download result');
+        }
+    };
 
     return (
         <div className="parent-view-container">
@@ -43,15 +84,14 @@ const ParentExamsView = () => {
                                 {upcomingExams.map((exam) => (
                                     <div key={exam.id} className="exam-card">
                                         <div className="exam-date-badge">
-                                            <span className="exam-day">15</span>
-                                            <span className="exam-month">Dec</span>
+                                            <span className="exam-day">{exam.date.toLocaleDateString('en-US', { day: '2-digit' })}</span>
+                                            <span className="exam-month">{exam.date.toLocaleDateString('en-US', { month: 'short' })}</span>
                                         </div>
                                         <div className="exam-details">
-                                            <h3>{exam.subject} - {exam.type}</h3>
+                                            <h3>{exam.title}</h3>
                                             <div className="exam-info">
-                                                <span><Calendar size={14} /> {exam.date}</span>
-                                                <span><Clock size={14} /> {exam.time}</span>
-                                                <span>Room: {exam.room}</span>
+                                                <span><Calendar size={14} /> {exam.date.toLocaleDateString()}</span>
+                                                <span><Clock size={14} /> Scheduled</span>
                                             </div>
                                         </div>
                                     </div>
@@ -79,7 +119,7 @@ const ParentExamsView = () => {
                                             <span className="result-score">{Math.round(result.percentage)}%</span>
                                             <span className="result-grade">{result.percentage >= 90 ? 'A+' : result.percentage >= 80 ? 'A' : result.percentage >= 70 ? 'B' : result.percentage >= 60 ? 'C' : 'F'}</span>
                                         </div>
-                                        <button className="btn-download">
+                                        <button className="btn-download" onClick={() => downloadResult(result)}>
                                             <Download size={16} />
                                             Download
                                         </button>

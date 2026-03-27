@@ -43,10 +43,11 @@ const ManageMarksModal = ({ isOpen, onClose, exam }) => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-                const data = await res.json();
-                setStudents(data);
+                const payload = await res.json();
+                const list = payload?.data || payload || [];
+                setStudents(list);
                 const initialMarks = {};
-                data.forEach(s => { initialMarks[s._id] = ''; });
+                list.forEach(s => { initialMarks[s._id] = ''; });
                 setMarks(initialMarks);
             }
         } catch (error) {
@@ -60,7 +61,7 @@ const ManageMarksModal = ({ isOpen, onClose, exam }) => {
         if (students.length === 0) return toast.info('No students to save marks for');
         
         const marksData = students.map(s => ({
-            student: s._id,
+            student: s.userId || s.user || s._id,
             class: selectedClass,
             section: selectedSection,
             marks: [{ subject, obtained: Number(marks[s._id] || 0), total: Number(maxMarks) }]
@@ -130,7 +131,7 @@ const ManageMarksModal = ({ isOpen, onClose, exam }) => {
                                 {students.map(s => (
                                     <tr key={s._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                         <td style={{ padding: '12px' }}>{s.rollNumber || '-'}</td>
-                                        <td style={{ padding: '12px', fontWeight: '500' }}>{s.firstName} {s.lastName}</td>
+                                        <td style={{ padding: '12px', fontWeight: '500' }}>{s.name || `${s.firstName || ''} ${s.lastName || ''}`.trim()}</td>
                                         <td style={{ padding: '12px' }}>
                                             <input 
                                                 type="number" 

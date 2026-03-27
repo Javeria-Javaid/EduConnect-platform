@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, Search, ArrowLeft } from 'lucide-react';
+import { X, Send, Search, ArrowLeft, Plus, MessageSquare } from 'lucide-react';
 import io from 'socket.io-client';
 import { toast } from 'sonner';
 import '../shared/SimpleModal.css';
@@ -20,12 +20,18 @@ const MessageModal = ({ isOpen, onClose, initialRecipient, currentUser }) => {
     const [isSending, setIsSending] = useState(false);
     const [error, setError] = useState('');
     
-    // For mobile responsive view
+    // New Message Search State
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [searchingUsers, setSearchingUsers] = useState(false);
+    
     const [showSidebar, setShowSidebar] = useState(true);
 
     const messagesEndRef = useRef(null);
     const typingTimeoutRef = useRef(null);
     const pollingIntervalRef = useRef(null);
+    const activeConversationRef = useRef(null);
 
     // Timestamp Formatter
     const formatTimestamp = (dateStr) => {
@@ -49,9 +55,10 @@ const MessageModal = ({ isOpen, onClose, initialRecipient, currentUser }) => {
         socket.on('connected', () => setSocketConnected(true));
 
         socket.on('message received', (newMessageReceived) => {
-            if (activeConversation && activeConversation._id === newMessageReceived.conversation) {
+            const currentActive = activeConversationRef.current;
+            if (currentActive && currentActive._id === newMessageReceived.conversation) {
                 setMessages(prev => [...prev, newMessageReceived]);
-                markAsRead(activeConversation._id);
+                markAsRead(currentActive._id);
             } else {
                 fetchConversations();
             }
@@ -133,11 +140,44 @@ const MessageModal = ({ isOpen, onClose, initialRecipient, currentUser }) => {
             const data = await res.json();
             if (res.ok) setConversations(data);
         } catch (error) {
-            toast.error('Failed to load conversations');
+            console.error('Failed to load conversations');
         } finally {
             setLoadingConversations(false);
         }
     };
+
+    const searchUsers = async (query) => {
+        if (!query.trim()) {
+            setSearchResults([]);
+            return;
+        }
+        setSearchingUsers(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${ENDPOINT}/api/admin/users?search=${query}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                // Filter out current user from results
+                setSearchResults(data.filter(u => u._id !== currentUser._id));
+            }
+        } catch (error) {
+            console.error('User search failed');
+        } finally {
+            setSearchingUsers(false);
+        }
+    };
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (isSearching && searchTerm) {
+                searchUsers(searchTerm);
+            }
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm, isSearching]);
 
     const fetchMessages = async (convId) => {
         setLoadingMessages(true);
@@ -183,16 +223,39 @@ const MessageModal = ({ isOpen, onClose, initialRecipient, currentUser }) => {
 
     const selectConversation = (conv) => {
         setActiveConversation(conv);
-        if (socketConnected) socket.emit('join chat', conv._id);
-        fetchMessages(conv._id);
+        activeConversationRef.current = conv;
+        if (socketConnected && !conv.isNew) socket.emit('join chat', conv._id);
+        if (!conv.isNew) fetchMessages(conv._id);
+        else setMessages([]);
         setShowSidebar(false);
+        setIsSearching(false);
+    };
+
+    const startNewChat = (user) => {
+        const existingConv = conversations.find(c => 
+            c.participants.some(p => p._id === user._id)
+        );
+        
+        if (existingConv) {
+            selectConversation(existingConv);
+        } else {
+            setActiveConversation({
+                isNew: true,
+                participants: [user],
+                recipientId: user._id
+            });
+            setMessages([]);
+            setShowSidebar(false);
+            setIsSearching(false);
+        }
     };
 
     const getRecipientDetails = (conv) => {
         if (!conv) return null;
         if (conv.isNew) return conv.participants[0];
-        const otherParticipant = conv.participants.filter(p => p._id !== currentUser._id)[0];
-        return otherParticipant || conv.participants[0];
+        const participants = Array.isArray(conv.participants) ? conv.participants : [];
+        const otherParticipant = participants.filter(p => (p._id || p) !== currentUser._id)[0];
+        return otherParticipant || participants[0];
     };
 
     const handleSendMessage = async (e) => {
@@ -285,14 +348,54 @@ const MessageModal = ({ isOpen, onClose, initialRecipient, currentUser }) => {
                     <div className={`message-sidebar ${!showSidebar ? 'hide-mobile' : ''}`}>
                         <div className="sidebar-search">
                             <Search size={16} />
-                            <input type="text" placeholder="Search conversations..." />
+                            <input 
+                                type="text" 
+                                placeholder={isSearching ? "Search people..." : "Search conversations..."} 
+                                value={isSearching ? searchTerm : ''}
+                                onChange={(e) => {
+                                    if (!isSearching) setIsSearching(true);
+                                    setSearchTerm(e.target.value);
+                                }}
+                            />
+                            {isSearching && (
+                                <button className="clear-search-btn" onClick={() => { setIsSearching(false); setSearchTerm(''); }}>×</button>
+                            )}
                         </div>
+
+                        {!isSearching && (
+                            <button className="new-chat-floating-btn" onClick={() => setIsSearching(true)}>
+                                <Plus size={20} /> New Message
+                            </button>
+                        )}
                         
                         <div className="conversations-list">
-                            {loadingConversations ? (
+                            {isSearching ? (
+                                <div className="search-results-area">
+                                    <p className="search-label">{searchTerm ? 'People' : 'Type to search staff/parents'}</p>
+                                    {searchingUsers ? (
+                                        <div className="search-loading">Searching...</div>
+                                    ) : searchResults.length === 0 && searchTerm ? (
+                                        <div className="no-results">No users found.</div>
+                                    ) : (
+                                        searchResults.map(user => (
+                                            <div key={user._id} className="search-result-item" onClick={() => startNewChat(user)}>
+                                                <img src={user.photo || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=random`} alt="avatar" />
+                                                <div className="search-user-info">
+                                                    <span className="user-name">{user.firstName} {user.lastName}</span>
+                                                    <span className="user-role">{user.role}</span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            ) : loadingConversations ? (
                                 Array(5).fill(0).map((_, i) => <div key={i} className="skeleton-item" />)
                             ) : conversations.length === 0 ? (
-                                <div className="no-conv-state">No conversations yet.</div>
+                                <div className="no-conv-state">
+                                    <MessageSquare size={40} />
+                                    <p>No conversations yet</p>
+                                    <button className="btn-start-chat" onClick={() => setIsSearching(true)}>Start Chatting</button>
+                                </div>
                             ) : (
                                 conversations.map(conv => {
                                     const otherUser = getRecipientDetails(conv);
@@ -304,7 +407,7 @@ const MessageModal = ({ isOpen, onClose, initialRecipient, currentUser }) => {
                                             className={`conversation-item ${activeConversation?._id === conv._id ? 'active' : ''}`}
                                             onClick={() => selectConversation(conv)}
                                         >
-                                            <img src={otherUser.photo || 'https://via.placeholder.com/40'} alt="avatar" className="conv-avatar" />
+                                            <img src={otherUser.photo || `https://ui-avatars.com/api/?name=${otherUser.firstName}+${otherUser.lastName}&background=random`} alt="avatar" className="conv-avatar" />
                                             <div className="conv-details">
                                                 <div className="conv-header-row">
                                                     <span className="conv-name">{otherUser.firstName} {otherUser.lastName}</span>
@@ -326,10 +429,10 @@ const MessageModal = ({ isOpen, onClose, initialRecipient, currentUser }) => {
                         {activeConversation && recipient ? (
                             <>
                                 <div className="chat-header">
-                                    <img src={recipient.photo || 'https://via.placeholder.com/40'} alt="avatar" className="chat-avatar" />
+                                    <img src={recipient.photo || `https://ui-avatars.com/api/?name=${recipient.firstName}+${recipient.lastName}&background=random`} alt="avatar" className="chat-avatar" />
                                     <div className="chat-recipient-info">
-                                        <h3>{recipient.firstName ? `${recipient.firstName} ${recipient.lastName}` : recipient.name}</h3>
-                                        <p>{recipient.role || 'Teacher'}</p>
+                                        <h3>{(recipient.firstName && recipient.lastName) ? `${recipient.firstName} ${recipient.lastName}` : (recipient.firstName || recipient.name || 'User')}</h3>
+                                        <p>{recipient.role || 'Staff'}</p>
                                     </div>
                                 </div>
                                 

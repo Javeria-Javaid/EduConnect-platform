@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Bell, User, Menu, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import './DashboardHeader.css';
@@ -29,10 +30,20 @@ const DashboardHeader = ({ toggleSidebar, isMobile }) => {
         return () => clearInterval(interval);
     }, []);
 
-    const displayName = user?.email ? user.email.split('@')[0] : 'User';
+    const displayName = user ? `${user.firstName} ${user.lastName}` : 'User';
     const displayRole = role === 'school_admin' ? 'School Administrator' :
         role === 'admin' ? 'Super Admin' :
             role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Guest';
+
+    const navigate = useNavigate();
+    
+    const handleProfileClick = () => {
+        if (role === 'admin') navigate('/dashboard/settings');
+        else if (role === 'school_admin') navigate('/school/dashboard/settings');
+        else if (role === 'teacher') navigate('/teacher/dashboard/settings');
+        else if (role === 'parent') navigate('/parent/dashboard/settings');
+        else if (role === 'vendor') navigate('/vendor/dashboard/profile');
+    };
 
     return (
         <header className="dashboard-header">
@@ -61,13 +72,17 @@ const DashboardHeader = ({ toggleSidebar, isMobile }) => {
                     <Bell size={20} />
                     <span className="notification-badge">3</span>
                 </button>
-                <div className="profile-dropdown">
+                <div className="profile-dropdown" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
                     <div className="profile-info">
                         <span className="profile-name">{displayName}</span>
                         <span className="profile-role">{displayRole}</span>
                     </div>
                     <div className="profile-avatar">
-                        <User size={20} />
+                        {user?.profilePhoto ? (
+                            <img src={user.profilePhoto} alt="Profile" className="header-avatar-img" />
+                        ) : (
+                            <User size={20} />
+                        )}
                     </div>
                 </div>
             </div>
