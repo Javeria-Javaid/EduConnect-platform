@@ -4,7 +4,6 @@ import SearchBar from '../shared/SearchBar';
 import DataTable from '../shared/DataTable';
 import FilterPanel from '../shared/FilterPanel';
 import AddStudentModal from './AddStudentModal';
-import { studentFilters } from './mockData';
 import { toast } from 'sonner';
 import './StudentDirectory.css';
 
@@ -23,7 +22,68 @@ const StudentDirectory = () => {
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
-    const [dynamicFilters, setDynamicFilters] = useState(studentFilters);
+    const baseFilters = useMemo(() => ([
+        {
+            key: 'class',
+            label: 'Class',
+            type: 'multiselect',
+            options: []
+        },
+        {
+            key: 'section',
+            label: 'Section',
+            type: 'multiselect',
+            options: [
+                { label: 'A', value: 'A' },
+                { label: 'B', value: 'B' },
+                { label: 'C', value: 'C' }
+            ]
+        },
+        {
+            key: 'gender',
+            label: 'Gender',
+            type: 'select',
+            options: [
+                { label: 'Male', value: 'Male' },
+                { label: 'Female', value: 'Female' },
+                { label: 'Other', value: 'Other' },
+            ]
+        },
+        {
+            key: 'feeStatus',
+            label: 'Fee Status',
+            type: 'multiselect',
+            options: [
+                { label: 'Paid', value: 'Paid' },
+                { label: 'Pending', value: 'Pending' },
+                { label: 'Overdue', value: 'Overdue' },
+                { label: 'Not Set', value: 'Not Set' }
+            ]
+        },
+        {
+            key: 'attendanceRange',
+            label: 'Attendance',
+            type: 'select',
+            options: [
+                { label: 'Below 50%', value: 'Below 50%' },
+                { label: '50-75%', value: '50-75%' },
+                { label: 'Above 75%', value: 'Above 75%' }
+            ]
+        },
+        {
+            key: 'performanceRange',
+            label: 'Performance',
+            type: 'select',
+            options: [
+                { label: '5 Stars', value: '5' },
+                { label: '4 Stars', value: '4' },
+                { label: '3 Stars', value: '3' },
+                { label: '2 Stars', value: '2' },
+                { label: '1 Star', value: '1' }
+            ]
+        }
+    ]), []);
+    const [dynamicFilters, setDynamicFilters] = useState(baseFilters);
 
     const fetchClasses = async () => {
         try {
@@ -35,8 +95,8 @@ const StudentDirectory = () => {
                 const data = await res.json();
                 const classOptions = data.map(c => ({ label: c.name, value: c.name }));
                 
-                // Update studentFilters array directly in state to inject dynamic classes
-                const updatedFilters = studentFilters.map(filter => {
+                // Update base filter array to inject dynamic classes
+                const updatedFilters = baseFilters.map(filter => {
                     if (filter.key === 'class') {
                         return { ...filter, options: classOptions };
                     }

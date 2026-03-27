@@ -6,6 +6,7 @@ import Message from '../models/Message.js';
 import StudentProfile from '../models/StudentProfile.js';
 import Class from '../models/Class.js';
 import fs from 'fs';
+import ParentProfile from '../models/ParentProfile.js';
 
 export const getTeacherStats = async (req, res) => {
   try {
@@ -169,6 +170,47 @@ export const getMyMessages = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(50);
     res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Resolve linked parent user for a student (for internal messaging)
+export const getLinkedParentForStudent = async (req, res) => {
+  try {
+    const schoolId = req.user.school;
+    const teacherId = req.user._id;
+    const { studentUserId } = req.params;
+
+    // Ensure student is in one of teacher's assigned class sections
+    const classes = await Class.find({ school: schoolId, 'sections.classTeacher': teacherId }).lean();
+    const allowed = new Set();
+    classes.forEach((c) => {
+      (c.sections || []).forEach((s) => {
+        if (s.classTeacher && s.classTeacher.toString() === teacherId.toString()) {
+          allowed.add(`${c.name}__${s.name}`);
+        }
+      });
+    });
+
+    const studentProfile = await StudentProfile.findOne({ user: studentUserId, school: schoolId }).lean();
+    if (!studentProfile) return res.status(404).json({ message: 'Student not found' });
+    if (!allowed.has(`${studentProfile.class}__${studentProfile.section}`)) {
+      return res.status(403).json({ message: 'Not authorized to access this student' });
+    }
+
+    const parentProfile = await ParentProfile.findOne({ children: studentProfile._id })
+      .populate('user', 'firstName lastName email role school')
+      .lean();
+
+    if (!parentProfile?.user) return res.status(404).json({ message: 'No linked parent found' });
+
+    // Parent must be in same school for internal messaging
+    if (String(parentProfile.user.school) !== String(schoolId)) {
+      return res.status(404).json({ message: 'No linked parent found' });
+    }
+
+    res.json({ parentUser: parentProfile.user });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

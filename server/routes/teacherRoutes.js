@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { updateProfile, getMyProfile, applyForJob, getMyApplications, uploadMaterial, getMyMaterials, downloadMaterial, sendMessage, getMyMessages, getTeacherStats } from '../controllers/teacherController.js';
+import { updateProfile, getMyProfile, applyForJob, getMyApplications, uploadMaterial, getMyMaterials, downloadMaterial, sendMessage, getMyMessages, getTeacherStats, getLinkedParentForStudent } from '../controllers/teacherController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { authorize } from '../middleware/roleMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
@@ -24,6 +24,9 @@ router.get('/download-material/:id', protect, authorize('teacher'), downloadMate
 // Messaging routes
 router.post('/send-message', protect, authorize('teacher'), sendMessage);
 router.get('/messages', protect, authorize('teacher'), getMyMessages);
+
+// Student/Parent linkage helpers
+router.get('/students/:studentUserId/linked-parent', protect, authorize('teacher'), getLinkedParentForStudent);
 
 export default router;
 

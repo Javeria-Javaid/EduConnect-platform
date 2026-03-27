@@ -1,52 +1,68 @@
-import React, { useState } from 'react';
-import { Users, Search, Phone, Mail, TrendingUp, Calendar } from 'lucide-react';
-import { students } from './mockData';
+import React, { useEffect, useState } from 'react';
+import { Users, Search, Phone, Mail, TrendingUp, Calendar, MessageSquare } from 'lucide-react';
 import './TeacherDashboardOverview.css';
+import MessageModal from '../school-dashboard/teachers/MessageModal';
+import { toast } from 'sonner';
 
 const TeacherStudentsView = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStudent, setSelectedStudent] = useState(null);
-    const [sendingMessage, setSendingMessage] = useState(false);
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [messageRecipient, setMessageRecipient] = useState(null);
+    const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
 
-
-    const filteredStudents = students.filter(s =>
-        s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.class.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const handleSendMessageToParent = async (student) => {
-        const parentEmail = `parent.${student.id.toLowerCase()}@email.com`;
-        const subject = `Regarding ${student.name}'s Progress`;
-        const body = `Dear Parent,\n\nI would like to discuss ${student.name}'s academic progress.\n\nBest regards,\nTeacher`;
-
-        setSendingMessage(true);
-
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/send-message`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    recipient: parentEmail,
-                    recipientType: 'parent',
-                    subject,
-                    body
-                }),
-                credentials: 'include'
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                alert('Message sent to parent successfully!');
-            } else {
-                alert(data.message || 'Failed to send message');
+    useEffect(() => {
+        const load = async () => {
+            setLoading(true);
+            try {
+                const token = localStorage.getItem('token');
+                const [meRes, studentsRes] = await Promise.all([
+                    fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } }),
+                    fetch(`${import.meta.env.VITE_API_URL}/api/schools/students?page=1&limit=500`, { headers: { Authorization: `Bearer ${token}` } }),
+                ]);
+                if (meRes.ok) {
+                    const me = await meRes.json();
+                    setCurrentUser(me.data || me);
+                }
+                if (studentsRes.ok) {
+                    const json = await studentsRes.json();
+                    setStudents(json.data || json || []);
+                } else {
+                    toast.error('Failed to load students');
+                }
+            } catch {
+                toast.error('Network error loading students');
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            alert('Network error. Please try again.');
-        } finally {
-            setSendingMessage(false);
+        };
+        load();
+    }, []);
+
+    const filteredStudents = students.filter((s) => {
+        const name = String(s.name || '').toLowerCase();
+        const cls = String(s.class || '').toLowerCase();
+        return name.includes(searchTerm.toLowerCase()) || cls.includes(searchTerm.toLowerCase());
+    });
+
+    const openMessageToParent = async (student) => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/students/${student.userId}/linked-parent`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                toast.error(data.message || 'No linked parent found');
+                return;
+            }
+            const parentUser = data.parentUser;
+            setMessageRecipient({ userId: parentUser._id, name: `${parentUser.firstName} ${parentUser.lastName}`, email: parentUser.email });
+            setIsMessageModalOpen(true);
+        } catch {
+            toast.error('Network error opening chat');
         }
     };
 
@@ -86,9 +102,14 @@ const TeacherStudentsView = () => {
 
                     {/* Students Grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                        {loading && (
+                            <div className="dashboard-card">
+                                <div className="card-body" style={{ color: '#6b7280' }}>Loading students…</div>
+                            </div>
+                        )}
                         {filteredStudents.map((student) => (
                             <div
-                                key={student.id}
+                                key={student.userId || student._id}
                                 className="dashboard-card"
                                 style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
                                 onClick={() => setSelectedStudent(student)}
@@ -114,7 +135,7 @@ const TeacherStudentsView = () => {
                                                 {student.name}
                                             </h3>
                                             <p style={{ fontSize: '12px', color: '#6b7280' }}>
-                                                {student.class} • Roll #{student.rollNo}
+                                                {student.class} • Roll #{student.rollNumber || 'N/A'}
                                             </p>
                                         </div>
                                     </div>
@@ -122,14 +143,14 @@ const TeacherStudentsView = () => {
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                         <div style={{ padding: '8px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
                                             <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Attendance</p>
-                                            <p style={{ fontWeight: '600', fontSize: '14px', color: student.attendance >= 90 ? '#10b981' : '#f59e0b' }}>
-                                                {student.attendance}%
+                                            <p style={{ fontWeight: '600', fontSize: '14px', color: student.attendance !== 'N/A' && Number(student.attendance) >= 90 ? '#10b981' : '#f59e0b' }}>
+                                                {student.attendance === 'N/A' ? 'N/A' : `${student.attendance}%`}
                                             </p>
                                         </div>
                                         <div style={{ padding: '8px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
                                             <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Avg Score</p>
                                             <p style={{ fontWeight: '600', fontSize: '14px', color: '#3b82f6' }}>
-                                                {student.avgScore}
+                                                {student.performance ? `${student.performance}★` : '—'}
                                             </p>
                                         </div>
                                     </div>
@@ -180,15 +201,15 @@ const TeacherStudentsView = () => {
                                 <div style={{ display: 'grid', gap: '12px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
                                         <Users size={16} color="#6b7280" />
-                                        <span style={{ color: '#4b5563' }}>Student ID: {selectedStudent.id}</span>
+                                        <span style={{ color: '#4b5563' }}>Admission #: {selectedStudent.admissionNumber || '—'}</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
                                         <Mail size={16} color="#6b7280" />
-                                        <span style={{ color: '#4b5563' }}>{selectedStudent.id.toLowerCase()}@school.edu</span>
+                                        <span style={{ color: '#4b5563' }}>{selectedStudent.email || '—'}</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
                                         <Phone size={16} color="#6b7280" />
-                                        <span style={{ color: '#4b5563' }}>+92-300-1234567</span>
+                                        <span style={{ color: '#4b5563' }}>{selectedStudent.parentPhone || '—'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -240,24 +261,33 @@ const TeacherStudentsView = () => {
                             <div className="card-body">
                                 <div style={{ marginBottom: '16px' }}>
                                     <h4 style={{ fontWeight: '600', marginBottom: '8px' }}>Father's Name</h4>
-                                    <p style={{ color: '#6b7280' }}>Muhammad {selectedStudent.name.split(' ')[1]}</p>
+                                    <p style={{ color: '#6b7280' }}>{selectedStudent.parentName || '—'}</p>
                                 </div>
                                 <div style={{ marginBottom: '16px' }}>
                                     <h4 style={{ fontWeight: '600', marginBottom: '8px' }}>Contact Number</h4>
-                                    <p style={{ color: '#6b7280' }}>+92-321-9876543</p>
+                                    <p style={{ color: '#6b7280' }}>{selectedStudent.parentPhone || '—'}</p>
                                 </div>
                                 <div style={{ marginBottom: '16px' }}>
                                     <h4 style={{ fontWeight: '600', marginBottom: '8px' }}>Email</h4>
-                                    <p style={{ color: '#6b7280' }}>parent.{selectedStudent.id.toLowerCase()}@email.com</p>
+                                    <p style={{ color: '#6b7280' }}>Linked parent required for chat</p>
                                 </div>
-                                <button className="btn-primary" style={{ width: '100%', marginTop: '12px' }} onClick={() => handleSendMessageToParent(selectedStudent)} disabled={sendingMessage}>
-                                    <Mail size={16} /> {sendingMessage ? 'Sending...' : 'Send Message'}
+                                <button className="btn-primary" style={{ width: '100%', marginTop: '12px' }} onClick={() => openMessageToParent(selectedStudent)}>
+                                    <MessageSquare size={16} /> Message Parent
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
+            <MessageModal
+                isOpen={isMessageModalOpen}
+                onClose={() => {
+                    setIsMessageModalOpen(false);
+                    setMessageRecipient(null);
+                }}
+                initialRecipient={messageRecipient}
+                currentUser={currentUser}
+            />
         </div>
     );
 };

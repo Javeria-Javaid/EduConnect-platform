@@ -1,462 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, Bell, Users, Search, AlertCircle } from 'lucide-react';
-import { announcements as initialAnnouncements } from './mockData';
+import React, { useEffect, useState } from 'react';
+import { MessageSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { toast } from 'sonner';
-import Modal from '../ui/Modal';
+import MessageModal from '../school-dashboard/teachers/MessageModal';
 import './TeacherDashboardOverview.css';
 
 const TeacherCommunicationView = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState('messages');
-    const [messageText, setMessageText] = useState('');
-    const [recipient, setRecipient] = useState('');
-    const [subject, setSubject] = useState('');
-    const [sending, setSending] = useState(false);
-    const [sendError, setSendError] = useState('');
-    const [messagesList, setMessagesList] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [teacherClasses, setTeacherClasses] = useState([]);
-    
-    // Announcement State
-    const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
-    const [announcementTitle, setAnnouncementTitle] = useState('');
-    const [announcementContent, setAnnouncementContent] = useState('');
-    const [announcementTarget, setAnnouncementTarget] = useState('All Parents');
-    const [announcementPriority, setAnnouncementPriority] = useState('medium');
-    const [localAnnouncements, setLocalAnnouncements] = useState(initialAnnouncements);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
-        const fetchMessages = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                if (!token) return;
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/messages`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    setMessagesList(await res.json());
-                }
-            } catch (error) { toast.error('Failed to load messages'); }
-            finally { setLoading(false); }
+        const load = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            const meRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (meRes.ok) {
+                const me = await meRes.json();
+                setCurrentUser(me.data || me);
+            }
         };
-
-        const fetchClasses = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/classes`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    const formattedClasses = [];
-                    data.forEach(c => {
-                        c.sections.forEach(s => {
-                            if (s.classTeacher && s.classTeacher._id === user?._id) {
-                                formattedClasses.push(`${c.name} - ${s.name}`);
-                            }
-                        });
-                    });
-                    setTeacherClasses(formattedClasses);
-                }
-            } catch (error) { console.error('Failed to fetch classes'); }
-        };
-
-        fetchMessages();
-        fetchClasses();
+        load();
     }, [user?._id]);
-
-    const handleSendMessage = async () => {
-        if (!recipient || !subject || !messageText) {
-            setSendError('Please fill in all fields');
-            return;
-        }
-
-        setSending(true);
-        setSendError('');
-
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/send-message`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    recipient,
-                    recipientType: 'parent',
-                    subject,
-                    body: messageText
-                }),
-                credentials: 'include'
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                toast.success('Message sent successfully!');
-                setMessagesList([{...data.message, from: 'Me', date: new Date().toLocaleDateString()}, ...messagesList]);
-                setRecipient('');
-                setSubject('');
-                setMessageText('');
-            } else {
-                setSendError(data.message || 'Failed to send message');
-            }
-        } catch (error) {
-            setSendError('Network error. Please try again.');
-        } finally {
-            setSending(false);
-        }
-    };
-
-    const handleSendAnnouncement = async () => {
-        if (!announcementTitle || !announcementContent) {
-            toast.error('Please fill in title and content');
-            return;
-        }
-
-        setSending(true);
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/send-message`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    recipient: announcementTarget,
-                    recipientType: 'group',
-                    subject: `[ANNOUNCEMENT] ${announcementTitle}`,
-                    body: announcementContent,
-                    priority: announcementPriority
-                })
-            });
-
-            if (response.ok) {
-                toast.success('Announcement sent successfully!');
-                
-                // Add to local list for immediate UI feedback
-                const newAnn = {
-                    id: Date.now(),
-                    title: announcementTitle,
-                    content: announcementContent,
-                    date: 'Today',
-                    priority: announcementPriority,
-                    type: 'teacher'
-                };
-                setLocalAnnouncements([newAnn, ...localAnnouncements]);
-                
-                // Reset and close
-                setIsAnnouncementModalOpen(false);
-                setAnnouncementTitle('');
-                setAnnouncementContent('');
-            } else {
-                toast.error('Failed to send announcement');
-            }
-        } catch (error) {
-            toast.error('Network error. Please try again.');
-        } finally {
-            setSending(false);
-        }
-    };
 
     return (
         <div className="teacher-dashboard-overview">
             <div className="overview-header">
                 <div>
                     <h1 className="page-title">Communication</h1>
-                    <p className="page-subtitle">Messages, announcements, and notifications</p>
+                    <p className="page-subtitle">Secure internal messaging for your school</p>
                 </div>
             </div>
 
-            {/* Tabs */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid #e5e7eb' }}>
-                {['messages', 'announcements', 'notifications'].map((tab) => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        style={{
-                            padding: '12px 24px',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            border: 'none',
-                            borderBottom: activeTab === tab ? '2px solid #3b82f6' : '2px solid transparent',
-                            backgroundColor: 'transparent',
-                            color: activeTab === tab ? '#3b82f6' : '#6b7280',
-                            cursor: 'pointer',
-                            textTransform: 'capitalize'
-                        }}
-                    >
-                        {tab}
+            <div className="dashboard-card">
+                <div className="card-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                    <div>
+                        <h2 className="card-title">Inbox</h2>
+                        <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Open your conversations and message parents/staff.</p>
+                    </div>
+                    <button className="btn-primary" onClick={() => setIsModalOpen(true)} disabled={!currentUser}>
+                        <MessageSquare size={16} /> Open Inbox
                     </button>
-                ))}
+                </div>
             </div>
 
-            {activeTab === 'messages' && (
-                <div className="dashboard-grid">
-                    {/* Messages List */}
-                    <div className="dashboard-card">
-                        <div className="card-header">
-                            <h2 className="card-title">Recent Messages</h2>
-                            <div style={{ position: 'relative', width: '200px' }}>
-                                <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
-                                <input
-                                    type="text"
-                                    placeholder="Search..."
-                                    style={{
-                                        width: '100%',
-                                        padding: '8px 8px 8px 36px',
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '6px',
-                                        fontSize: '13px'
-                                    }}
-                                />
-                            </div>
-                        </div>
-                        <div className="card-body" style={{ padding: 0 }}>
-                            {loading ? <p style={{ padding: '16px' }}>Loading messages...</p> : messagesList.length === 0 ? <p style={{ padding: '16px' }}>No messages found.</p> : messagesList.map((msg) => (
-                                <div
-                                    key={msg._id}
-                                    style={{
-                                        padding: '16px',
-                                        borderBottom: '1px solid #f3f4f6',
-                                        cursor: 'pointer',
-                                        backgroundColor: 'white'
-                                    }}
-                                >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                        <h4 style={{ fontWeight: '600', fontSize: '14px' }}>{msg.sender === user?._id ? 'Me' : msg.sender || msg.from || 'System'}</h4>
-                                        <span style={{ fontSize: '12px', color: '#6b7280' }}>{new Date(msg.createdAt).toLocaleDateString()}</span>
-                                    </div>
-                                    <p style={{ fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>{msg.subject}</p>
-                                    <p style={{ fontSize: '13px', color: '#6b7280' }}>{msg.body || msg.preview}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Compose */}
-                    <div className="dashboard-card">
-                        <div className="card-header">
-                            <h2 className="card-title">New Message</h2>
-                        </div>
-                        <div className="card-body">
-                            <form style={{ display: 'grid', gap: '16px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>To</label>
-                                    <select
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}
-                                        value={recipient}
-                                        onChange={(e) => setRecipient(e.target.value)}
-                                    >
-                                        <option value="">Select Recipient</option>
-                                        <option value="All Parents">All Parents</option>
-                                        <option value="Class 10-A Parents">Class 10-A Parents</option>
-                                        <option value="Individual Parent">Individual Parent</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Subject</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Message subject"
-                                        value={subject}
-                                        onChange={(e) => setSubject(e.target.value)}
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Message</label>
-                                    <textarea
-                                        rows="6"
-                                        value={messageText}
-                                        onChange={(e) => setMessageText(e.target.value)}
-                                        placeholder="Type your message here..."
-                                        style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', resize: 'vertical' }}
-                                    ></textarea>
-                                </div>
-                                {sendError && <p style={{ color: '#ef4444', fontSize: '14px' }}>{sendError}</p>}
-                                <button type="button" className="btn-primary" onClick={handleSendMessage} disabled={sending}>
-                                    <Send size={16} /> {sending ? 'Sending...' : 'Send Message'}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {activeTab === 'announcements' && (
-                <div>
-                    <button 
-                        className="btn-primary" 
-                        style={{ marginBottom: '20px' }}
-                        onClick={() => setIsAnnouncementModalOpen(true)}
-                    >
-                        <Users size={16} /> New Announcement
-                    </button>
-
-                    <div className="dashboard-card">
-                        <div className="card-header">
-                            <h2 className="card-title">School Announcements</h2>
-                        </div>
-                        <div className="card-body">
-                            <div style={{ display: 'grid', gap: '16px' }}>
-                                {localAnnouncements.map((ann) => (
-                                    <div
-                                        key={ann.id}
-                                        style={{
-                                            padding: '16px',
-                                            border: '1px solid #e5e7eb',
-                                            borderRadius: '8px',
-                                            borderLeft: `4px solid ${ann.priority === 'high' ? '#ef4444' : ann.priority === 'medium' ? '#f59e0b' : '#3b82f6'}`
-                                        }}
-                                    >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                            <h4 style={{ fontWeight: '600', fontSize: '16px' }}>{ann.title}</h4>
-                                            <span style={{ fontSize: '12px', color: '#6b7280' }}>{ann.date}</span>
-                                        </div>
-                                        <p style={{ color: '#4b5563', fontSize: '14px' }}>{ann.content}</p>
-                                        <div style={{ marginTop: '8px' }}>
-                                            <span style={{
-                                                padding: '4px 8px',
-                                                borderRadius: '4px',
-                                                fontSize: '11px',
-                                                fontWeight: '500',
-                                                textTransform: 'uppercase',
-                                                backgroundColor: ann.priority === 'high' ? '#fee2e2' : ann.priority === 'medium' ? '#fef3c7' : '#dbeafe',
-                                                color: ann.priority === 'high' ? '#991b1b' : ann.priority === 'medium' ? '#92400e' : '#1e40af'
-                                            }}>
-                                                {ann.priority} Priority
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {activeTab === 'notifications' && (
-                <div className="dashboard-card">
-                    <div className="card-header">
-                        <h2 className="card-title">Notification History</h2>
-                    </div>
-                    <div className="card-body">
-                        <div style={{ display: 'grid', gap: '12px' }}>
-                            {[
-                                { text: 'Parent replied to your message about Sara\'s progress', time: '2 hours ago', type: 'message' },
-                                { text: 'Homework submission deadline approaching for Math 10-A', time: '5 hours ago', type: 'homework' },
-                                { text: 'New announcement from Principal Office', time: '1 day ago', type: 'announcement' },
-                                { text: 'Exam results published for Physics 11-B', time: '2 days ago', type: 'exam' }
-                            ].map((notif, idx) => (
-                                <div
-                                    key={idx}
-                                    style={{
-                                        padding: '12px',
-                                        backgroundColor: '#f9fafb',
-                                        borderRadius: '6px',
-                                        display: 'flex',
-                                        alignItems: 'start',
-                                        gap: '12px'
-                                    }}
-                                >
-                                    <Bell size={16} color="#6b7280" style={{ marginTop: '2px' }} />
-                                    <div style={{ flex: 1 }}>
-                                        <p style={{ fontSize: '14px', color: '#1f2937', marginBottom: '4px' }}>{notif.text}</p>
-                                        <p style={{ fontSize: '12px', color: '#9ca3af' }}>{notif.time}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
-            {/* Announcement Modal */}
-            <Modal
-                isOpen={isAnnouncementModalOpen}
-                onClose={() => setIsAnnouncementModalOpen(false)}
-                title="Create New Announcement"
-                size="medium"
-            >
-                <div style={{ display: 'grid', gap: '16px' }}>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>Title</label>
-                        <input
-                            type="text"
-                            placeholder="Announcement title"
-                            value={announcementTitle}
-                            onChange={(e) => setAnnouncementTitle(e.target.value)}
-                            style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px' }}
-                        />
-                    </div>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>Target Audience</label>
-                            <select
-                                value={announcementTarget}
-                                onChange={(e) => setAnnouncementTarget(e.target.value)}
-                                style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', backgroundColor: 'white' }}
-                            >
-                                <option value="All Parents">All My Parents</option>
-                                <option value="All Students">All My Students</option>
-                                {teacherClasses.map(cls => (
-                                    <option key={cls} value={`Class ${cls}`}>{cls} Parents</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>Priority</label>
-                            <select
-                                value={announcementPriority}
-                                onChange={(e) => setAnnouncementPriority(e.target.value)}
-                                style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', backgroundColor: 'white' }}
-                            >
-                                <option value="low">Low Priority</option>
-                                <option value="medium">Medium Priority</option>
-                                <option value="high">High Priority</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>Announcement Content</label>
-                        <textarea
-                            rows="5"
-                            placeholder="Type your announcement here..."
-                            value={announcementContent}
-                            onChange={(e) => setAnnouncementContent(e.target.value)}
-                            style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', resize: 'vertical' }}
-                        ></textarea>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', backgroundColor: '#eff6ff', borderRadius: '8px', color: '#1e40af', fontSize: '13px' }}>
-                        <AlertCircle size={16} />
-                        <span>This announcement will be visible to all recipients in their portal.</span>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                        <button 
-                            className="btn-secondary" 
-                            style={{ flex: 1 }}
-                            onClick={() => setIsAnnouncementModalOpen(false)}
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            className="btn-primary" 
-                            style={{ flex: 2 }}
-                            onClick={handleSendAnnouncement}
-                            disabled={sending}
-                        >
-                            {sending ? 'Sending...' : 'Send Announcement'}
-                        </button>
-                    </div>
-                </div>
-            </Modal>
+            <MessageModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                initialRecipient={null}
+                currentUser={currentUser}
+            />
         </div>
     );
 };

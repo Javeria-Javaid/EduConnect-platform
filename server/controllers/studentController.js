@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Attendance from '../models/Attendance.js';
 import Transaction from '../models/Transaction.js';
 import ExamResult from '../models/ExamResult.js';
+import Class from '../models/Class.js';
 
 export const getStudents = async (req, res) => {
   try {
@@ -21,6 +22,23 @@ export const getStudents = async (req, res) => {
     } = req.query;
 
     let query = { school: schoolId };
+
+    // Teacher scoping: restrict to only the teacher's assigned class/sections
+    if (req.user.role === 'teacher') {
+        const classes = await Class.find({ school: schoolId, 'sections.classTeacher': req.user._id }).lean();
+        const allowedPairs = [];
+        classes.forEach((c) => {
+            (c.sections || []).forEach((s) => {
+                if (s.classTeacher && s.classTeacher.toString() === req.user._id.toString()) {
+                    allowedPairs.push({ class: c.name, section: s.name });
+                }
+            });
+        });
+        if (allowedPairs.length === 0) {
+            return res.json({ data: [], total: 0, page: parseInt(page) || 1, totalPages: 0 });
+        }
+        query.$or = allowedPairs;
+    }
 
     if (className) {
         const classes = className.split(',');
