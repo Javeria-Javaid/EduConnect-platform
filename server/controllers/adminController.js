@@ -165,3 +165,26 @@ export const getAdminAnalytics = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const sendAnnouncement = async (req, res) => {
+  try {
+    const { title, message, targetAudience } = req.body;
+    if (!title || !message) return res.status(400).json({ message: 'Missing fields' });
+    
+    // In a real system, you might send emails/SMS here too.
+    // For now, we persist it to the Message collection.
+    const Message = (await import('../models/Message.js')).default;
+    const newMessage = new Message({
+      sender: req.user._id,
+      recipient: targetAudience || 'all',
+      recipientType: 'all',
+      subject: `[PLATFORM ANNOUNCEMENT] ${title}`,
+      body: message
+    });
+
+    await newMessage.save();
+    res.status(201).json({ success: true, message: newMessage });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

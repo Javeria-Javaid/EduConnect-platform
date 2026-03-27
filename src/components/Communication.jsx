@@ -48,6 +48,12 @@ const quickReplies = [
 export function Communication() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [replyMessage, setReplyMessage] = useState('');
+  
+  // Announcement State
+  const [announcementTitle, setAnnouncementTitle] = useState('');
+  const [announcementMessage, setAnnouncementMessage] = useState('');
+  const [announcementTarget, setAnnouncementTarget] = useState('All Users');
+  const [sendingAnnouncement, setSendingAnnouncement] = useState(false);
 
   const handleSendReply = () => {
     if (replyMessage.trim()) {
@@ -58,6 +64,44 @@ export function Communication() {
 
   const handleQuickReply = (reply) => {
     setReplyMessage(reply);
+  };
+
+  const handleSendAnnouncement = async () => {
+    if (!announcementTitle || !announcementMessage) {
+      toast.error('Please fill in both title and message');
+      return;
+    }
+
+    setSendingAnnouncement(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/announcement`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: announcementTitle,
+          message: announcementMessage,
+          targetAudience: announcementTarget
+        })
+      });
+
+      if (res.ok) {
+        toast.success('Announcement sent to all recipients!');
+        setAnnouncementTitle('');
+        setAnnouncementMessage('');
+        // We could also close the dialog here if we had access to its state, 
+        // but Radix UI Dialog usually handles it via open/onOpenChange.
+      } else {
+        toast.error('Failed to send announcement');
+      }
+    } catch (error) {
+      toast.error('Network error. Please try again.');
+    } finally {
+      setSendingAnnouncement(false);
+    }
   };
 
   const getStatusIcon = (status) => {
@@ -133,20 +177,45 @@ export function Communication() {
                 <DialogDescription>Send a platform-wide announcement to users</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                <div>
+                 <div>
                   <Label>Title</Label>
-                  <Input placeholder="Announcement title" className="mt-2" />
+                  <Input 
+                    placeholder="Announcement title" 
+                    className="mt-2" 
+                    value={announcementTitle}
+                    onChange={(e) => setAnnouncementTitle(e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label>Message</Label>
-                  <Textarea placeholder="Announcement message" className="mt-2" rows={4} />
+                  <Textarea 
+                    placeholder="Announcement message" 
+                    className="mt-2" 
+                    rows={4} 
+                    value={announcementMessage}
+                    onChange={(e) => setAnnouncementMessage(e.target.value)}
+                  />
                 </div>
-                <div>
+                 <div>
                   <Label>Target Audience</Label>
-                  <Input placeholder="All users / Schools / Vendors / Teachers / Parents" className="mt-2" />
+                  <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-2"
+                    value={announcementTarget}
+                    onChange={(e) => setAnnouncementTarget(e.target.value)}
+                  >
+                    <option value="All Users">All Users</option>
+                    <option value="Schools">Schools Only</option>
+                    <option value="Teachers">Teachers Only</option>
+                    <option value="Parents">Parents Only</option>
+                    <option value="Vendors">Vendors Only</option>
+                  </select>
                 </div>
-                <Button className="w-full bg-[#16A34A] hover:bg-green-700">
-                  Send Announcement
+                <Button 
+                  className="w-full bg-[#16A34A] hover:bg-green-700"
+                  onClick={handleSendAnnouncement}
+                  disabled={sendingAnnouncement}
+                >
+                  {sendingAnnouncement ? 'Sending...' : 'Send Announcement'}
                 </Button>
               </div>
             </DialogContent>

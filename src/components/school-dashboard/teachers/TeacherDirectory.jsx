@@ -189,9 +189,20 @@ const TeacherDirectory = () => {
         {
             key: 'photo',
             label: 'Photo',
-            render: (teacher) => (
-                <img src={teacher.photo || 'https://via.placeholder.com/50'} alt={teacher.name} className="teacher-photo" />
-            )
+            render: (teacher) => {
+                if (teacher.photo) {
+                    return <img src={teacher.photo} alt={teacher.name} className="teacher-photo" />;
+                }
+                const initial = teacher.name?.charAt(0) || '?';
+                return (
+                    <div style={{ 
+                        width: '40px', height: '40px', borderRadius: '50%', background: '#66a1be', color: 'white', 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 'bold'
+                    }}>
+                        {initial}
+                    </div>
+                );
+            }
         },
         {
             key: 'name',
@@ -200,7 +211,7 @@ const TeacherDirectory = () => {
             render: (teacher) => (
                 <div className="teacher-info-cell">
                     <div className="teacher-name">{teacher.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{teacher.email}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{teacher.employeeId && teacher.employeeId !== 'N/A' ? `ID: ${teacher.employeeId}` : teacher.email}</div>
                 </div>
             )
         },
@@ -261,7 +272,7 @@ const TeacherDirectory = () => {
                                 }}
                             />
                         </div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#475569' }}>{percent}%</span>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{percent}% Present</span>
                     </div>
                 );
             }

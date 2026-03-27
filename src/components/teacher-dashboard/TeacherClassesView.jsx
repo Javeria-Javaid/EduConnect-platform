@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { BookOpen, Users, Calendar, MapPin, Upload, MessageSquare, BarChart3, FileText } from 'lucide-react';
+import { BookOpen, Users, Calendar, MapPin, Upload, MessageSquare, BarChart3, FileText, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'sonner';
+import Modal from '../ui/Modal';
 import './TeacherDashboardOverview.css';
 
 const TeacherClassesView = () => {
@@ -14,6 +15,13 @@ const TeacherClassesView = () => {
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState('');
     const fileInputRef = useRef(null);
+
+    // Announcement State
+    const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+    const [announcementTitle, setAnnouncementTitle] = useState('');
+    const [announcementContent, setAnnouncementContent] = useState('');
+    const [announcementPriority, setAnnouncementPriority] = useState('medium');
+    const [sending, setSending] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -38,7 +46,7 @@ const TeacherClassesView = () => {
                     const assignedClasses = [];
                     classesData.forEach(c => {
                         c.sections.forEach(s => {
-                            if (s.classTeacher && s.classTeacher._id === user._id) {
+                            if (s.classTeacher && s.classTeacher._id === user?._id) {
                                 assignedClasses.push({
                                     id: `${c._id}-${s._id}`,
                                     grade: c.name,
@@ -105,6 +113,45 @@ const TeacherClassesView = () => {
             setUploadError('Network error. Please try again.');
         } finally {
             setUploading(false);
+        }
+    };
+
+    const handleSendAnnouncement = async () => {
+        if (!announcementTitle || !announcementContent) {
+            toast.error('Please fill in title and content');
+            return;
+        }
+
+        setSending(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/send-message`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    recipient: `${selectedClass.grade} - ${selectedClass.section}`,
+                    recipientType: 'group',
+                    subject: `[CLASS ANNOUNCEMENT] ${announcementTitle}`,
+                    body: announcementContent,
+                    priority: announcementPriority
+                })
+            });
+
+            if (response.ok) {
+                toast.success('Announcement sent successfully!');
+                setIsAnnouncementModalOpen(false);
+                setAnnouncementTitle('');
+                setAnnouncementContent('');
+            } else {
+                toast.error('Failed to send announcement');
+            }
+        } catch (error) {
+            toast.error('Network error. Please try again.');
+        } finally {
+            setSending(false);
         }
     };
 
@@ -247,7 +294,10 @@ const TeacherClassesView = () => {
                             <div style={{ marginTop: '32px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                                     <h3 style={{ fontSize: '18px', fontWeight: '600' }}>Class Announcements</h3>
-                                    <button className="btn-primary">
+                                    <button 
+                                        className="btn-primary"
+                                        onClick={() => setIsAnnouncementModalOpen(true)}
+                                    >
                                         <MessageSquare size={16} /> New Announcement
                                     </button>
                                 </div>
@@ -261,6 +311,73 @@ const TeacherClassesView = () => {
                     </div>
                 </div>
             )}
+            {/* Announcement Modal */}
+            <Modal
+                isOpen={isAnnouncementModalOpen}
+                onClose={() => setIsAnnouncementModalOpen(false)}
+                title={`New Announcement for ${selectedClass?.subject || 'Class'}`}
+                size="medium"
+            >
+                <div style={{ display: 'grid', gap: '16px' }}>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>Title</label>
+                        <input
+                            type="text"
+                            placeholder="Announcement title"
+                            value={announcementTitle}
+                            onChange={(e) => setAnnouncementTitle(e.target.value)}
+                            style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px' }}
+                        />
+                    </div>
+                    
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>Priority</label>
+                        <select
+                            value={announcementPriority}
+                            onChange={(e) => setAnnouncementPriority(e.target.value)}
+                            style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', backgroundColor: 'white' }}
+                        >
+                            <option value="low">Low Priority</option>
+                            <option value="medium">Medium Priority</option>
+                            <option value="high">High Priority</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>Announcement Content</label>
+                        <textarea
+                            rows="5"
+                            placeholder="Type your announcement here..."
+                            value={announcementContent}
+                            onChange={(e) => setAnnouncementContent(e.target.value)}
+                            style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', resize: 'vertical' }}
+                        ></textarea>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', backgroundColor: '#eff6ff', borderRadius: '8px', color: '#1e40af', fontSize: '13px' }}>
+                        <AlertCircle size={16} />
+                        <span>This announcement will be visible to all parents and students of this class.</span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                        <button 
+                            className="btn-secondary" 
+                            style={{ flex: 1 }}
+                            onClick={() => setIsAnnouncementModalOpen(false)}
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            className="btn-primary" 
+                            style={{ flex: 2 }}
+                            onClick={handleSendAnnouncement}
+                            disabled={sending}
+                        >
+                            {sending ? 'Sending...' : 'Send Announcement'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

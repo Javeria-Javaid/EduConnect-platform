@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { getAllUsers, updateUser, deleteUser, getSchoolStats, getAdminStats, getAdminAnalytics } from '../controllers/adminController.js';
+import { getAllUsers, updateUser, deleteUser, getSchoolStats, getAdminStats, getAdminAnalytics, sendAnnouncement } from '../controllers/adminController.js';
 import { getEnrollmentReport, getFinancialReport, getJobReport } from '../controllers/reportController.js';
 import { getSettings, updateSettings } from '../controllers/settingsController.js';
 import { protect } from '../middleware/authMiddleware.js';
@@ -24,5 +24,8 @@ router.get('/reports/jobs', protect, authorize('admin'), getJobReport);
 // System Settings
 router.get('/settings', protect, authorize('admin'), getSettings);
 router.patch('/settings', protect, authorize('admin'), updateSettings);
+
+// Announcement
+router.post('/announcement', protect, authorize('admin', 'school_admin'), sendAnnouncement);
 
 export default router;

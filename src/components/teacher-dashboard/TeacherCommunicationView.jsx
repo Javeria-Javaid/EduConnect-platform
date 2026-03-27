@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, Bell, Users, Search } from 'lucide-react';
-import { announcements } from './mockData';
+import { MessageSquare, Send, Bell, Users, Search, AlertCircle } from 'lucide-react';
+import { announcements as initialAnnouncements } from './mockData';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'sonner';
+import Modal from '../ui/Modal';
 import './TeacherDashboardOverview.css';
 
 const TeacherCommunicationView = () => {
@@ -15,6 +16,15 @@ const TeacherCommunicationView = () => {
     const [sendError, setSendError] = useState('');
     const [messagesList, setMessagesList] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [teacherClasses, setTeacherClasses] = useState([]);
+    
+    // Announcement State
+    const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+    const [announcementTitle, setAnnouncementTitle] = useState('');
+    const [announcementContent, setAnnouncementContent] = useState('');
+    const [announcementTarget, setAnnouncementTarget] = useState('All Parents');
+    const [announcementPriority, setAnnouncementPriority] = useState('medium');
+    const [localAnnouncements, setLocalAnnouncements] = useState(initialAnnouncements);
 
     useEffect(() => {
         const fetchMessages = async () => {
@@ -30,8 +40,31 @@ const TeacherCommunicationView = () => {
             } catch (error) { toast.error('Failed to load messages'); }
             finally { setLoading(false); }
         };
+
+        const fetchClasses = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools/classes`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const formattedClasses = [];
+                    data.forEach(c => {
+                        c.sections.forEach(s => {
+                            if (s.classTeacher && s.classTeacher._id === user?._id) {
+                                formattedClasses.push(`${c.name} - ${s.name}`);
+                            }
+                        });
+                    });
+                    setTeacherClasses(formattedClasses);
+                }
+            } catch (error) { console.error('Failed to fetch classes'); }
+        };
+
         fetchMessages();
-    }, []);
+        fetchClasses();
+    }, [user?._id]);
 
     const handleSendMessage = async () => {
         if (!recipient || !subject || !messageText) {
@@ -72,6 +105,58 @@ const TeacherCommunicationView = () => {
             }
         } catch (error) {
             setSendError('Network error. Please try again.');
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const handleSendAnnouncement = async () => {
+        if (!announcementTitle || !announcementContent) {
+            toast.error('Please fill in title and content');
+            return;
+        }
+
+        setSending(true);
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/send-message`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    recipient: announcementTarget,
+                    recipientType: 'group',
+                    subject: `[ANNOUNCEMENT] ${announcementTitle}`,
+                    body: announcementContent,
+                    priority: announcementPriority
+                })
+            });
+
+            if (response.ok) {
+                toast.success('Announcement sent successfully!');
+                
+                // Add to local list for immediate UI feedback
+                const newAnn = {
+                    id: Date.now(),
+                    title: announcementTitle,
+                    content: announcementContent,
+                    date: 'Today',
+                    priority: announcementPriority,
+                    type: 'teacher'
+                };
+                setLocalAnnouncements([newAnn, ...localAnnouncements]);
+                
+                // Reset and close
+                setIsAnnouncementModalOpen(false);
+                setAnnouncementTitle('');
+                setAnnouncementContent('');
+            } else {
+                toast.error('Failed to send announcement');
+            }
+        } catch (error) {
+            toast.error('Network error. Please try again.');
         } finally {
             setSending(false);
         }
@@ -142,7 +227,7 @@ const TeacherCommunicationView = () => {
                                     }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                        <h4 style={{ fontWeight: '600', fontSize: '14px' }}>{msg.sender === user._id ? 'Me' : msg.sender || msg.from || 'System'}</h4>
+                                        <h4 style={{ fontWeight: '600', fontSize: '14px' }}>{msg.sender === user?._id ? 'Me' : msg.sender || msg.from || 'System'}</h4>
                                         <span style={{ fontSize: '12px', color: '#6b7280' }}>{new Date(msg.createdAt).toLocaleDateString()}</span>
                                     </div>
                                     <p style={{ fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>{msg.subject}</p>
@@ -204,7 +289,11 @@ const TeacherCommunicationView = () => {
 
             {activeTab === 'announcements' && (
                 <div>
-                    <button className="btn-primary" style={{ marginBottom: '20px' }}>
+                    <button 
+                        className="btn-primary" 
+                        style={{ marginBottom: '20px' }}
+                        onClick={() => setIsAnnouncementModalOpen(true)}
+                    >
                         <Users size={16} /> New Announcement
                     </button>
 
@@ -214,7 +303,7 @@ const TeacherCommunicationView = () => {
                         </div>
                         <div className="card-body">
                             <div style={{ display: 'grid', gap: '16px' }}>
-                                {announcements.map((ann) => (
+                                {localAnnouncements.map((ann) => (
                                     <div
                                         key={ann.id}
                                         style={{
@@ -285,6 +374,89 @@ const TeacherCommunicationView = () => {
                     </div>
                 </div>
             )}
+            {/* Announcement Modal */}
+            <Modal
+                isOpen={isAnnouncementModalOpen}
+                onClose={() => setIsAnnouncementModalOpen(false)}
+                title="Create New Announcement"
+                size="medium"
+            >
+                <div style={{ display: 'grid', gap: '16px' }}>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>Title</label>
+                        <input
+                            type="text"
+                            placeholder="Announcement title"
+                            value={announcementTitle}
+                            onChange={(e) => setAnnouncementTitle(e.target.value)}
+                            style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px' }}
+                        />
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>Target Audience</label>
+                            <select
+                                value={announcementTarget}
+                                onChange={(e) => setAnnouncementTarget(e.target.value)}
+                                style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', backgroundColor: 'white' }}
+                            >
+                                <option value="All Parents">All My Parents</option>
+                                <option value="All Students">All My Students</option>
+                                {teacherClasses.map(cls => (
+                                    <option key={cls} value={`Class ${cls}`}>{cls} Parents</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>Priority</label>
+                            <select
+                                value={announcementPriority}
+                                onChange={(e) => setAnnouncementPriority(e.target.value)}
+                                style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', backgroundColor: 'white' }}
+                            >
+                                <option value="low">Low Priority</option>
+                                <option value="medium">Medium Priority</option>
+                                <option value="high">High Priority</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e293b' }}>Announcement Content</label>
+                        <textarea
+                            rows="5"
+                            placeholder="Type your announcement here..."
+                            value={announcementContent}
+                            onChange={(e) => setAnnouncementContent(e.target.value)}
+                            style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', resize: 'vertical' }}
+                        ></textarea>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', backgroundColor: '#eff6ff', borderRadius: '8px', color: '#1e40af', fontSize: '13px' }}>
+                        <AlertCircle size={16} />
+                        <span>This announcement will be visible to all recipients in their portal.</span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                        <button 
+                            className="btn-secondary" 
+                            style={{ flex: 1 }}
+                            onClick={() => setIsAnnouncementModalOpen(false)}
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            className="btn-primary" 
+                            style={{ flex: 2 }}
+                            onClick={handleSendAnnouncement}
+                            disabled={sending}
+                        >
+                            {sending ? 'Sending...' : 'Send Announcement'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };
