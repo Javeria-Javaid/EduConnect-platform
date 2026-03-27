@@ -4,6 +4,7 @@ import SearchBar from '../shared/SearchBar';
 import DataTable from '../shared/DataTable';
 import FilterPanel from '../shared/FilterPanel';
 import AddStudentModal from './AddStudentModal';
+import MessageModal from '../teachers/MessageModal';
 import { toast } from 'sonner';
 import './StudentDirectory.css';
 
@@ -22,6 +23,9 @@ const StudentDirectory = () => {
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
+    const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+    const [messageRecipient, setMessageRecipient] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const baseFilters = useMemo(() => ([
         {
             key: 'class',
@@ -166,8 +170,24 @@ const StudentDirectory = () => {
         }
     };
 
+    const fetchCurrentUser = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const me = await res.json();
+                setCurrentUser(me.data || me);
+            }
+        } catch {
+            // no-op: messaging button will be disabled by missing user
+        }
+    };
+
     useEffect(() => {
         fetchClasses();
+        fetchCurrentUser();
     }, []);
 
     useEffect(() => {
@@ -359,7 +379,10 @@ const StudentDirectory = () => {
         {
             label: 'View Profile',
             icon: <Eye size={16} strokeWidth={2} />,
-            onClick: (s) => console.log('View', s)
+            onClick: (s) => {
+                setEditingStudent(s);
+                setIsAddModalOpen(true);
+            }
         },
         {
             label: 'Edit Details',
@@ -372,7 +395,21 @@ const StudentDirectory = () => {
         {
             label: 'Send Message',
             icon: <MessageCircle size={16} strokeWidth={2} />,
-            onClick: (s) => console.log('Message', s)
+            onClick: (s) => {
+                const recipientUserId = s?.user?._id || s?.user;
+                if (!recipientUserId) {
+                    toast.error('Student account mapping missing');
+                    return;
+                }
+                setMessageRecipient({
+                    userId: recipientUserId,
+                    firstName: s?.name?.split(' ')?.[0] || 'Student',
+                    lastName: s?.name?.split(' ')?.slice(1).join(' ') || '',
+                    email: s?.email || s?.user?.email || '',
+                    role: 'student'
+                });
+                setIsMessageModalOpen(true);
+            }
         },
         {
             label: 'Delete',
@@ -477,6 +514,15 @@ const StudentDirectory = () => {
                 }}
                 onSubmit={handleAddStudent}
                 editingStudent={editingStudent}
+            />
+            <MessageModal
+                isOpen={isMessageModalOpen}
+                onClose={() => {
+                    setIsMessageModalOpen(false);
+                    setMessageRecipient(null);
+                }}
+                initialRecipient={messageRecipient}
+                currentUser={currentUser}
             />
         </div>
     );

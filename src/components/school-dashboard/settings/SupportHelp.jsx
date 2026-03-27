@@ -1,5 +1,6 @@
 import React from 'react';
 import { HelpCircle, MessageCircle, FileText, ExternalLink } from 'lucide-react';
+import { toast } from 'sonner';
 
 const SupportHelp = () => {
     return (
@@ -60,10 +61,15 @@ const SupportHelp = () => {
                         </h3>
                         <div className="space-y-3">
                             {['User Guide', 'API Documentation', 'Video Tutorials', 'Release Notes'].map((item) => (
-                                <a key={item} href="#" className="flex items-center justify-between p-2 text-sm text-[var(--text-secondary)] hover:text-[var(--primary-color)] hover:bg-blue-50 rounded transition-colors">
+                                <button
+                                    key={item}
+                                    type="button"
+                                    onClick={() => toast.info(`${item} will be published soon`)}
+                                    className="w-full flex items-center justify-between p-2 text-sm text-[var(--text-secondary)] hover:text-[var(--primary-color)] hover:bg-blue-50 rounded transition-colors"
+                                >
                                     {item}
                                     <ExternalLink size={14} />
-                                </a>
+                                </button>
                             ))}
                         </div>
                     </div>

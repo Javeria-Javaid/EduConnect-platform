@@ -215,7 +215,7 @@ const AuthPage = ({ defaultView = 'login' }) => {
                 {loginError && <p className="login-error-message">{loginError}</p>}
 
                 <div className="forgot-password-link">
-                    <a href="#" onClick={(e) => e.preventDefault()}>Forgot Password?</a>
+                    <button type="button" onClick={() => {}} className="auth-link-button">Forgot Password?</button>
                 </div>
 
                 <button type="submit" className="login-submit-btn">
@@ -224,7 +224,7 @@ const AuthPage = ({ defaultView = 'login' }) => {
 
                 <p className="signup-link-text">
                     Don't have an account?
-                    <a href="#" onClick={(e) => { e.preventDefault(); toggleView(false); }}> Sign Up</a>
+                    <button type="button" onClick={() => toggleView(false)} className="auth-link-button"> Sign Up</button>
                 </p>
             </form>
         </div>
@@ -303,7 +303,7 @@ const AuthPage = ({ defaultView = 'login' }) => {
 
                 <p className="login-link-text">
                     Already have an account?
-                    <a href="#" onClick={(e) => { e.preventDefault(); toggleView(true); }}> Log In</a>
+                    <button type="button" onClick={() => toggleView(true)} className="auth-link-button"> Log In</button>
                 </p>
             </form>
         </div>

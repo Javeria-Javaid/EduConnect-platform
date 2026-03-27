@@ -15,11 +15,11 @@ const Hero = ({
     },
     primaryButton = {
         text: "Start Learning Free",
-        onClick: () => console.log("Primary button clicked")
+        onClick: () => {}
     },
     secondaryButton = {
         text: "Explore Courses",
-        onClick: () => console.log("Secondary Courses clicked")
+        onClick: () => {}
     },
     className = ""
 }) => {

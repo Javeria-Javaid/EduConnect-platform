@@ -167,10 +167,9 @@ const TeacherAttendanceView = () => {
                 URL.revokeObjectURL(url);
             }, 100);
 
-            console.log('Attendance report exported successfully');
+            toast.success('Attendance report exported');
         } catch (error) {
-            console.error('Export failed:', error);
-            alert('Failed to export report. Please try again.');
+            toast.error('Failed to export report. Please try again.');
         }
     };
 

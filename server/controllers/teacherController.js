@@ -53,8 +53,38 @@ export const getTeacherStats = async (req, res) => {
 };
 
 export const updateProfile = async (req, res) => {
-  const { qualification, experience, subjects, bio, availability } = req.body;
-  const profileFields = { user: req.user._id, qualification, experience, subjects, bio, availability };
+  const {
+    employeeId,
+    phone,
+    address,
+    joiningDate,
+    qualification,
+    experience,
+    subjects,
+    bio,
+    availability,
+    designation,
+    employmentType,
+    status,
+    photo,
+  } = req.body;
+
+  const profileFields = {
+    user: req.user._id,
+    employeeId,
+    phone,
+    address,
+    joiningDate,
+    qualification,
+    experience,
+    subjects,
+    bio,
+    availability,
+    designation,
+    employmentType,
+    status,
+    photo,
+  };
 
   try {
     let profile = await TeacherProfile.findOne({ user: req.user._id });

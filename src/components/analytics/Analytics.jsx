@@ -26,6 +26,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { toast } from 'sonner';
 
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState('6months');
@@ -143,7 +144,7 @@ export default function Analytics() {
           URL.revokeObjectURL(url);
         }, 100);
 
-        console.log('PDF export successful');
+        toast.success('PDF export successful');
       } else if (format === 'csv') {
         // Generate CSV
         const csvData = [
@@ -184,7 +185,7 @@ export default function Analytics() {
           URL.revokeObjectURL(url);
         }, 100);
 
-        console.log('CSV export successful');
+        toast.success('CSV export successful');
       }
     } catch (error) {
       console.error(`Export failed for format: ${format}`, error);

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import './ParentDashboardOverview.css';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from 'sonner';
 
 const ParentDashboardOverview = () => {
     const { user } = useAuth();
@@ -28,6 +29,7 @@ const ParentDashboardOverview = () => {
         feeStatus: 'N/A'
     });
     const [error, setError] = useState('');
+    const [dashboardData, setDashboardData] = useState({ children: [], activeChildData: null });
 
     const fetchStats = async () => {
         try {
@@ -40,7 +42,22 @@ const ParentDashboardOverview = () => {
                 setStats(data);
             }
         } catch (err) {
-            console.error("Error fetching parent stats:", err);
+            toast.error('Failed to load parent stats');
+        }
+    };
+
+    const fetchDashboardData = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/parent/dashboard-data`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setDashboardData(data || { children: [], activeChildData: null });
+            }
+        } catch {
+            toast.error('Failed to load dashboard details');
         }
     };
 
@@ -71,6 +88,7 @@ const ParentDashboardOverview = () => {
     useEffect(() => {
         searchSchools();
         fetchStats();
+        fetchDashboardData();
     }, []);
 
     const kpiData = [
@@ -80,22 +98,53 @@ const ParentDashboardOverview = () => {
         { title: 'Fee Status', value: stats.feeStatus, change: 'Current Month', icon: DollarSign, color: '#10b981' },
     ];
 
-    const todaySchedule = [
-        { subject: 'Mathematics', time: '09:00 AM - 10:00 AM', teacher: 'Mr. Johnson' },
-        { subject: 'Science', time: '10:15 AM - 11:15 AM', teacher: 'Ms. Smith' },
-        { subject: 'English', time: '11:30 AM - 12:30 PM', teacher: 'Mrs. Williams' },
-    ];
+    const activeChildData = dashboardData?.activeChildData;
+    const attendanceStats = activeChildData?.attendanceStats || { presentCount: 0, absentCount: 0, attendanceRate: 0 };
+    const transactions = activeChildData?.transactions || [];
+    const examResults = activeChildData?.examResults || [];
+    const todayDayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+
+    const todaySchedule = (activeChildData?.timetables || [])
+        .filter(t => t.day === todayDayName)
+        .flatMap(t => (t.periods || []).map((p, index) => ({
+            id: `${t._id}-${index}`,
+            subject: p.subject,
+            time: `${p.startTime} - ${p.endTime}`,
+            teacher: p.room ? `Room ${p.room}` : 'Class Session'
+        })));
+
+    const upcomingExams = examResults
+        .filter(r => r?.exam?.startDate && new Date(r.exam.startDate) >= new Date())
+        .sort((a, b) => new Date(a.exam.startDate) - new Date(b.exam.startDate))
+        .slice(0, 3)
+        .map((r, idx) => ({
+            id: r._id || idx,
+            date: new Date(r.exam.startDate),
+            title: r.exam?.name || 'Upcoming Exam',
+        }));
 
     const announcements = [
-        { id: 1, title: 'Parent-Teacher Meeting', date: 'Dec 10, 2025', content: 'Scheduled for next Friday at 2:00 PM.' },
-        { id: 2, title: 'Winter Break Notice', date: 'Dec 20, 2025', content: 'School will remain closed from Dec 24 to Jan 2.' },
+        ...(upcomingExams[0] ? [{
+            id: 'exam-reminder',
+            title: 'Exam Reminder',
+            date: upcomingExams[0].date.toLocaleDateString(),
+            content: `${upcomingExams[0].title} is scheduled soon.`
+        }] : []),
+        ...(transactions[0] ? [{
+            id: 'fee-update',
+            title: 'Latest Fee Update',
+            date: new Date(transactions[0].date || transactions[0].createdAt || Date.now()).toLocaleDateString(),
+            content: `Recent ${transactions[0].type || 'fee'} transaction status: ${transactions[0].status || 'Recorded'}.`
+        }] : [])
     ];
 
-    const homeworkAlerts = [
-        { id: 1, subject: 'Mathematics', title: 'Chapter 5 Exercises', due: 'Tomorrow', status: 'pending' },
-        { id: 2, subject: 'Science', title: 'Lab Report', due: 'Dec 8', status: 'pending' },
-        { id: 3, subject: 'English', title: 'Essay Writing', due: 'Dec 10', status: 'submitted' },
-    ];
+    const homeworkAlerts = upcomingExams.map(exam => ({
+        id: exam.id,
+        subject: 'Exam',
+        title: exam.title,
+        due: exam.date.toLocaleDateString(),
+        status: 'pending'
+    }));
 
     return (
         <div className="parent-dashboard-overview">
@@ -141,7 +190,7 @@ const ParentDashboardOverview = () => {
                         ) : (
                             schools.map(school => (
                                 <div key={school._id} style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px', background: '#f9fafb' }}>
-                                    <h3 style={{ fontWeight: 'bold', marginBottom: '5px' }}>{school.schoolName}</h3>
+                                    <h3 style={{ fontWeight: 'bold', marginBottom: '5px' }}>{school.name}</h3>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#666', fontSize: '0.9rem' }}>
                                         <MapPin size={16} />
                                         <span>{school.city}</span>
@@ -180,8 +229,10 @@ const ParentDashboardOverview = () => {
                     </div>
                     <div className="card-body">
                         <div className="schedule-list">
-                            {todaySchedule.map((item, index) => (
-                                <div key={index} className="schedule-item">
+                            {todaySchedule.length === 0 ? (
+                                <p>No classes scheduled for today.</p>
+                            ) : todaySchedule.map((item) => (
+                                <div key={item.id} className="schedule-item">
                                     <div className="schedule-time">{item.time}</div>
                                     <div className="schedule-details">
                                         <h4>{item.subject}</h4>
@@ -201,7 +252,9 @@ const ParentDashboardOverview = () => {
                     </div>
                     <div className="card-body">
                         <div className="homework-list">
-                            {homeworkAlerts.map((hw) => (
+                            {homeworkAlerts.length === 0 ? (
+                                <p>No pending exam alerts right now.</p>
+                            ) : homeworkAlerts.map((hw) => (
                                 <div key={hw.id} className="homework-item">
                                     <div className="homework-status">
                                         {hw.status === 'submitted' ? (
@@ -232,15 +285,15 @@ const ParentDashboardOverview = () => {
                             <div className="attendance-stats">
                                 <div className="stat-item">
                                     <span className="stat-label">Present Days</span>
-                                    <span className="stat-value">22</span>
+                                    <span className="stat-value">{attendanceStats.presentCount}</span>
                                 </div>
                                 <div className="stat-item">
                                     <span className="stat-label">Absent Days</span>
-                                    <span className="stat-value">1</span>
+                                    <span className="stat-value">{attendanceStats.absentCount}</span>
                                 </div>
                                 <div className="stat-item">
                                     <span className="stat-label">Attendance Rate</span>
-                                    <span className="stat-value text-green-600">95.7%</span>
+                                    <span className="stat-value text-green-600">{attendanceStats.attendanceRate || 0}%</span>
                                 </div>
                             </div>
                         </div>
@@ -254,7 +307,9 @@ const ParentDashboardOverview = () => {
                     </div>
                     <div className="card-body">
                         <div className="announcements-list">
-                            {announcements.map((ann) => (
+                            {announcements.length === 0 ? (
+                                <p>No recent announcements.</p>
+                            ) : announcements.map((ann) => (
                                 <div key={ann.id} className="announcement-item">
                                     <h4>{ann.title}</h4>
                                     <p>{ann.content}</p>
@@ -275,13 +330,19 @@ const ParentDashboardOverview = () => {
                         <div className="fee-summary">
                             <div className="fee-item">
                                 <span className="fee-label">Current Month</span>
-                                <span className="fee-value text-green-600">Paid</span>
+                                <span className="fee-value text-green-600">{stats.feeStatus || 'N/A'}</span>
                             </div>
                             <div className="fee-item">
-                                <span className="fee-label">Next Payment Due</span>
-                                <span className="fee-value">Jan 5, 2026</span>
+                                <span className="fee-label">Latest Transaction</span>
+                                <span className="fee-value">
+                                    {transactions[0]
+                                        ? new Date(transactions[0].date || transactions[0].createdAt || Date.now()).toLocaleDateString()
+                                        : 'No records'}
+                                </span>
                             </div>
-                            <button className="btn-primary w-full mt-4">View Fee Details</button>
+                            <button className="btn-primary w-full mt-4" onClick={() => toast.info('Use the Fees section for full payment history')}>
+                                Open Fees
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -294,20 +355,19 @@ const ParentDashboardOverview = () => {
                     </div>
                     <div className="card-body">
                         <div className="exams-list">
-                            <div className="exam-item">
-                                <div className="exam-date">Dec 15</div>
-                                <div className="exam-details">
-                                    <h4>Mathematics - Mid Term</h4>
-                                    <p>9:00 AM - 11:00 AM</p>
+                            {upcomingExams.length === 0 ? (
+                                <p>No upcoming exams.</p>
+                            ) : upcomingExams.map((exam) => (
+                                <div key={exam.id} className="exam-item">
+                                    <div className="exam-date">
+                                        {exam.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    </div>
+                                    <div className="exam-details">
+                                        <h4>{exam.title}</h4>
+                                        <p>{exam.date.toLocaleDateString()}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="exam-item">
-                                <div className="exam-date">Dec 18</div>
-                                <div className="exam-details">
-                                    <h4>Science - Mid Term</h4>
-                                    <p>9:00 AM - 11:00 AM</p>
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </div>

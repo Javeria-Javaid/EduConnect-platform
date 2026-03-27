@@ -1,12 +1,96 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { User, Lock, Bell, Palette, Globe, Shield } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { teacherInfo } from './mockData';
+import { toast } from 'sonner';
 import './TeacherDashboardOverview.css';
 
 const TeacherSettingsView = () => {
     const [activeTab, setActiveTab] = useState('profile');
     const { theme, setTheme } = useTheme();
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [me, setMe] = useState(null);
+    const [profile, setProfile] = useState(null);
+
+    const displayName = useMemo(() => {
+        if (!me) return '';
+        const full = `${me.firstName || ''} ${me.lastName || ''}`.trim();
+        return full || me.name || '';
+    }, [me]);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                setLoading(true);
+                const token = localStorage.getItem('token');
+                if (!token) return;
+
+                const [meRes, profileRes] = await Promise.all([
+                    fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } }),
+                    fetch(`${import.meta.env.VITE_API_URL}/api/teacher/profile/me`, { headers: { Authorization: `Bearer ${token}` } }),
+                ]);
+
+                if (meRes.ok) {
+                    const meJson = await meRes.json();
+                    setMe(meJson.data || meJson);
+                }
+
+                if (profileRes.ok) {
+                    const p = await profileRes.json();
+                    setProfile(p);
+                } else {
+                    // Profile might not exist yet; initialize minimal state so Save creates it
+                    setProfile({
+                        employeeId: '',
+                        phone: '',
+                        address: '',
+                        qualification: '',
+                        experience: 0,
+                        subjects: [],
+                        bio: '',
+                        availability: true,
+                        designation: 'Teacher',
+                        employmentType: 'Full-time',
+                        status: 'Active',
+                    });
+                }
+            } catch (e) {
+                toast.error('Failed to load settings');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
+
+    const updateProfileField = (key, value) => setProfile(prev => ({ ...(prev || {}), [key]: value }));
+
+    const handleSaveProfile = async () => {
+        try {
+            setSaving(true);
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teacher/profile`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(profile),
+            });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                toast.error(data?.message || 'Failed to save profile');
+                return;
+            }
+            setProfile(data);
+            toast.success('Profile saved');
+        } catch (e) {
+            toast.error('Network error saving profile');
+        } finally {
+            setSaving(false);
+        }
+    };
 
     return (
         <div className="teacher-dashboard-overview">
@@ -61,6 +145,9 @@ const TeacherSettingsView = () => {
                 {/* Settings Content */}
                 <div className="dashboard-card" style={{ gridColumn: 'span 2' }}>
                     <div className="card-body">
+                        {loading && (
+                            <p style={{ color: '#6b7280' }}>Loading…</p>
+                        )}
                         {activeTab === 'profile' && (
                             <div>
                                 <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '24px' }}>Profile Information</h3>
@@ -70,7 +157,8 @@ const TeacherSettingsView = () => {
                                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Full Name</label>
                                             <input
                                                 type="text"
-                                                defaultValue={teacherInfo.name}
+                                                value={displayName}
+                                                disabled
                                                 style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}
                                             />
                                         </div>
@@ -78,9 +166,9 @@ const TeacherSettingsView = () => {
                                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Employee ID</label>
                                             <input
                                                 type="text"
-                                                defaultValue={teacherInfo.employeeId}
-                                                disabled
-                                                style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', backgroundColor: '#f9fafb' }}
+                                                value={profile?.employeeId || ''}
+                                                onChange={(e) => updateProfileField('employeeId', e.target.value)}
+                                                style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}
                                             />
                                         </div>
                                     </div>
@@ -88,7 +176,8 @@ const TeacherSettingsView = () => {
                                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Email Address</label>
                                         <input
                                             type="email"
-                                            defaultValue={teacherInfo.email}
+                                            value={me?.email || ''}
+                                            disabled
                                             style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}
                                         />
                                     </div>
@@ -96,7 +185,8 @@ const TeacherSettingsView = () => {
                                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Phone Number</label>
                                         <input
                                             type="tel"
-                                            defaultValue={teacherInfo.phone}
+                                            value={profile?.phone || ''}
+                                            onChange={(e) => updateProfileField('phone', e.target.value)}
                                             style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}
                                         />
                                     </div>
@@ -104,12 +194,19 @@ const TeacherSettingsView = () => {
                                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>Qualification</label>
                                         <input
                                             type="text"
-                                            defaultValue={teacherInfo.qualification}
+                                            value={profile?.qualification || ''}
+                                            onChange={(e) => updateProfileField('qualification', e.target.value)}
                                             style={{ width: '100%', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px' }}
                                         />
                                     </div>
-                                    <button type="button" className="btn-primary" style={{ width: 'fit-content' }}>
-                                        Save Changes
+                                    <button
+                                        type="button"
+                                        className="btn-primary"
+                                        style={{ width: 'fit-content' }}
+                                        onClick={handleSaveProfile}
+                                        disabled={saving || loading}
+                                    >
+                                        {saving ? 'Saving…' : 'Save Changes'}
                                     </button>
                                 </form>
                             </div>

@@ -5,17 +5,12 @@ import {
     ClipboardCheck,
     Book,
     FileSpreadsheet,
-    Megaphone,
-    Calendar,
-    TrendingUp,
-    Clock,
-    AlertCircle,
-    CheckCircle,
     Briefcase,
     Search
 } from 'lucide-react';
 import './TeacherDashboardOverview.css';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from 'sonner';
 
 const TeacherDashboardOverview = () => {
     const { user } = useAuth();
@@ -42,7 +37,7 @@ const TeacherDashboardOverview = () => {
                 setStats(data);
             }
         } catch (error) {
-            console.error(error);
+            toast.error('Failed to load teacher stats');
         }
     };
     
@@ -58,7 +53,7 @@ const TeacherDashboardOverview = () => {
                 setApplications(data);
             }
         } catch (error) {
-            console.error(error);
+            toast.error('Failed to load applications');
         }
     };
 
@@ -76,7 +71,7 @@ const TeacherDashboardOverview = () => {
                 setJobs(Array.isArray(data) ? data : []);
             }
         } catch (error) {
-            console.error(error);
+            toast.error('Failed to search schools');
         } finally {
             setLoading(false);
         }
@@ -95,13 +90,13 @@ const TeacherDashboardOverview = () => {
             });
             const data = await res.json();
             if (res.ok) {
-                alert('Applied successfully!');
+                toast.success('Applied successfully');
                 fetchApplications();
             } else {
-                alert(data.message || 'Failed to apply');
+                toast.error(data.message || 'Failed to apply');
             }
         } catch (error) {
-            alert('Network error');
+            toast.error('Network error');
         }
     };
 
@@ -121,43 +116,6 @@ const TeacherDashboardOverview = () => {
         { title: 'Homework Due Today', value: stats.homeworkDueToday, change: 'Assignments to grade', icon: Book, color: '#8b5cf6' },
         { title: 'Upcoming Exams', value: stats.upcomingExams, change: 'Next week', icon: FileSpreadsheet, color: '#ef4444' },
     ];
-
-    // Today's Classes
-    const todaysClasses = [
-        { id: 1, subject: 'Mathematics', class: 'Class 10-A', time: '09:00 AM - 10:00 AM', room: 'Room 101', students: 28 },
-        { id: 2, subject: 'Physics', class: 'Class 9-B', time: '10:15 AM - 11:15 AM', room: 'Lab 2', students: 30 },
-        { id: 3, subject: 'Mathematics', class: 'Class 10-B', time: '11:30 AM - 12:30 PM', room: 'Room 102', students: 29 },
-    ];
-
-    // Pending Tasks
-    const pendingTasks = [
-        { id: 1, title: 'Grade Math Quiz (10-A)', due: 'Today', type: 'grading', priority: 'high' },
-        { id: 2, title: 'Upload Physics Notes (9-B)', due: 'Tomorrow', type: 'upload', priority: 'medium' },
-        { id: 3, title: 'Mark Attendance (10-B)', due: 'Today', type: 'attendance', priority: 'high' },
-    ];
-
-    // Announcements
-    const announcements = [
-        { id: 1, title: 'Staff Meeting', date: 'Dec 5, 2025', content: 'Monthly staff meeting at 2:00 PM in the conference room.' },
-        { id: 2, title: 'Winter Break', date: 'Dec 20, 2025', content: 'School will remain closed for winter break from Dec 24.' },
-    ];
-
-    // Student Performance Data (for chart)
-    const performanceData = [
-        { name: 'Week 1', score: 75 },
-        { name: 'Week 2', score: 82 },
-        { name: 'Week 3', score: 78 },
-        { name: 'Week 4', score: 88 },
-        { name: 'Week 5', score: 85 },
-    ];
-
-    // Attendance Data (for donut chart)
-    const attendanceData = {
-        present: 135,
-        absent: 7,
-        late: 3,
-        total: 145
-    };
 
     return (
         <div className="teacher-dashboard-overview">

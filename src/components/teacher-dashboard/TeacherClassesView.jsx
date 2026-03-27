@@ -102,7 +102,7 @@ const TeacherClassesView = () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert('Material uploaded successfully!');
+                toast.success('Material uploaded successfully');
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }

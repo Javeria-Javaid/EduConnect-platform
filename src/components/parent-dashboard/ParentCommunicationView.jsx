@@ -1,13 +1,30 @@
-import React from 'react';
-import { MessageSquare, Send, User } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { MessageSquare } from 'lucide-react';
+import MessageModal from '../school-dashboard/teachers/MessageModal';
 import './ParentViews.css';
 
 const ParentCommunicationView = () => {
-    const messages = [
-        { id: 1, from: 'Mr. Johnson (Math Teacher)', subject: 'Student Progress Update', date: 'Dec 5, 2025', read: false },
-        { id: 2, from: 'School Admin', subject: 'Parent-Teacher Meeting Notice', date: 'Dec 4, 2025', read: true },
-        { id: 3, from: 'Ms. Smith (Science Teacher)', subject: 'Lab Report Feedback', date: 'Dec 3, 2025', read: true },
-    ];
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const me = await res.json();
+                    setCurrentUser(me.data || me);
+                }
+            } catch {
+                // no-op; user can retry by reopening
+            }
+        };
+        load();
+    }, []);
 
     return (
         <div className="parent-view-container">
@@ -23,26 +40,22 @@ const ParentCommunicationView = () => {
                         <MessageSquare size={20} className="text-gray-400" />
                     </div>
                     <div className="card-body">
-                        <div className="messages-list">
-                            {messages.map((msg) => (
-                                <div key={msg.id} className={`message-item ${!msg.read ? 'unread' : ''}`}>
-                                    <div className="message-avatar">
-                                        <User size={20} />
-                                    </div>
-                                    <div className="message-content">
-                                        <div className="message-header">
-                                            <h4>{msg.from}</h4>
-                                            <span className="message-date">{msg.date}</span>
-                                        </div>
-                                        <p className="message-subject">{msg.subject}</p>
-                                    </div>
-                                    {!msg.read && <div className="unread-indicator"></div>}
-                                </div>
-                            ))}
-                        </div>
+                        <p style={{ color: '#64748b', marginBottom: '12px' }}>
+                            Open your inbox to view teacher and school conversations.
+                        </p>
+                        <button className="btn-primary" onClick={() => setIsModalOpen(true)} disabled={!currentUser}>
+                            <MessageSquare size={16} style={{ marginRight: '8px' }} />
+                            Open Messaging
+                        </button>
                     </div>
                 </div>
             </div>
+            <MessageModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                initialRecipient={null}
+                currentUser={currentUser}
+            />
         </div>
     );
 };

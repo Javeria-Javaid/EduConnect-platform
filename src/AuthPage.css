@@ -248,7 +248,8 @@ h2 {
     margin-bottom: 20px;
 }
 
-.forgot-password-link a {
+.forgot-password-link a,
+.forgot-password-link .auth-link-button {
     color: #66a1be;
     /* Theme secondary color */
     font-size: 13px;
@@ -267,7 +268,9 @@ h2 {
 }
 
 .login-link-text a,
-.signup-link-text a {
+.signup-link-text a,
+.login-link-text .auth-link-button,
+.signup-link-text .auth-link-button {
     color: #66a1be;
     /* Theme secondary color */
     font-weight: 600;
@@ -276,8 +279,18 @@ h2 {
 }
 
 .login-link-text a:hover,
-.signup-link-text a:hover {
+.signup-link-text a:hover,
+.login-link-text .auth-link-button:hover,
+.signup-link-text .auth-link-button:hover {
     text-decoration: underline;
+}
+
+.auth-link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
 }
 
 /* =======================================

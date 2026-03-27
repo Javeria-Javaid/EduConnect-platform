@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FileText, Download, Plus, Save, Clock, Settings } from 'lucide-react';
+import { toast } from 'sonner';
 import './ReportSubSection.css';
 
 const CustomReports = () => {
@@ -32,7 +33,7 @@ const CustomReports = () => {
     const handleDownloadExcel = () => {
         try {
             if (selectedFields.length === 0) {
-                alert('Please select at least one field to export');
+                toast.error('Please select at least one field to export');
                 return;
             }
 
@@ -65,17 +66,16 @@ const CustomReports = () => {
                 URL.revokeObjectURL(url);
             }, 100);
 
-            console.log('Excel export successful:', reportName);
+            toast.success('Excel export successful');
         } catch (error) {
-            console.error('Excel export error:', error);
-            alert('Export failed. Please try again.');
+            toast.error('Export failed. Please try again.');
         }
     };
 
     const handleDownloadPDF = () => {
         try {
             if (selectedFields.length === 0) {
-                alert('Please select at least one field to export');
+                toast.error('Please select at least one field to export');
                 return;
             }
 
@@ -128,10 +128,9 @@ const CustomReports = () => {
                 URL.revokeObjectURL(url);
             }, 100);
 
-            console.log('PDF export successful:', reportName);
+            toast.success('PDF export successful');
         } catch (error) {
-            console.error('PDF export error:', error);
-            alert('Export failed. Please try again.');
+            toast.error('Export failed. Please try again.');
         }
     };
 

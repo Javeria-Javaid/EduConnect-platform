@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Shield, Check } from 'lucide-react';
-import { settingsMockData } from './mockData';
 import DataTable from '../shared/DataTable';
+import { toast } from 'sonner';
 
 const RolesPermissionsSettings = () => {
-    const [roles, setRoles] = useState(settingsMockData.roles);
+    const [roles, setRoles] = useState([
+        { id: 'school_admin', name: 'School Admin', users: 1, permissions: ['all'] },
+        { id: 'teacher', name: 'Teacher', users: 0, permissions: ['dashboard', 'students', 'attendance', 'homework', 'communication'] },
+        { id: 'parent', name: 'Parent', users: 0, permissions: ['dashboard', 'children', 'fees', 'messages'] },
+        { id: 'student', name: 'Student', users: 0, permissions: ['dashboard', 'courses', 'assignments'] },
+    ]);
 
     const columns = [
         {
@@ -34,8 +39,16 @@ const RolesPermissionsSettings = () => {
     ];
 
     const handleQuickAction = (row) => [
-        { label: 'Edit Role', icon: <Edit size={14} />, onClick: () => console.log('Edit', row) },
-        { label: 'Delete Role', icon: <Trash2 size={14} />, onClick: () => console.log('Delete', row) },
+        {
+            label: 'Edit Role',
+            icon: <Edit size={14} />,
+            onClick: () => toast.info(`Role editing is restricted for system role: ${row.name}`)
+        },
+        {
+            label: 'Delete Role',
+            icon: <Trash2 size={14} />,
+            onClick: () => toast.warning(`Cannot delete protected role: ${row.name}`)
+        },
     ];
 
     return (
@@ -45,7 +58,10 @@ const RolesPermissionsSettings = () => {
                     <h2 className="text-xl font-bold text-[var(--text-primary)]">Roles & Permissions</h2>
                     <p className="text-sm text-[var(--text-secondary)] mt-1">Manage access levels and user roles.</p>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-[var(--primary-color)] text-white rounded-[var(--border-radius-base)] text-sm font-semibold hover:opacity-90 transition-all shadow-sm">
+                <button
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--primary-color)] text-white rounded-[var(--border-radius-base)] text-sm font-semibold hover:opacity-90 transition-all shadow-sm"
+                    onClick={() => toast.info('Custom role creation will be enabled in the next release')}
+                >
                     <Plus size={16} />
                     Create New Role
                 </button>
