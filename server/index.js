@@ -37,7 +37,7 @@ connectDB();
 const app = express();
 const httpServer = createServer(app);
 
-const CORS_ORIGIN = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:5173'];
+const CORS_ORIGIN = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [];
 const io = new Server(httpServer, {
     cors: { origin: CORS_ORIGIN, credentials: true }
 });
@@ -111,6 +111,16 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         // cleanup 
     });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  const statusCode = err.status || 500;
+  console.error(`[Error] ${err.message}`);
+  res.status(statusCode).json({
+    message: err.message || 'Internal Server Error',
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+  });
 });
 
 const PORT = process.env.PORT || 5000;

@@ -95,7 +95,7 @@ export const getMe = async (req, res) => {
 export const oauthCallback = (req, res) => {
   try {
     const token = generateToken(req.user._id);
-    const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+    const frontendUrl = process.env.CORS_ORIGIN || '';
     res.redirect(`${frontendUrl}/oauth-success?token=${token}`);
   } catch (error) {
     console.error('OAuth callback error:', error.message);

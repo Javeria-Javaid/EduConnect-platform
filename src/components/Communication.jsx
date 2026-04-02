@@ -19,7 +19,7 @@ import {
 import { Label } from './ui/label.jsx';
 import { toast } from 'sonner';
 
-const ENDPOINT = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const ENDPOINT = import.meta.env.VITE_API_URL || '';
 var socket;
 
 export function Communication() {

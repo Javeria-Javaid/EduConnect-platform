@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import '../shared/SimpleModal.css';
 import './MessageModal.css';
 
-const ENDPOINT = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const ENDPOINT = import.meta.env.VITE_API_URL || '';
 var socket;
 
 const MessageModal = ({ isOpen, onClose, initialRecipient, currentUser }) => {
